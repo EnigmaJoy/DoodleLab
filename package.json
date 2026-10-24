@@ -1,0 +1,12 @@
+{
+  "name": "doodlelab",
+  "private": true,
+  "description": "A playful lab for building, testing and growing little ideas - Development and Research",
+  "packageManager": "pnpm@10.34.7",
+  "scripts": {
+    "p01:dev": "pnpm --filter p01-offline-crypto dev",
+    "p01:typecheck": "pnpm --filter p01-offline-crypto typecheck",
+    "p01:test": "pnpm --filter p01-offline-crypto test",
+    "p01:build": "pnpm --filter p01-offline-crypto build"
+  }
+}

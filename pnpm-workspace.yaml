@@ -1,0 +1,4 @@
+# Each prototype becomes a workspace package only when it has its own package.json.
+# P-02 and P-03 are not initialized yet, so pnpm ignores them.
+packages:
+  - "prototypes/*"

@@ -147,3 +147,13 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# JetBrains WebStorm local settings
+.idea/
+
+# Build and test output
+dist/
+coverage/
+
+# macOS metadata
+.DS_Store
