@@ -1,0 +1,581 @@
+/* app/globals.css */
+@import "tailwindcss";
+
+/* ============================================================
+   SHARED SEMANTIC TOKENS
+   Values here are identical across all eight palettes.
+   ============================================================ */
+
+:root {
+  /* Gradient */
+  --gradient-angle: 90deg;
+
+  /* Typography */
+  --text-primary: #ffffff;
+
+  /* Button */
+  --btn-surface: rgba(255, 255, 255, 0.90);
+  --btn-label:   #1a1a1a;
+
+  /* Radial item */
+  --item-border: rgba(255, 255, 255, 0.70);
+  --item-bg:     rgba(255, 255, 255, 0.08);
+
+  /* Center button */
+  --center-bg:     rgba(255, 255, 255, 0.15);
+  --center-border: rgba(255, 255, 255, 0.80);
+
+  /* Focus ring - dual layer: white outline + dark inner shadow */
+  --focus-ring:    #ffffff;
+  --focus-ring-bg: rgba(0, 0, 0, 0.40);
+
+  /* Radial geometry - provisional; calibrate during visual review */
+  --radial-radius:      clamp(120px, 20vmin, 160px);
+  --radial-center-size: 88px;
+  --radial-item-size:   72px;
+
+  /* Animation tokens - PROVISIONAL; calibrate against reference video */
+  --anim-screen-fade:      350ms;
+  --anim-item-expand:      500ms;
+  --anim-item-opacity:     320ms;
+  --anim-center-crossfade: 200ms;
+  /* Expo ease-out: fast launch, long smooth deceleration, no bounce */
+  --anim-item-easing:      cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ============================================================
+   PALETTE GRADIENT OVERRIDES
+   UI-08: all values PROVISIONAL - calibrate against reference tavole
+   Only gradient-start and gradient-end differ between palettes.
+   ============================================================ */
+
+/* UI-08: values PROVISIONAL - calibrate against reference tavole */
+[data-palette="1"] { --gradient-start: #581c87; --gradient-end: #be123c; } /* Prugna / Corallo - animation reference */
+[data-palette="2"] { --gradient-start: #3b82f6; --gradient-end: #a855f7; } /* Blu / Viola */
+[data-palette="3"] { --gradient-start: #22c55e; --gradient-end: #0d9488; } /* Verde / Teal */
+[data-palette="4"] { --gradient-start: #dc2626; --gradient-end: #f97316; } /* Cremisi / Arancione */
+[data-palette="5"] { --gradient-start: #1e3a5f; --gradient-end: #2563eb; } /* Navy / Blu */
+[data-palette="6"] { --gradient-start: #7c3aed; --gradient-end: #dc2626; } /* Viola / Rosso */
+[data-palette="7"] { --gradient-start: #65a30d; --gradient-end: #92400e; } /* Oliva / Marrone */
+[data-palette="8"] { --gradient-start: #475569; --gradient-end: #0d9488; } /* Ardesia / Teal */
+
+/* ============================================================
+   BASE RESET
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+/* ============================================================
+   SCREEN VISIBILITY
+   inert is the behavioral gate. opacity/visibility are cosmetic only.
+   ============================================================ */
+
+.screen {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity var(--anim-screen-fade) ease,
+    visibility 0ms 0ms;
+}
+
+.screen[data-hidden] {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--anim-screen-fade) ease,
+    visibility 0ms var(--anim-screen-fade);
+}
+
+/* ============================================================
+   WELCOME SCREEN
+   ============================================================ */
+
+.welcome-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  height: 100dvh;
+  background: linear-gradient(
+    var(--gradient-angle),
+    var(--gradient-start),
+    var(--gradient-end)
+  );
+  padding:
+    env(safe-area-inset-top, 0px)
+    env(safe-area-inset-right, 0px)
+    env(safe-area-inset-bottom, 0px)
+    env(safe-area-inset-left, 0px);
+}
+
+.welcome-main {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  height:          100%;
+  gap:             48px;
+  /* Horizontal padding prevents the wide script text from touching viewport edges */
+  padding:         0 clamp(1rem, 5vw, 3rem);
+}
+
+/* Visually hidden but available to screen readers */
+.sr-only {
+  position:   absolute;
+  width:      1px;
+  height:     1px;
+  padding:    0;
+  margin:     -1px;
+  overflow:   hidden;
+  clip:       rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border:     0;
+}
+
+/* Tap/click target wrapping the animated "Welcome" text */
+.welcome-replay-btn {
+  background: none;
+  border:     none;
+  padding:    8px;
+  margin:     -8px;
+  cursor:     pointer;
+  overflow:   visible;
+}
+
+.welcome-replay-btn:focus-visible {
+  outline:        3px solid var(--focus-ring);
+  outline-offset: 8px;
+  border-radius:  4px;
+  box-shadow:     0 0 0 1px var(--focus-ring-bg);
+}
+
+/* Grid stacks stroke and fill layers without absolute positioning */
+.welcome-text-wrapper {
+  display:               grid;
+  grid-template-columns: max-content;
+  overflow:              visible;
+}
+
+.welcome-stroke,
+.welcome-fill {
+  grid-area:      1 / 1;
+  font-family:    var(--font-welcome), cursive;
+  /* 15vw keeps "Welcome" within viewport at all common widths;
+     clamp floor/ceiling for very narrow and very wide screens */
+  font-size:      clamp(3.5rem, 15vw, 12rem);
+  font-weight:    400;
+  line-height:    1.3;
+  letter-spacing: 0.01em;
+  user-select:    none;
+}
+
+/* Layer 1: stroke outline, revealed left-to-right via clip-path */
+.welcome-stroke {
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.90);
+  color:               transparent;
+  clip-path:           inset(0 100% 0 0);
+  animation:           draw-stroke 3s cubic-bezier(0.45, 0, 0.25, 1) 0.3s both;
+}
+
+/* Layer 2: white fill, fades in mid-stroke */
+.welcome-fill {
+  color:     #ffffff;
+  animation: fill-in 0.9s ease 2.7s both;
+}
+
+@keyframes draw-stroke {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0% 0 0); }
+}
+
+@keyframes fill-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.inizia-button {
+  min-height:     56px;
+  min-width:      44px;
+  padding:        0 36px;
+  border-radius:  28px;
+  background:     rgba(255, 255, 255, 0.20);
+  color:          #ffffff;
+  border:         2px solid rgba(255, 255, 255, 0.85);
+  font-size:      1.125rem;
+  font-weight:    700;
+  letter-spacing: 0.03em;
+  cursor:         pointer;
+  animation:      welcome-button-appear 600ms ease 3.4s both;
+}
+
+/* Block interaction until animation completes (JS adds .ready class) */
+.inizia-button:not(.ready) {
+  pointer-events: none;
+}
+
+.inizia-button:hover {
+  background: rgba(255, 255, 255, 0.30);
+}
+
+.inizia-button:focus-visible {
+  outline:        3px solid var(--focus-ring);
+  outline-offset: 3px;
+  box-shadow:     0 0 0 1px var(--focus-ring-bg);
+}
+
+@keyframes welcome-button-appear {
+  from {
+    opacity:   0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity:   1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================
+   RADIAL MENU
+   ============================================================ */
+
+.radial-menu {
+  position: fixed;
+  inset:    0;
+  z-index:  2;
+  display:          flex;
+  align-items:      center;
+  justify-content:  center;
+  background: linear-gradient(
+    var(--gradient-angle),
+    var(--gradient-start),
+    var(--gradient-end)
+  );
+}
+
+.radial-bg {
+  position: absolute;
+  inset:    0;
+}
+
+.radial-items {
+  position:        absolute;
+  inset:           0;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+}
+
+/* Radial item: closed state (default) */
+.radial-item {
+  position:   absolute;
+  top:        50%;
+  left:       50%;
+  transform:  translate(-50%, -50%);
+  opacity:    0;
+  transition:
+    transform var(--anim-item-expand) var(--anim-item-easing),
+    opacity   var(--anim-item-opacity) ease;
+  transition-delay: var(--stagger, 0ms);
+
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  gap:             6px;
+  text-decoration: none;
+  color:           var(--text-primary);
+  min-height:      44px;
+  min-width:       44px;
+  padding:         8px;
+}
+
+/* Radial item: open state */
+.radial-item[data-open] {
+  transform: translate(
+    calc(-50% + var(--tx-unit) * var(--radial-radius)),
+    calc(-50% + var(--ty-unit) * var(--radial-radius))
+  );
+  opacity: 1;
+}
+
+.radial-item:hover .item-circle {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.radial-item:focus-visible {
+  outline:        3px solid var(--focus-ring);
+  outline-offset: 3px;
+  box-shadow:     0 0 0 1px var(--focus-ring-bg);
+  border-radius:  50%;
+}
+
+.item-circle {
+  width:           var(--radial-item-size);
+  height:          var(--radial-item-size);
+  border-radius:   50%;
+  border:          2px solid var(--item-border);
+  background:      var(--item-bg);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  flex-shrink:     0;
+  transition:      background 150ms ease;
+}
+
+.item-label {
+  font-size:   0.75rem;
+  font-weight: 500;
+  text-align:  center;
+  white-space: nowrap;
+}
+
+/* Center button */
+.radial-center {
+  position:        relative;
+  z-index:         1;
+  width:           var(--radial-center-size);
+  height:          var(--radial-center-size);
+  border-radius:   50%;
+  border:          2px solid var(--center-border);
+  background:      var(--center-bg);
+  cursor:          pointer;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  flex-shrink:     0;
+  transition:      background 150ms ease;
+}
+
+.radial-center:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.radial-center:focus-visible {
+  outline:        3px solid var(--focus-ring);
+  outline-offset: 3px;
+  box-shadow:     0 0 0 1px var(--focus-ring-bg);
+}
+
+/* App name (visible when MENU_OPEN) */
+.app-name {
+  font-size:   0.875rem;
+  font-weight: 500;
+  color:       var(--text-primary);
+  transition:  opacity var(--anim-center-crossfade) ease;
+  position:    absolute;
+}
+
+.app-name[data-hidden] {
+  opacity:        0;
+  pointer-events: none;
+}
+
+/* Compact hamburger icon (visible when MENU_CLOSED) */
+.compact-icon {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  color:           var(--text-primary);
+  transition:      opacity var(--anim-center-crossfade) ease;
+  position:        absolute;
+}
+
+.compact-icon[data-hidden] {
+  opacity:        0;
+  pointer-events: none;
+}
+
+/* ============================================================
+   SECTION PLACEHOLDER
+   ============================================================ */
+
+.section-placeholder {
+  display:          flex;
+  flex-direction:   column;
+  align-items:      center;
+  justify-content:  center;
+  min-height:       100dvh;
+  padding:          2rem;
+  gap:              1.5rem;
+  background: linear-gradient(
+    var(--gradient-angle),
+    var(--gradient-start),
+    var(--gradient-end)
+  );
+}
+
+.section-placeholder h1 {
+  color:       var(--text-primary);
+  font-size:   clamp(2rem, 6vw, 4rem);
+  font-weight: 700;
+}
+
+.section-placeholder .not-implemented {
+  color:     rgba(255, 255, 255, 0.80);
+  font-size: 1rem;
+}
+
+.section-placeholder .back-link {
+  color:           var(--text-primary);
+  font-size:       1rem;
+  font-weight:     500;
+  text-decoration: underline;
+  min-height:      44px;
+  padding:         0.5rem 1.5rem;
+  display:         inline-flex;
+  align-items:     center;
+  border-radius:   4px;
+}
+
+.section-placeholder .back-link:focus-visible {
+  outline:        3px solid var(--focus-ring);
+  outline-offset: 3px;
+  box-shadow:     0 0 0 1px var(--focus-ring-bg);
+}
+
+/* ============================================================
+   PALETTE SWITCHER (dev tool)
+   ============================================================ */
+
+.palette-switcher {
+  position:    fixed;
+  bottom:      1rem;
+  right:       1rem;
+  z-index:     9999;
+  font-size:   0.75rem;
+  font-family: monospace;
+}
+
+.palette-switcher-toggle {
+  background:    rgba(0, 0, 0, 0.75);
+  color:         #ffffff;
+  border:        1px solid rgba(255, 255, 255, 0.30);
+  border-radius: 4px;
+  padding:       0.25rem 0.5rem;
+  cursor:        pointer;
+  font-size:     0.75rem;
+  font-family:   monospace;
+}
+
+.palette-switcher-toggle:focus-visible {
+  outline:        2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.palette-switcher-panel {
+  background:    rgba(0, 0, 0, 0.85);
+  border:        1px solid rgba(255, 255, 255, 0.20);
+  border-radius: 6px;
+  padding:       0.75rem;
+  margin-bottom: 0.5rem;
+  display:       flex;
+  flex-direction: column;
+  gap:           0.375rem;
+  min-width:     200px;
+}
+
+.palette-switcher-item {
+  background:    transparent;
+  color:         #ffffff;
+  border:        1px solid rgba(255, 255, 255, 0.20);
+  border-radius: 3px;
+  padding:       0.25rem 0.5rem;
+  cursor:        pointer;
+  text-align:    left;
+  font-size:     0.75rem;
+  font-family:   monospace;
+}
+
+.palette-switcher-item[aria-pressed="true"] {
+  background:   rgba(255, 255, 255, 0.20);
+  border-color: rgba(255, 255, 255, 0.60);
+}
+
+.palette-switcher-item:focus-visible {
+  outline:        2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   RADIAL FALLBACK
+   Accessible linear list on narrow viewports (< 500px provisional).
+   Both layouts share #radial-items and inherit its inert state.
+   The center button (z-index: 1) sits above both layouts.
+   ============================================================ */
+
+.radial-items-fallback {
+  display: none;
+}
+
+@media (max-width: 500px) {
+  .radial-items-radial {
+    display: none;
+  }
+
+  .radial-items {
+    align-items: flex-start;
+  }
+
+  .radial-items-fallback {
+    display:          flex;
+    flex-direction:   column;
+    align-items:      center;
+    gap:              0.75rem;
+    list-style:       none;
+    padding:          1.5rem 1.5rem calc(var(--radial-center-size) + 2rem);
+    width:            100%;
+    overflow-y:       auto;
+  }
+
+  .radial-items-fallback a {
+    color:            var(--text-primary);
+    text-decoration:  none;
+    font-size:        1.125rem;
+    font-weight:      500;
+    min-height:       44px;
+    padding:          0.5rem 1.5rem;
+    display:          flex;
+    align-items:      center;
+    justify-content:  center;
+    border:           1px solid var(--item-border);
+    border-radius:    9999px;
+    background:       var(--item-bg);
+    width:            100%;
+    max-width:        280px;
+  }
+
+  .radial-items-fallback a:hover {
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  .radial-items-fallback a:focus-visible {
+    outline:        3px solid var(--focus-ring);
+    outline-offset: 3px;
+    box-shadow:     0 0 0 1px var(--focus-ring-bg);
+    border-radius:  9999px;
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration:  0ms !important;
+    transition-delay:     0ms !important;
+    animation-duration:   0ms !important;
+    animation-delay:      0ms !important;
+  }
+}
