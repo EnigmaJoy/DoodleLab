@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p prototypes)",
+      "Bash(pnpm dlx:*)",
+      "Bash(pnpm exec:*)",
+      "Bash(pnpm run:*)"
+    ]
+  }
+}
