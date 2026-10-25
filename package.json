@@ -3,7 +3,9 @@
   "private": true,
   "scripts": {
     "dev": "pnpm --filter ui-shell dev",
-    "build": "pnpm --filter ui-shell build",
-    "start": "pnpm --filter ui-shell start"
+    "dev:api": "pnpm --filter agenda-api dev",
+    "build": "pnpm --filter ui-shell build && pnpm --filter agenda-api build",
+    "start": "pnpm --filter ui-shell start",
+    "start:api": "pnpm --filter agenda-api start"
   }
 }

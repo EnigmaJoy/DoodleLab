@@ -2,7 +2,6 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import type { AppView } from '@/lib/types'
 import { WelcomeScreen } from './WelcomeScreen'
 import { RadialMenu } from './RadialMenu'
@@ -13,7 +12,6 @@ interface AppShellProps {
 
 export function AppShell({ initialView }: AppShellProps) {
   const [view, setView] = useState<AppView>(initialView)
-  const router          = useRouter()
 
   // prevViewRef distinguishes mount from genuine in-app transitions.
   // - On initial mount: prevView is null -> skip focus assignment.
@@ -24,16 +22,25 @@ export function AppShell({ initialView }: AppShellProps) {
   const firstFallbackItemRef = useRef<HTMLAnchorElement | null>(null)
   const centerButtonRef      = useRef<HTMLButtonElement | null>(null)
 
-  // handleStart: the only transition that writes to the URL.
-  // router.replace (not push) ensures Browser Back from a section lands at
-  // /?view=menu rather than replaying the Welcome screen.
-  function handleStart() {
-    setView('MENU_OPEN')
-    router.replace('/?view=menu')
+  // Increment B: redirect to NestJS /api/auth/login which initiates the Keycloak OIDC flow.
+  // On successful authentication, Keycloak redirects back to /api/auth/callback, NestJS
+  // creates a session, and the browser is redirected to /?view=menu.
+  function handleLogin() {
+    const loginUrl = process.env['NEXT_PUBLIC_AUTH_LOGIN_URL']
+    if (loginUrl) {
+      window.location.href = loginUrl
+    }
+    // AUTH_CONFIGURED=false: WelcomeScreen shows the unavailable state before calling this.
+    // This handler is only reached when AUTH_CONFIGURED=true.
   }
 
-  // Returns the ref for the first visible menu item based on the active layout.
-  // window.matchMedia detects the layout without duplicating React state.
+  function handleRegister() {
+    const registerUrl = process.env['NEXT_PUBLIC_AUTH_REGISTER_URL']
+    if (registerUrl) {
+      window.location.href = registerUrl
+    }
+  }
+
   function getFirstMenuItemRef(): HTMLAnchorElement | null {
     if (typeof window === 'undefined') return firstItemRef.current
     const isFallback = window.matchMedia('(max-width: 500px)').matches
@@ -44,8 +51,8 @@ export function AppShell({ initialView }: AppShellProps) {
     const prevView      = prevViewRef.current
     prevViewRef.current = view
 
-    if (prevView === null) return   // initial mount - no focus
-    if (prevView === view) return   // Strict Mode double-invoke - no focus
+    if (prevView === null) return
+    if (prevView === view) return
 
     if (view === 'MENU_OPEN') {
       getFirstMenuItemRef()?.focus()
@@ -58,7 +65,8 @@ export function AppShell({ initialView }: AppShellProps) {
     <>
       <WelcomeScreen
         visible={view === 'WELCOME'}
-        onStart={handleStart}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
       />
       <RadialMenu
         visible={view !== 'WELCOME'}

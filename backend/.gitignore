@@ -1,0 +1,11 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+coverage/
+
+# Dependencies
+node_modules/

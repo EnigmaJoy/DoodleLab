@@ -233,6 +233,54 @@ body {
   box-shadow:     0 0 0 1px var(--focus-ring-bg);
 }
 
+/* Welcome action container: stacks Accedi and Registrati with consistent spacing */
+.welcome-actions {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            12px;
+}
+
+/* Secondary registration action - visually subordinate to Accedi */
+.register-button {
+  min-height:     44px;
+  min-width:      44px;
+  padding:        0 24px;
+  border-radius:  22px;
+  background:     transparent;
+  color:          rgba(255, 255, 255, 0.80);
+  border:         1px solid rgba(255, 255, 255, 0.45);
+  font-size:      0.875rem;
+  font-weight:    500;
+  letter-spacing: 0.03em;
+  cursor:         pointer;
+  animation:      welcome-button-appear 600ms ease 3.4s both;
+}
+
+.register-button:not(.ready) {
+  pointer-events: none;
+}
+
+.register-button:hover {
+  color:        rgba(255, 255, 255, 1);
+  border-color: rgba(255, 255, 255, 0.70);
+}
+
+.register-button:focus-visible {
+  outline:        3px solid var(--focus-ring);
+  outline-offset: 3px;
+  box-shadow:     0 0 0 1px var(--focus-ring-bg);
+}
+
+/* Inline unavailable state shown when auth is not yet configured */
+.auth-unavailable {
+  color:       rgba(255, 220, 100, 0.95);
+  font-size:   0.875rem;
+  text-align:  center;
+  line-height: 1.5;
+  max-width:   280px;
+}
+
 @keyframes welcome-button-appear {
   from {
     opacity:   0;
