@@ -1,5 +1,12 @@
 // lib/calendar-mock.ts
 
+/**
+ * MOCK_ITEMS are synthetic development fixtures, not user data. Oggi reads the
+ * same items (same ids) as Calendario and labels them as sample data while
+ * this flag is true. Replace with a real calendar repository later.
+ */
+export const CALENDAR_SOURCE_IS_FIXTURE = true
+
 export type EventKind = 'event' | 'reminder' | 'postit'
 
 export interface CalendarItem {

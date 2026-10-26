@@ -101,7 +101,7 @@ function GroupChip({ groupId, count, onClick, chipRef }: GroupChipProps) {
 interface GroupItemCardProps {
   item: CalendarItem
 }
-function GroupItemCard({ item }: GroupItemCardProps) {
+export function GroupItemCard({ item }: GroupItemCardProps) {
   const isPostit   = item.kind === 'postit'
   const isEvent    = item.kind === 'event'
   const isReminder = item.kind === 'reminder'
