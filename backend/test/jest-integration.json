@@ -1,0 +1,17 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": "..",
+  "testMatch": ["**/test/integration/**/*.int-spec.ts"],
+  "extensionsToTreatAsEsm": [".ts"],
+  "transform": {
+    "^.+\\.(t|j)s$": ["ts-jest", {
+      "useESM": true,
+      "tsconfig": { "module": "ESNext", "moduleResolution": "bundler" }
+    }]
+  },
+  "transformIgnorePatterns": [
+    "node_modules/(?!(openid-client|oauth4webapi)/)"
+  ],
+  "testEnvironment": "node",
+  "testTimeout": 30000
+}

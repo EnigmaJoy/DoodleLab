@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from 'react'
 import type { AppView } from '@/lib/types'
 import { WelcomeScreen } from './WelcomeScreen'
 import { RadialMenu } from './RadialMenu'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 interface AppShellProps {
   initialView: AppView
@@ -12,6 +13,9 @@ interface AppShellProps {
 
 export function AppShell({ initialView }: AppShellProps) {
   const [view, setView] = useState<AppView>(initialView)
+
+  const currentUser = useCurrentUser()
+  void currentUser  // prevent unused-variable warning
 
   // prevViewRef distinguishes mount from genuine in-app transitions.
   // - On initial mount: prevView is null -> skip focus assignment.

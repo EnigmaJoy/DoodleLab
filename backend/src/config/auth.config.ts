@@ -10,6 +10,10 @@ export interface AuthConfig {
   sessionSecret: string
   sessionTtlSeconds: number
   allowedOrigins: string[]
+  keycloakBffClientSecret: string
+  tokenEncryptionKey:      string
+  frontendAppUrl:          string
+  databaseUrl:             string
 }
 
 export const authConfig = (): { auth: AuthConfig } => ({
@@ -20,7 +24,11 @@ export const authConfig = (): { auth: AuthConfig } => ({
     keycloakAudience:    process.env['KEYCLOAK_AUDIENCE'] ?? '',
     keycloakRequiredAcr: process.env['KEYCLOAK_REQUIRED_ACR'] ?? '',
     sessionSecret:       process.env['SESSION_SECRET'] ?? '',
-    sessionTtlSeconds:   parseInt(process.env['SESSION_TTL_SECONDS'] ?? '3600', 10),
+    sessionTtlSeconds:   parseInt(process.env['SESSION_TTL_SECONDS'] ?? '1800', 10),
     allowedOrigins:      (process.env['ALLOWED_ORIGINS'] ?? '').split(',').filter(Boolean),
+    keycloakBffClientSecret: process.env['KEYCLOAK_BFF_CLIENT_SECRET'] ?? '',
+    tokenEncryptionKey:      process.env['TOKEN_ENCRYPTION_KEY'] ?? '',
+    frontendAppUrl:          process.env['FRONTEND_APP_URL'] ?? 'http://localhost:3000/?view=menu',
+    databaseUrl:             process.env['DATABASE_URL'] ?? '',
   },
 })

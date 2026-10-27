@@ -6,14 +6,11 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import type { Request } from 'express'
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator'
 import { SKIP_MFA_KEY } from '../decorators/skip-mfa.decorator'
 import { SESSION_STORE } from '../types/session-store.interface'
 import type { SessionStore } from '../types/session-store.interface'
-import type { AuthenticatedUser } from '../types/authenticated-user'
-
-type RequestWithUser = Request & { user?: AuthenticatedUser }
+import type { RequestWithSession } from '../types/request-with-session'
 
 // Deny-by-default authentication guard registered as APP_GUARD.
 // All routes are protected unless decorated @Public().
@@ -35,7 +32,7 @@ export class SessionGuard implements CanActivate {
     ])
     if (isPublic) return true
 
-    const request   = context.switchToHttp().getRequest<RequestWithUser>()
+    const request   = context.switchToHttp().getRequest<RequestWithSession>()
     const sessionId = (request.cookies as Record<string, string> | undefined)?.['session_id']
 
     if (!sessionId) throw new UnauthorizedException()
@@ -51,7 +48,9 @@ export class SessionGuard implements CanActivate {
 
     if (!skipMfa && session.acr !== this.requiredAcr) throw new UnauthorizedException()
 
-    request.user = session.user
+    request.session   = session
+    request.sessionId = sessionId
+    request.user      = session.user
     return true
   }
 }

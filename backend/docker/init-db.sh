@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+  CREATE USER keycloak_user WITH PASSWORD '$KEYCLOAK_DB_PASSWORD';
+  CREATE USER agenda_user   WITH PASSWORD '$AGENDA_DB_PASSWORD';
+  CREATE DATABASE keycloak  OWNER keycloak_user;
+  CREATE DATABASE agenda_app OWNER agenda_user;
+  REVOKE ALL ON DATABASE keycloak   FROM PUBLIC;
+  REVOKE ALL ON DATABASE agenda_app FROM PUBLIC;
+EOSQL

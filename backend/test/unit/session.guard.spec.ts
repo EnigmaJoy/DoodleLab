@@ -12,9 +12,12 @@ const REQUIRED_ACR = '2'
 
 function makeRecord(overrides: Partial<SessionRecord> = {}): SessionRecord {
   return {
-    user:      { sub: 'user-abc', acr: REQUIRED_ACR },
-    acr:       REQUIRED_ACR,
-    expiresAt: Date.now() + 60_000,
+    user:                   { sub: 'user-abc', acr: REQUIRED_ACR },
+    acr:                    REQUIRED_ACR,
+    csrfToken:              'csrf-test',
+    encryptedRefreshToken:  'nonce:cipher:tag',
+    encryptedIdToken:       'nonce:cipher:tag',
+    expiresAt:              Date.now() + 60_000,
     ...overrides,
   }
 }
