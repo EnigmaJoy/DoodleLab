@@ -244,20 +244,18 @@ authenticator with LoA level 2. Verify this behavior by:
 Authentication -> Required Actions -> "Configure OTP" should be Enabled (not default).
 This allows first-time TOTP enrollment during the post-broker flow.
 
-### Step 4f -- Registration endpoint (Keycloak 26.8.1 specific)
+### Step 4f -- Self-registration is disabled
 
-Test whether a dedicated registration endpoint is available:
+The realm sets `registrationAllowed: false`, so the Keycloak login page shows no "Register"
+link and the `registrations` endpoint is not offered. New users are created only through the
+Google identity provider (first broker login), which then forces TOTP enrollment.
 
-```bash
-curl -sv "http://localhost:8080/realms/agenda/protocol/openid-connect/registrations\
-?client_id=agenda-bff&response_type=code\
-&redirect_uri=http://localhost:3000/api/auth/callback" 2>&1 | grep -E "^< HTTP|Location:"
-```
+Since this change, `kc_idp_hint=google` is sent for both `/api/auth/login` and
+`/api/auth/register`. It is a UX shortcut (it skips the Keycloak login page), not a security
+control: the security boundary is the disabled self-registration plus the post-broker OTP flow.
 
-- If `302` with a Location header -> registration UI available; update `OidcClientService`
-  in `backend/src/auth/oidc/oidc-client.service.ts` to use `registrations` endpoint for
-  `flow === 'register'` (replace the `kc_idp_hint` approach)
-- If `404` or same as standard auth endpoint -> document here; keep `kc_idp_hint` workaround
+A running realm created before this change still has self-registration enabled: see
+Section 13 for the procedure to align it.
 
 ---
 
@@ -297,6 +295,11 @@ cd prototypes/ui-shell && pnpm dev
 7. Enter the 6-digit code to confirm enrollment
 8. Browser redirects to `http://localhost:3000/?view=menu`
 9. Radial menu renders; all existing animations and section navigation must be intact
+
+**Cancellation scenario:** on the Keycloak/Google screen, cancel (or deny consent). The
+callback now redirects to `http://localhost:3000/?auth_error=cancelled`; the Welcome screen
+strips the query parameter and shows the cancel line. Any other callback failure (expired or
+replayed `auth_tx`, token exchange error, ACR below 2) redirects with `?auth_error=failed`.
 
 Verify ACR 2 session via browser DevTools or curl:
 ```bash
@@ -364,8 +367,8 @@ following Sections 6-8 of this guide.
   password prompt but will still require TOTP (new Keycloak session = no ACR 2 yet).
 - **Secure flag:** session cookies do not set `secure: true`; that requires HTTPS (B-2).
 - **ACR 2 LoA enforcement:** requires live Keycloak verification (see Step 4d). If Keycloak
-  does not return `acr=2` after post-broker OTP, the BFF will correctly reject with 401
-  (fail-safe), but the auth flow will not complete until LoA is configured correctly.
+  does not return `acr=2` after post-broker OTP, the BFF will correctly reject by redirecting
+  to `/?auth_error=failed` (fail-safe, no session created), but the auth flow will not complete until LoA is configured correctly.
 
 ---
 
@@ -375,7 +378,7 @@ following Sections 6-8 of this guide.
 |---------|-------|-----|
 | NestJS exits on start | Missing required env var | Check Joi validation error in logs |
 | "OIDC discovery failed" | Keycloak not healthy or wrong ISSUER_URL | `docker compose ps`; check `KEYCLOAK_ISSUER_URL` |
-| 400 on callback | Expired or replayed `auth_tx` | Retry login from the beginning |
+| Redirect to `/?auth_error=failed` after callback | Expired or replayed `auth_tx`, token exchange error, or ACR < 2 | Retry login from the beginning; see BFF logs (`Auth callback failed: ... (reason)`) |
 | 401 after long inactivity | Session expired (30 min TTL) | Re-authenticate |
 | Section page redirects to login | `session_id` cookie absent or `Path` mismatch | Check `Path=/` on `session_id` cookie in DevTools |
 | CSRF 403 on logout | `X-CSRF-Token` header not sent | Ensure `apiFetch` is used for POST calls |
@@ -407,3 +410,85 @@ Variable substitution in the skeleton:
 - `${GOOGLE_CLIENT_SECRET}` -- Google OAuth client secret
 - `${KEYCLOAK_REDIRECT_URI}` -- NestJS BFF callback (`http://localhost:3000/api/auth/callback`)
 - `${FRONTEND_URL}` -- Next.js origin (`http://localhost:3000`)
+
+---
+
+## 13. Realm drift: disabling self-registration on an existing realm
+
+`--import-realm` **skips a realm that already exists**. Changing `registrationAllowed` in
+`backend/keycloak/agenda-realm.json` therefore only affects fresh databases. An existing
+local Keycloak keeps `registrationAllowed: true` until you update it as below.
+
+Run these in a Windows PowerShell session from the `backend/` directory. The first four
+commands after login are read-only. Never delete, re-import, reset or recreate the realm, and
+never run `docker compose down -v` for this.
+
+Run all steps against the same running container; do not restart or recreate it between
+steps (kcadm keeps its login inside the container).
+
+**1. Log in to kcadm.** Type the admin user from `backend/.env.local` (`KEYCLOAK_ADMIN_USER`)
+in place of `<admin-user>`. `--password` is omitted on purpose: kcadm prompts for it, so the
+secret never enters your shell history. Do not echo the password.
+
+```powershell
+docker compose exec -it keycloak /opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user <admin-user>
+```
+
+**2. Inspect the realm (read-only).**
+
+```powershell
+docker compose exec keycloak /opt/keycloak/bin/kcadm.sh get realms/agenda --fields registrationAllowed,registrationEmailAsUsername
+docker compose exec keycloak /opt/keycloak/bin/kcadm.sh get identity-provider/instances/google -r agenda --fields alias,enabled,firstBrokerLoginFlowAlias,postBrokerLoginFlowAlias,trustEmail,storeToken
+docker compose exec keycloak /opt/keycloak/bin/kcadm.sh get authentication/flows/post%20broker%20login%20with%20otp/executions -r agenda
+docker compose exec keycloak /opt/keycloak/bin/kcadm.sh get authentication/required-actions/CONFIGURE_TOTP -r agenda
+```
+
+Expected before the change:
+
+| Item | Expected |
+|------|----------|
+| `registrationAllowed` | `true` (this is what we are changing) |
+| google IdP `enabled` | `true` |
+| `firstBrokerLoginFlowAlias` | `"first broker login"` |
+| `postBrokerLoginFlowAlias` | `"post broker login with otp"` |
+| `trustEmail` | `true` |
+| `storeToken` | `false` |
+| `auth-otp-form` execution `requirement` | `REQUIRED` |
+| `CONFIGURE_TOTP` `enabled` | `true` |
+
+Sample output of `get realms/agenda --fields registrationAllowed` after the update:
+
+```json
+{
+  "registrationAllowed" : false
+}
+```
+
+**If any value other than `registrationAllowed` differs, stop and report it. Do not change it.**
+
+**3. Apply the single change.**
+
+```powershell
+docker compose exec keycloak /opt/keycloak/bin/kcadm.sh update realms/agenda -s registrationAllowed=false
+```
+
+**4. Re-check.**
+
+```powershell
+docker compose exec keycloak /opt/keycloak/bin/kcadm.sh get realms/agenda --fields registrationAllowed,registrationEmailAsUsername
+```
+
+Expected: `"registrationAllowed" : false`. Re-run the other three `get` commands if you want to
+confirm nothing else moved (the values in the table above must be unchanged).
+
+**Rollback:**
+
+```powershell
+docker compose exec keycloak /opt/keycloak/bin/kcadm.sh update realms/agenda -s registrationAllowed=true
+```
+
+### Live verification (user-run, not yet executed)
+
+- [ ] The Keycloak login page offers no "Register" link.
+- [ ] A first sign-in with a never-seen Google account still creates the user through first
+      broker login and forces TOTP enrollment.

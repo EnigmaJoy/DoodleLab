@@ -63,10 +63,7 @@ export class OidcClientService implements OnModuleInit {
     url.searchParams.set('code_challenge',        challenge)
     url.searchParams.set('code_challenge_method', 'S256')
     url.searchParams.set('claims',                claimsParam)
-
-    if (params.flow === 'register') {
-      url.searchParams.set('kc_idp_hint', 'google')
-    }
+    url.searchParams.set('kc_idp_hint',           'google')
 
     return url.toString()
   }

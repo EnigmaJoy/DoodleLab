@@ -82,6 +82,23 @@ describe('OidcClientService', () => {
     })
   })
 
+  it('buildAuthorizationUrl sets kc_idp_hint=google for login and register', async () => {
+    mockDiscovery.mockResolvedValue(makeConfiguration())
+    const svc = new OidcClientService(makeConfig())
+    await svc.onModuleInit()
+
+    for (const flow of ['login', 'register'] as const) {
+      const url = new URL(svc.buildAuthorizationUrl({
+        state: 's', nonce: 'n', codeVerifier: 'v'.repeat(64), flow,
+      }))
+      expect(url.searchParams.get('kc_idp_hint')).toBe('google')
+      expect(url.searchParams.get('scope')).toBe('openid email profile')
+      expect(JSON.parse(url.searchParams.get('claims') ?? '{}')).toEqual({
+        id_token: { acr: { essential: true, values: ['2'] } },
+      })
+    }
+  })
+
   it('exchangeCode calls the mocked token endpoint with code and codeVerifier', async () => {
     mockDiscovery.mockResolvedValue(makeConfiguration())
     mockCodeGrant.mockResolvedValue({

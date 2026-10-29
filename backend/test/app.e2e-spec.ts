@@ -3,6 +3,7 @@ process.env['SESSION_SECRET']            = 'a'.repeat(32)
 process.env['TOKEN_ENCRYPTION_KEY']      = 'a'.repeat(64)
 process.env['KEYCLOAK_BFF_CLIENT_SECRET'] = 'test-secret'
 process.env['DATABASE_URL']              = 'postgresql://test:test@localhost:5432/test'
+process.env['FRONTEND_URL']              = 'http://localhost:3000'
 
 import { INestApplication } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
@@ -45,9 +46,9 @@ class InMemoryPendingAuthStore {
   }
 
   async consume(id: string, state: string) {
+    // Mirrors the PG store: only an exact id+state match on an unexpired row is deleted.
     const row = this.rows.get(id)
     if (!row || row.state !== state || row.expiresAt <= new Date()) {
-      this.rows.delete(id)
       return undefined
     }
     this.rows.delete(id)
@@ -217,40 +218,120 @@ describe('Auth endpoints (e2e)', () => {
   })
 
   // -- callback error cases --
-  it('callback: no auth_tx cookie -> 400', async () => {
+  function expectAuthErrorRedirect(res: request.Response, code: 'cancelled' | 'failed') {
+    expect(res.status).toBe(302)
+    expect(res.headers['location']).toBe(`http://localhost:3000/?auth_error=${code}`)
+    const setCookie = ((res.headers['set-cookie'] ?? []) as unknown) as string[]
+    expect(setCookie.some((c: string) => c.startsWith('session_id='))).toBe(false)
+    expect(setCookie.some((c: string) => c.startsWith('XSRF-TOKEN='))).toBe(false)
+    const txCookie = setCookie.find((c: string) => c.startsWith('auth_tx='))
+    expect(txCookie).toBeTruthy()
+    expect(txCookie).toMatch(/Max-Age=0/i)
+  }
+
+  function seedPending(id: string, state: string, expiresInMs = 60_000) {
+    inMemoryPendingAuthStore.seed(id, {
+      id, state, nonce: 'n', codeVerifier: 'cv', flow: 'login',
+      expiresAt: new Date(Date.now() + expiresInMs),
+    })
+  }
+
+  it('callback: no auth_tx cookie -> failed', async () => {
     const res = await request(app.getHttpServer()).get('/api/auth/callback?code=x&state=y')
-    expect(res.status).toBe(400)
+    expectAuthErrorRedirect(res, 'failed')
   })
 
-  it('callback: error param (user cancelled) -> 400', async () => {
+  it('callback: error=access_denied -> cancelled', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/auth/callback?error=access_denied')
       .set('Cookie', 'auth_tx=some-tx-id')
-    expect(res.status).toBe(400)
+    expectAuthErrorRedirect(res, 'cancelled')
   })
 
-  it('callback: wrong state -> 400', async () => {
-    inMemoryPendingAuthStore.seed('tx-id-1', {
-      id: 'tx-id-1', state: 'correct-state', nonce: 'n',
-      codeVerifier: 'cv', flow: 'login',
-      expiresAt: new Date(Date.now() + 60_000),
-    })
+  it('callback: error=server_error -> failed', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/auth/callback?error=server_error')
+      .set('Cookie', 'auth_tx=some-tx-id')
+    expectAuthErrorRedirect(res, 'failed')
+  })
+
+  it('callback: access_denied with state consumes the pending row; follow-up is failed', async () => {
+    seedPending('tx-cancel', 'state-c')
+    const first = await request(app.getHttpServer())
+      .get('/api/auth/callback?error=access_denied&state=state-c')
+      .set('Cookie', 'auth_tx=tx-cancel')
+    expectAuthErrorRedirect(first, 'cancelled')
+
+    const second = await request(app.getHttpServer())
+      .get('/api/auth/callback?code=c&state=state-c')
+      .set('Cookie', 'auth_tx=tx-cancel')
+    expectAuthErrorRedirect(second, 'failed')
+  })
+
+  it('callback: exchangeCode rejects -> failed', async () => {
+    mockOidc.exchangeCode.mockRejectedValueOnce(new Error('boom'))
+    seedPending('tx-exch', 'state-exch')
+    const res = await request(app.getHttpServer())
+      .get('/api/auth/callback?code=c&state=state-exch')
+      .set('Cookie', 'auth_tx=tx-exch')
+    expectAuthErrorRedirect(res, 'failed')
+  })
+
+  it('callback: hostile error params are never reflected', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/auth/callback?error=%3Cscript%3E&error_description=evil')
+      .set('Cookie', 'auth_tx=some-tx-id')
+    expect(res.status).toBe(302)
+    expect(res.headers['location']).toBe('http://localhost:3000/?auth_error=failed')
+  })
+
+  it('callback: wrong state -> failed', async () => {
+    seedPending('tx-id-1', 'correct-state')
     const res = await request(app.getHttpServer())
       .get('/api/auth/callback?code=c&state=wrong-state')
       .set('Cookie', 'auth_tx=tx-id-1')
-    expect(res.status).toBe(400)
+    expectAuthErrorRedirect(res, 'failed')
   })
 
-  it('callback: expired auth_tx -> 400', async () => {
-    inMemoryPendingAuthStore.seed('tx-expired', {
-      id: 'tx-expired', state: 'state-x', nonce: 'n',
-      codeVerifier: 'cv', flow: 'login',
-      expiresAt: new Date(Date.now() - 1000),
+  it('callback: wrong state does not destroy the legitimate transaction', async () => {
+    mockOidc.exchangeCode.mockResolvedValueOnce({
+      idTokenClaims: { sub: 'u1', acr: '2', nonce: 'n' },
+      refreshToken: 'rt', idTokenRaw: 'raw',
     })
+    seedPending('tx-keep', 'right-state')
+    const bad = await request(app.getHttpServer())
+      .get('/api/auth/callback?code=c&state=wrong-state')
+      .set('Cookie', 'auth_tx=tx-keep')
+    expectAuthErrorRedirect(bad, 'failed')
+
+    const good = await request(app.getHttpServer())
+      .get('/api/auth/callback?code=c&state=right-state')
+      .set('Cookie', 'auth_tx=tx-keep')
+    expect(good.status).toBe(302)
+    expect(good.headers['location']).toBe('http://localhost:3000/?view=menu')
+    const setCookie = ((good.headers['set-cookie'] ?? []) as unknown) as string[]
+    expect(setCookie.some((c: string) => c.startsWith('session_id='))).toBe(true)
+    expect(setCookie.some((c: string) => c.startsWith('XSRF-TOKEN='))).toBe(true)
+  })
+
+  it('callback: consume throwing during failure handling still redirects and clears auth_tx', async () => {
+    const spy = jest.spyOn(inMemoryPendingAuthStore, 'consume').mockRejectedValueOnce(new Error('db down'))
+    try {
+      const res = await request(app.getHttpServer())
+        .get('/api/auth/callback?error=access_denied&state=x')
+        .set('Cookie', 'auth_tx=tx-dbdown')
+      expectAuthErrorRedirect(res, 'cancelled')
+    } finally {
+      spy.mockRestore()
+    }
+  })
+
+  it('callback: expired auth_tx -> failed', async () => {
+    seedPending('tx-expired', 'state-x', -1000)
     const res = await request(app.getHttpServer())
       .get('/api/auth/callback?code=c&state=state-x')
       .set('Cookie', 'auth_tx=tx-expired')
-    expect(res.status).toBe(400)
+    expectAuthErrorRedirect(res, 'failed')
   })
 
   // -- callback success --
@@ -288,7 +369,7 @@ describe('Auth endpoints (e2e)', () => {
   })
 
   // -- ACR failures --
-  it('callback: acr absent -> 401', async () => {
+  it('callback: acr absent -> failed', async () => {
     mockOidc.exchangeCode.mockResolvedValueOnce({
       idTokenClaims: { sub: 'u1', nonce: 'n' },
       refreshToken: 'rt', idTokenRaw: 'raw',
@@ -301,10 +382,10 @@ describe('Auth endpoints (e2e)', () => {
     const res = await request(app.getHttpServer())
       .get('/api/auth/callback?code=c&state=state-no-acr')
       .set('Cookie', 'auth_tx=tx-no-acr')
-    expect(res.status).toBe(401)
+    expectAuthErrorRedirect(res, 'failed')
   })
 
-  it('callback: acr=1 (insufficient) -> 401', async () => {
+  it('callback: acr=1 (insufficient) -> failed, no session created', async () => {
     mockOidc.exchangeCode.mockResolvedValueOnce({
       idTokenClaims: { sub: 'u1', acr: '1', nonce: 'n' },
       refreshToken: 'rt', idTokenRaw: 'raw',
@@ -314,14 +395,20 @@ describe('Auth endpoints (e2e)', () => {
       codeVerifier: 'cv', flow: 'login',
       expiresAt: new Date(Date.now() + 60_000),
     })
+    const setSpy = jest.spyOn(inMemorySessionStore, 'set')
     const res = await request(app.getHttpServer())
       .get('/api/auth/callback?code=c&state=state-acr1')
       .set('Cookie', 'auth_tx=tx-acr1')
-    expect(res.status).toBe(401)
+    try {
+      expectAuthErrorRedirect(res, 'failed')
+      expect(setSpy).not.toHaveBeenCalled()
+    } finally {
+      setSpy.mockRestore()
+    }
   })
 
   // -- replay protection --
-  it('callback replay: second call with same auth_tx -> 400', async () => {
+  it('callback replay: second call with same auth_tx -> failed', async () => {
     mockOidc.exchangeCode.mockResolvedValueOnce({
       idTokenClaims: { sub: 'u1', acr: '2', nonce: 'n' },
       refreshToken: 'rt', idTokenRaw: 'raw',
@@ -340,7 +427,7 @@ describe('Auth endpoints (e2e)', () => {
     const second = await request(app.getHttpServer())
       .get('/api/auth/callback?code=c&state=state-replay')
       .set('Cookie', 'auth_tx=tx-replay')
-    expect(second.status).toBe(400)
+    expectAuthErrorRedirect(second, 'failed')
   })
 
   // -- logout --

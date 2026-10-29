@@ -2,7 +2,7 @@
   "realm": "agenda",
   "displayName": "Agenda",
   "enabled": true,
-  "registrationAllowed": true,
+  "registrationAllowed": false,
   "registrationEmailAsUsername": true,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
