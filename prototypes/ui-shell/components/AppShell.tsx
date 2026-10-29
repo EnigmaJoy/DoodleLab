@@ -6,12 +6,14 @@ import type { AppView } from '@/lib/types'
 import { WelcomeScreen } from './WelcomeScreen'
 import { RadialMenu } from './RadialMenu'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import type { AuthErrorCode } from '@/lib/welcome-state'
 
 interface AppShellProps {
   initialView: AppView
+  authError:   AuthErrorCode | null
 }
 
-export function AppShell({ initialView }: AppShellProps) {
+export function AppShell({ initialView, authError }: AppShellProps) {
   const [view, setView] = useState<AppView>(initialView)
 
   const currentUser = useCurrentUser()
@@ -38,13 +40,6 @@ export function AppShell({ initialView }: AppShellProps) {
     // This handler is only reached when AUTH_CONFIGURED=true.
   }
 
-  function handleRegister() {
-    const registerUrl = process.env['NEXT_PUBLIC_AUTH_REGISTER_URL']
-    if (registerUrl) {
-      window.location.href = registerUrl
-    }
-  }
-
   function getFirstMenuItemRef(): HTMLAnchorElement | null {
     if (typeof window === 'undefined') return firstItemRef.current
     const isFallback = window.matchMedia('(max-width: 500px)').matches
@@ -69,8 +64,8 @@ export function AppShell({ initialView }: AppShellProps) {
     <>
       <WelcomeScreen
         visible={view === 'WELCOME'}
+        authError={authError}
         onLogin={handleLogin}
-        onRegister={handleRegister}
       />
       <RadialMenu
         visible={view !== 'WELCOME'}

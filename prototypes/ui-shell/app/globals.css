@@ -44,22 +44,6 @@
 }
 
 /* ============================================================
-   PALETTE GRADIENT OVERRIDES
-   UI-08: all values PROVISIONAL - calibrate against reference tavole
-   Only gradient-start and gradient-end differ between palettes.
-   ============================================================ */
-
-/* UI-08: values PROVISIONAL - calibrate against reference tavole */
-[data-palette="1"] { --gradient-start: #581c87; --gradient-end: #be123c; } /* Prugna / Corallo - animation reference */
-[data-palette="2"] { --gradient-start: #3b82f6; --gradient-end: #a855f7; } /* Blu / Viola */
-[data-palette="3"] { --gradient-start: #22c55e; --gradient-end: #0d9488; } /* Verde / Teal */
-[data-palette="4"] { --gradient-start: #dc2626; --gradient-end: #f97316; } /* Cremisi / Arancione */
-[data-palette="5"] { --gradient-start: #1e3a5f; --gradient-end: #2563eb; } /* Navy / Blu */
-[data-palette="6"] { --gradient-start: #7c3aed; --gradient-end: #dc2626; } /* Viola / Rosso */
-[data-palette="7"] { --gradient-start: #65a30d; --gradient-end: #92400e; } /* Oliva / Marrone */
-[data-palette="8"] { --gradient-start: #475569; --gradient-end: #0d9488; } /* Ardesia / Teal */
-
-/* ============================================================
    BASE RESET
    ============================================================ */
 
@@ -74,6 +58,10 @@
 html,
 body {
   height: 100%;
+}
+
+body {
+  font-family: var(--font-ui), system-ui, sans-serif;
 }
 
 /* ============================================================
@@ -98,19 +86,35 @@ body {
 }
 
 /* ============================================================
-   WELCOME SCREEN
+   WELCOME SCREEN (liquid-glass card)
+   Base styles are the final visible state. The intro animation runs only while
+   html[data-welcome-intro] is set by public/welcome-intro.js (before first paint, skipped
+   under reduced motion or in a background tab, removed after 3.4s).
    ============================================================ */
 
 .welcome-screen {
+  /* Contrast tuning (Task 7, spec section 8): measured on all 8 palettes, with and without
+     backdrop-filter, white text needs these to reach 4.5:1. Glows at 40% of the original
+     85/80/55% alpha; a navy shade under the white glass tint. */
+  --welcome-glow-1-alpha: 34%;
+  --welcome-glow-2-alpha: 32%;
+  --welcome-glow-3-alpha: 22%;
+  --welcome-glass-shade:  rgba(10, 10, 50, 0.45);
+
   position: fixed;
   inset: 0;
   z-index: 1;
   height: 100dvh;
+  /* Short viewports scroll vertically; the card is never clipped. Glows never cause
+     horizontal scroll. */
+  overflow-x: hidden;
+  overflow-y: auto;
   background: linear-gradient(
     var(--gradient-angle),
-    var(--gradient-start),
-    var(--gradient-end)
+    var(--bg-from),
+    var(--bg-to)
   );
+  color: var(--text-primary);
   padding:
     env(safe-area-inset-top, 0px)
     env(safe-area-inset-right, 0px)
@@ -118,15 +122,15 @@ body {
     env(safe-area-inset-left, 0px);
 }
 
+/* Column centred horizontally, top padding 56px, gap 28px. */
 .welcome-main {
   display:         flex;
   flex-direction:  column;
   align-items:     center;
-  justify-content: center;
-  height:          100%;
-  gap:             48px;
-  /* Horizontal padding prevents the wide script text from touching viewport edges */
-  padding:         0 clamp(1rem, 5vw, 3rem);
+  justify-content: flex-start;
+  min-height:      100%;
+  gap:             28px;
+  padding:         56px 16px 32px;
 }
 
 /* Visually hidden but available to screen readers */
@@ -142,154 +146,273 @@ body {
   border:     0;
 }
 
-/* Tap/click target wrapping the animated "Welcome" text */
-.welcome-replay-btn {
-  background: none;
-  border:     none;
-  padding:    8px;
-  margin:     -8px;
-  cursor:     pointer;
-  overflow:   visible;
+/* ---------- Handwriting ---------- */
+
+.welcome-handwriting {
+  display:     block;
+  flex-shrink: 0;
+  width:       min(640px, 92vw);
+  height:      auto;
+  overflow:    visible;
 }
 
-.welcome-replay-btn:focus-visible {
-  outline:        3px solid var(--focus-ring);
-  outline-offset: 8px;
-  border-radius:  4px;
-  box-shadow:     0 0 0 1px var(--focus-ring-bg);
+.welcome-handwriting-strokes path {
+  fill:            none;
+  stroke:          var(--text-primary);
+  stroke-width:    1.5;
+  stroke-linecap:  round;
+  stroke-linejoin: round;
 }
 
-/* Grid stacks stroke and fill layers without absolute positioning */
-.welcome-text-wrapper {
-  display:               grid;
-  grid-template-columns: max-content;
-  overflow:              visible;
+.welcome-handwriting-fill path {
+  fill: var(--text-primary);
 }
 
-.welcome-stroke,
-.welcome-fill {
-  grid-area:      1 / 1;
-  font-family:    var(--font-welcome), cursive;
-  /* 15vw keeps "Welcome" within viewport at all common widths;
-     clamp floor/ceiling for very narrow and very wide screens */
-  font-size:      clamp(3.5rem, 15vw, 12rem);
-  font-weight:    400;
-  line-height:    1.3;
-  letter-spacing: 0.01em;
-  user-select:    none;
+/* ---------- Card and glows ---------- */
+
+.welcome-card-wrap {
+  position:    relative;
+  /* 460px, bounded by the padded column (16px gutters), so it fits a 390px viewport. */
+  width:       min(460px, 100%);
+  flex-shrink: 0;
 }
 
-/* Layer 1: stroke outline, revealed left-to-right via clip-path */
-.welcome-stroke {
-  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.90);
-  color:               transparent;
-  clip-path:           inset(0 100% 0 0);
-  animation:           draw-stroke 3s cubic-bezier(0.45, 0, 0.25, 1) 0.3s both;
+/* Offsets relative to the card's top-left (card at 360,274 in the 1180x820 reference). */
+.welcome-glow {
+  position:       absolute;
+  z-index:        0;
+  border-radius:  50%;
+  pointer-events: none;
 }
 
-/* Layer 2: white fill, fades in mid-stroke */
-.welcome-fill {
-  color:     #ffffff;
-  animation: fill-in 0.9s ease 2.7s both;
+.welcome-glow--1 {
+  left:   -30px;
+  top:    26px;
+  width:  300px;
+  height: 300px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--glow-1) var(--welcome-glow-1-alpha), transparent), transparent 70%);
+  filter: blur(10px);
 }
 
-@keyframes draw-stroke {
-  from { clip-path: inset(0 100% 0 0); }
-  to   { clip-path: inset(0 0% 0 0); }
+.welcome-glow--2 {
+  left:   200px;
+  top:    146px;
+  width:  320px;
+  height: 320px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--glow-2) var(--welcome-glow-2-alpha), transparent), transparent 70%);
+  filter: blur(10px);
 }
 
-@keyframes fill-in {
+.welcome-glow--3 {
+  left:   110px;
+  top:    -24px;
+  width:  180px;
+  height: 180px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--glow-3) var(--welcome-glow-3-alpha), transparent), transparent 70%);
+  filter: blur(8px);
+}
+
+.welcome-card {
+  position:   relative;
+  z-index:    1;
+  /* Height follows the measured content (ResizeObserver) so state changes resize smoothly.
+     overflow is hidden only for the height transition; the inner padding keeps focus rings
+     inside the clip. */
+  box-sizing: content-box;
+  height:     var(--welcome-card-h, auto);
+  overflow:   hidden;
+  transition: height 200ms ease;
+  border:        1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 26px;
+  /* White glass tint (lowered from 0.24/0.08) over the darkening shade. */
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05)),
+    linear-gradient(var(--welcome-glass-shade), var(--welcome-glass-shade));
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
+  backdrop-filter:         blur(28px) saturate(170%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08),
+    0 24px 60px rgba(10, 10, 50, 0.35);
+  color:       var(--text-primary);
+  font-family: var(--font-ui), system-ui, sans-serif;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .welcome-card {
+    /* Lowered from 0.18 and shaded, for 4.5:1 without the blur (spec section 8). */
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.12)),
+      var(--welcome-glass-shade);
+  }
+}
+
+.welcome-card-inner {
+  padding: 28px 30px 24px;
+}
+
+.welcome-card-content,
+.welcome-card-message {
+  display:        flex;
+  flex-direction: column;
+  gap:            16px;
+}
+
+/* Cross-fade between states only (never on first paint). */
+.welcome-card-content--swap {
+  animation: welcome-content-in 200ms ease both;
+}
+
+@keyframes welcome-content-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
 
-.inizia-button {
-  min-height:     56px;
-  min-width:      44px;
-  padding:        0 36px;
-  border-radius:  28px;
-  background:     rgba(255, 255, 255, 0.20);
-  color:          #ffffff;
-  border:         2px solid rgba(255, 255, 255, 0.85);
-  font-size:      1.125rem;
-  font-weight:    700;
-  letter-spacing: 0.03em;
-  cursor:         pointer;
-  animation:      welcome-button-appear 600ms ease 3.4s both;
+.welcome-card-title {
+  font-size:   22px;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
-/* Block interaction until animation completes (JS adds .ready class) */
-.inizia-button:not(.ready) {
-  pointer-events: none;
+.welcome-card-text,
+.welcome-card-status {
+  font-size:   15px;
+  line-height: 22px;
+  color:       color-mix(in srgb, var(--text-primary) 88%, transparent);
 }
 
-.inizia-button:hover {
-  background: rgba(255, 255, 255, 0.30);
+.welcome-error-icon {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  width:           44px;
+  height:          44px;
+  border-radius:   50%;
+  background:      rgba(255, 255, 255, 0.18);
 }
 
-.inizia-button:focus-visible {
-  outline:        3px solid var(--focus-ring);
-  outline-offset: 3px;
-  box-shadow:     0 0 0 1px var(--focus-ring-bg);
-}
-
-/* Welcome action container: stacks Accedi and Registrati with consistent spacing */
-.welcome-actions {
+.welcome-busy {
   display:        flex;
   flex-direction: column;
   align-items:    center;
   gap:            12px;
+  text-align:     center;
 }
 
-/* Secondary registration action - visually subordinate to Accedi */
-.register-button {
-  min-height:     44px;
-  min-width:      44px;
-  padding:        0 24px;
-  border-radius:  22px;
-  background:     transparent;
-  color:          rgba(255, 255, 255, 0.80);
-  border:         1px solid rgba(255, 255, 255, 0.45);
-  font-size:      0.875rem;
-  font-weight:    500;
-  letter-spacing: 0.03em;
-  cursor:         pointer;
-  animation:      welcome-button-appear 600ms ease 3.4s both;
+.welcome-spinner {
+  width:            44px;
+  height:           44px;
+  border:           4px solid rgba(255, 255, 255, 0.25);
+  border-top-color: var(--text-primary);
+  border-radius:    50%;
+  animation:        welcome-spin 900ms linear infinite;
 }
 
-.register-button:not(.ready) {
-  pointer-events: none;
+@keyframes welcome-spin {
+  to { transform: rotate(360deg); }
 }
 
-.register-button:hover {
-  color:        rgba(255, 255, 255, 1);
-  border-color: rgba(255, 255, 255, 0.70);
+@media (prefers-reduced-motion: reduce) {
+  .welcome-spinner {
+    animation: none;
+  }
 }
 
-.register-button:focus-visible {
-  outline:        3px solid var(--focus-ring);
+.welcome-info {
+  display:        flex;
+  flex-direction: column;
+  gap:            10px;
+  padding:        14px 16px;
+  list-style:     none;
+  border:         1px solid rgba(255, 255, 255, 0.22);
+  border-radius:  16px;
+  /* Inner glass tint lowered from 0.10 (spec section 8). */
+  background:     rgba(255, 255, 255, 0.04);
+}
+
+.welcome-info-row {
+  display:     flex;
+  align-items: flex-start;
+  gap:         12px;
+  font-size:   15px;
+  line-height: 21px;
+  color:       color-mix(in srgb, var(--text-primary) 88%, transparent);
+}
+
+.welcome-info-icon {
+  flex-shrink: 0;
+  color:       var(--text-primary);
+}
+
+.welcome-info-row strong {
+  font-weight: 700;
+  color:       var(--text-primary);
+}
+
+/* ---------- Google button (brand colours, never palette-tinted) ---------- */
+
+.google-btn {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             10px;
+  width:           100%;
+  height:          48px;
+  padding:         0 12px;
+  border:          1px solid #747775;
+  border-radius:   9999px;
+  background:      #FFFFFF;
+  color:           #1F1F1F;
+  font-family:     var(--font-ui), system-ui, sans-serif;
+  font-weight:     500;
+  font-size:       14px;
+  line-height:     20px;
+  cursor:          pointer;
+}
+
+.google-btn:disabled {
+  cursor: progress;
+}
+
+.google-btn:focus-visible {
+  outline:        2px solid var(--focus-ring);
   outline-offset: 3px;
-  box-shadow:     0 0 0 1px var(--focus-ring-bg);
 }
 
-/* Inline unavailable state shown when auth is not yet configured */
-.auth-unavailable {
-  color:       rgba(255, 220, 100, 0.95);
-  font-size:   0.875rem;
-  text-align:  center;
-  line-height: 1.5;
-  max-width:   280px;
+.google-btn-logo {
+  flex-shrink: 0;
+  width:       20px;
+  height:      20px;
 }
 
-@keyframes welcome-button-appear {
-  from {
-    opacity:   0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity:   1;
-    transform: translateY(0);
-  }
+/* ---------- Intro (only under html[data-welcome-intro]) ---------- */
+
+html[data-welcome-intro] .welcome-handwriting-strokes path {
+  stroke-dasharray: var(--len);
+  animation: welcome-draw var(--dur) linear var(--delay) both;
+}
+
+html[data-welcome-intro] .welcome-handwriting-fill {
+  animation: welcome-fill-in 0.8s ease 2.3s both;
+}
+
+html[data-welcome-intro] .welcome-card {
+  animation: welcome-card-in 600ms ease 2.6s both;
+}
+
+@keyframes welcome-draw {
+  from { stroke-dashoffset: var(--len); }
+  to   { stroke-dashoffset: 0; }
+}
+
+@keyframes welcome-fill-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes welcome-card-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ============================================================
@@ -305,8 +428,8 @@ body {
   justify-content:  center;
   background: linear-gradient(
     var(--gradient-angle),
-    var(--gradient-start),
-    var(--gradient-end)
+    var(--bg-from),
+    var(--bg-to)
   );
 }
 
@@ -456,8 +579,8 @@ body {
   gap:              1.5rem;
   background: linear-gradient(
     var(--gradient-angle),
-    var(--gradient-start),
-    var(--gradient-end)
+    var(--bg-from),
+    var(--bg-to)
   );
 }
 
@@ -624,8 +747,8 @@ body {
   flex-direction: column;
   background: linear-gradient(
     var(--gradient-angle),
-    var(--gradient-start),
-    var(--gradient-end)
+    var(--bg-from),
+    var(--bg-to)
   );
   color: var(--text-primary);
   padding:
