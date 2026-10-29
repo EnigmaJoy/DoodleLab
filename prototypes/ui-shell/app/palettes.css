@@ -1,0 +1,83 @@
+/* app/palettes.css - per-palette custom properties. Must match lib/palettes.ts (checked by test/palettes.test.ts). */
+
+:root {
+  --bg-from: #1E3A8A;
+  --bg-to: #6D28D9;
+  --glow-1: #818CF8;
+  --glow-2: #C084FC;
+  --glow-3: #38BDF8;
+  --ink: #2E2370;
+}
+
+[data-palette="argilla-petrolio"] {
+  --bg-from: #C2410C;
+  --bg-to: #0F766E;
+  --glow-1: #FB923C;
+  --glow-2: #2DD4BF;
+  --glow-3: #FDBA74;
+  --ink: #9A3412;
+}
+
+[data-palette="notte-lavanda"] {
+  --bg-from: #1E3A8A;
+  --bg-to: #6D28D9;
+  --glow-1: #818CF8;
+  --glow-2: #C084FC;
+  --glow-3: #38BDF8;
+  --ink: #2E2370;
+}
+
+[data-palette="bosco-laguna"] {
+  --bg-from: #14532D;
+  --bg-to: #0E7490;
+  --glow-1: #4ADE80;
+  --glow-2: #22D3EE;
+  --glow-3: #86EFAC;
+  --ink: #14532D;
+}
+
+[data-palette="tramonto"] {
+  --bg-from: #9F1239;
+  --bg-to: #C2410C;
+  --glow-1: #FB7185;
+  --glow-2: #FB923C;
+  --glow-3: #FDA4AF;
+  --ink: #9F1239;
+}
+
+[data-palette="inchiostro"] {
+  --bg-from: #1F2328;
+  --bg-to: #2F5BD3;
+  --glow-1: #60A5FA;
+  --glow-2: #818CF8;
+  --glow-3: #93C5FD;
+  --ink: #1F2328;
+}
+
+[data-palette="prugna-corallo"] {
+  --bg-from: #581C87;
+  --bg-to: #BE123C;
+  --glow-1: #C084FC;
+  --glow-2: #FB7185;
+  --glow-3: #F0ABFC;
+  --ink: #581C87;
+}
+
+[data-palette="oliva-ambra"] {
+  --bg-from: #3F6212;
+  --bg-to: #A16207;
+  --glow-1: #A3E635;
+  --glow-2: #FBBF24;
+  --glow-3: #FDE68A;
+  --ink: #3F6212;
+}
+
+[data-palette="ardesia-salvia"] {
+  --bg-from: #334155;
+  --bg-to: #3F6B5E;
+  --glow-1: #94A3B8;
+  --glow-2: #6EE7B7;
+  --glow-3: #A7F3D0;
+  --ink: #334155;
+}
+

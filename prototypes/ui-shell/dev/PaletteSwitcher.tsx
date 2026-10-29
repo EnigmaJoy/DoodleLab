@@ -6,28 +6,28 @@
  * Controlled by NEXT_PUBLIC_SHOW_PALETTE_SWITCHER environment variable.
  * To remove permanently: delete this file and the conditional in app/layout.tsx.
  * Hide the overlay via "Nascondi overlay" - the active palette remains set.
- * Restore by reloading the page (no persistent storage).
+ * The chosen palette is persisted in localStorage (agenda.palette) and restored on reload.
  */
 
 import { useState, useEffect } from 'react'
-import { PALETTES, PALETTE_COUNT } from '@/lib/palettes'
+import { DEFAULT_PALETTE_ID, PALETTES, type PaletteId } from '@/lib/palettes'
+import { applyPalette, readStoredPaletteId } from '@/lib/palettePreference'
 
 export function PaletteSwitcher() {
   const [isVisible, setIsVisible]   = useState(true)
   const [isExpanded, setIsExpanded] = useState(false)
-  // Initialize to 1 so server and client render identically during hydration.
-  // useEffect reads the real palette from the DOM after hydration completes.
-  const [activePaletteId, setActivePaletteId] = useState<number>(1)
+  // Initialize to the default so server and client render identically during hydration.
+  // useEffect syncs the stored palette after hydration completes.
+  const [activePaletteId, setActivePaletteId] = useState<PaletteId>(DEFAULT_PALETTE_ID)
 
   useEffect(() => {
-    const current = parseInt(document.documentElement.dataset.palette ?? '1', 10)
-    if (current >= 1 && current <= PALETTE_COUNT) setActivePaletteId(current)
+    setActivePaletteId(readStoredPaletteId())
   }, [])
 
   if (!isVisible) return null
 
-  function selectPalette(id: number) {
-    document.documentElement.dataset.palette = String(id)
+  function selectPalette(id: PaletteId) {
+    applyPalette(id)
     setActivePaletteId(id)
   }
 
@@ -52,10 +52,10 @@ export function PaletteSwitcher() {
               type="button"
               className="palette-switcher-item"
               aria-pressed={activePaletteId === palette.id}
-              aria-label={`Palette ${palette.id}: ${palette.label} (provvisorio)`}
+              aria-label={`Palette ${palette.name}`}
               onClick={() => selectPalette(palette.id)}
             >
-              {palette.id}. {palette.label}
+              {palette.name}
             </button>
           ))}
           <button
@@ -74,7 +74,7 @@ export function PaletteSwitcher() {
         aria-controls="palette-switcher-panel"
         onClick={() => setIsExpanded(prev => !prev)}
       >
-        P{activePaletteId}
+        {PALETTES.find(p => p.id === activePaletteId)?.name}
       </button>
     </aside>
   )
