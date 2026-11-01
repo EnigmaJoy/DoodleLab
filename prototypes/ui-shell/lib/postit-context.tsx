@@ -18,7 +18,10 @@ function loadFromStorage(): PostItState | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
-    return JSON.parse(raw) as PostItState
+    const parsed = JSON.parse(raw) as { notes?: unknown; mode?: unknown }
+    if (!Array.isArray(parsed.notes)) return null
+    const mode = parsed.mode === 'grid' ? 'grid' : 'free'
+    return { notes: parsed.notes as PostIt[], mode }
   } catch {
     return null
   }
@@ -117,10 +120,11 @@ export function PostItProvider({
   children:      ReactNode
   initialNotes?: PostIt[]
 }) {
+  const seed: PostItState = { notes: initialNotes, mode: 'free' }
   const [state, dispatch] = useReducer(
     postItReducer,
-    { notes: initialNotes, mode: 'free' },
-    (seed) => loadFromStorage() ?? seed,
+    seed,
+    (s) => loadFromStorage() ?? s,
   )
 
   // Persist to localStorage whenever state changes

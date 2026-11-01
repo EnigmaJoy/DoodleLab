@@ -2731,7 +2731,7 @@ body {
   -webkit-user-select: none;
   /* Layered shadow: top-edge highlight + main cast shadow + ambient */
   box-shadow:
-    0 -1px 0 rgba(255, 255, 255, 0.40) inset,
+    inset 0 -1px 0 rgba(255, 255, 255, 0.40),
     2px 3px 0 rgba(0, 0, 0, 0.06),
     3px 6px 16px rgba(0, 0, 0, 0.14),
     0 1px 4px rgba(0, 0, 0, 0.07);
@@ -2746,7 +2746,7 @@ body {
 
 .postit:hover:not(.postit--dragging) {
   box-shadow:
-    0 -1px 0 rgba(255, 255, 255, 0.40) inset,
+    inset 0 -1px 0 rgba(255, 255, 255, 0.40),
     3px 5px 0 rgba(0, 0, 0, 0.07),
     5px 10px 22px rgba(0, 0, 0, 0.20),
     0 2px 6px rgba(0, 0, 0, 0.09);
@@ -2768,7 +2768,7 @@ body {
   outline:        3px solid rgba(0, 0, 0, 0.55);
   outline-offset: 3px;
   box-shadow:
-    0 -1px 0 rgba(255, 255, 255, 0.40) inset,
+    inset 0 -1px 0 rgba(255, 255, 255, 0.40),
     2px 3px 0 rgba(0, 0, 0, 0.06),
     3px 6px 16px rgba(0, 0, 0, 0.14),
     0 0 0 5px rgba(37, 99, 235, 0.30);
@@ -2777,7 +2777,7 @@ body {
 /* Dragging: clearly lifted off the board */
 .postit--dragging {
   box-shadow:
-    0 -1px 0 rgba(255, 255, 255, 0.40) inset,
+    inset 0 -1px 0 rgba(255, 255, 255, 0.40),
     6px 12px 0 rgba(0, 0, 0, 0.08),
     8px 20px 36px rgba(0, 0, 0, 0.28),
     0 4px 12px rgba(0, 0, 0, 0.12);
@@ -2926,7 +2926,7 @@ body {
   line-height:   1.55;
   color:         #2d2415;
   box-shadow:
-    0 -1px 0 rgba(255, 255, 255, 0.40) inset,
+    inset 0 -1px 0 rgba(255, 255, 255, 0.40),
     3px 5px 0 rgba(0, 0, 0, 0.07),
     5px 10px 24px rgba(0, 0, 0, 0.18),
     0 2px 6px rgba(0, 0, 0, 0.09);

@@ -22,6 +22,13 @@ const kalam = Kalam({
   display:  'swap',
 })
 
+const caveat = Caveat({
+  subsets:  ['latin'],
+  weight:   ['400', '700'],
+  variable: '--font-caveat',
+  display:  'swap',
+})
+
 export const metadata: Metadata = {
   title: 'agenda',
 }
@@ -36,7 +43,7 @@ export default function RootLayout({
   const paletteId = String(Math.floor(Math.random() * PALETTE_COUNT) + 1)
 
   return (
-    <html lang="it" data-palette={paletteId} className={`${sacramento.variable} ${kalam.variable}`}>
+    <html lang="it" data-palette={paletteId} className={`${sacramento.variable} ${kalam.variable} ${caveat.variable}`}>
       <body>
         {children}
         {process.env.NEXT_PUBLIC_SHOW_PALETTE_SWITCHER === 'true' && (
