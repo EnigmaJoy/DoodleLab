@@ -3,6 +3,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useReducer,
   type Dispatch,
@@ -10,6 +11,26 @@ import {
 } from 'react'
 import type { PostIt, PostItAction, PostItState } from './postit-types'
 import { generateRotation } from './postit-utils'
+
+const STORAGE_KEY = 'doodlelab:lavagna:v1'
+
+function loadFromStorage(): PostItState | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    return JSON.parse(raw) as PostItState
+  } catch {
+    return null
+  }
+}
+
+function saveToStorage(state: PostItState): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  } catch {
+    // Storage full or unavailable — fail silently
+  }
+}
 
 // ── Reducer ──────────────────────────────────────────────────────────────────
 
@@ -96,10 +117,17 @@ export function PostItProvider({
   children:      ReactNode
   initialNotes?: PostIt[]
 }) {
-  const [state, dispatch] = useReducer(postItReducer, {
-    notes: initialNotes,
-    mode:  'free',
-  })
+  const [state, dispatch] = useReducer(
+    postItReducer,
+    { notes: initialNotes, mode: 'free' },
+    (seed) => loadFromStorage() ?? seed,
+  )
+
+  // Persist to localStorage whenever state changes
+  useEffect(() => {
+    saveToStorage(state)
+  }, [state])
+
   const value = useMemo(() => ({ state, dispatch }), [state, dispatch])
   return (
     <PostItContext.Provider value={value}>

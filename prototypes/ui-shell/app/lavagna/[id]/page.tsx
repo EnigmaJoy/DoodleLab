@@ -1,4 +1,14 @@
 // app/lavagna/[id]/page.tsx
-export default function NotaPage({ params }: { params: { id: string } }) {
-  return <div style={{ color: '#fff', padding: '2rem' }}>Nota: {params.id}</div>
+import type { Metadata } from 'next'
+import { NotaDetail } from '@/components/lavagna/NotaDetail'
+
+export const metadata: Metadata = { title: 'Nota' }
+
+export default async function NotaPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  return <NotaDetail id={id} />
 }

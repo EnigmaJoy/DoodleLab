@@ -1,10 +1,8 @@
-// app/lavagna/page.tsx
 import type { Metadata } from 'next'
-import { SECTIONS } from '@/lib/sections'
-import { SectionPlaceholder } from '@/components/SectionPlaceholder'
+import { LavagnaBoard } from '@/components/lavagna/LavagnaBoard'
 
-const section = SECTIONS.find(s => s.id === 'lavagna')!
-export const metadata: Metadata = { title: section.title }
+export const metadata: Metadata = { title: 'Lavagna' }
+
 export default function LavagnaPage() {
-  return <SectionPlaceholder label={section.label} />
+  return <LavagnaBoard />
 }
