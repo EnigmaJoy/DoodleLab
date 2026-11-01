@@ -1196,3 +1196,688 @@ body {
     animation-delay:      0ms !important;
   }
 }
+
+/* ============================================================
+   POST-IT COLOR TOKENS
+   ============================================================ */
+
+:root {
+  --postit-yellow: #FFF9B0;
+  --postit-pink:   #FFD6E4;
+  --postit-mint:   #C8F0D8;
+  --postit-blue:   #C8E4FF;
+  --postit-peach:  #FFE4CC;
+
+  --postit-yellow-border: #E8D84A;
+  --postit-pink-border:   #E8A0B8;
+  --postit-mint-border:   #8ED4A8;
+  --postit-blue-border:   #88C0E8;
+  --postit-peach-border:  #E8B888;
+}
+
+/* ============================================================
+   LAVAGNA SCREEN
+   ============================================================ */
+
+.lavagna-screen {
+  height:         100dvh;
+  display:        flex;
+  flex-direction: column;
+  background: linear-gradient(
+    var(--gradient-angle),
+    var(--gradient-start),
+    var(--gradient-end)
+  );
+  color: var(--text-primary);
+  padding:
+    env(safe-area-inset-top,    0px)
+    env(safe-area-inset-right,  0px)
+    env(safe-area-inset-bottom, 0px)
+    env(safe-area-inset-left,   0px);
+}
+
+/* ── Lavagna Header ── */
+
+.lavagna-header {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  flex-wrap:       wrap;
+  gap:             0.5rem;
+  padding:         0.875rem 1.5rem;
+  border-bottom:   1px solid rgba(255, 255, 255, 0.15);
+  background:      rgba(0, 0, 0, 0.10);
+  flex-shrink:     0;
+}
+
+.lavagna-header-left {
+  display:     flex;
+  align-items: center;
+  gap:         0.625rem;
+}
+
+.lavagna-header-right {
+  display:     flex;
+  align-items: center;
+  gap:         0.5rem;
+}
+
+.lavagna-back-btn {
+  display:         flex;
+  align-items:     center;
+  gap:             0.25rem;
+  color:           var(--text-primary);
+  text-decoration: none;
+  min-height:      44px;
+  min-width:       44px;
+  padding:         0 0.625rem;
+  border-radius:   22px;
+  border:          1px solid rgba(255, 255, 255, 0.30);
+  background:      rgba(255, 255, 255, 0.08);
+  transition:      background 150ms ease;
+}
+
+.lavagna-back-btn:hover   { background: rgba(255, 255, 255, 0.16); }
+.lavagna-back-btn:focus-visible {
+  outline:        3px solid var(--focus-ring);
+  outline-offset: 3px;
+  box-shadow:     0 0 0 1px var(--focus-ring-bg);
+}
+
+.lavagna-title {
+  font-size:   1.125rem;
+  font-weight: 600;
+  color:       var(--text-primary);
+}
+
+.lavagna-count {
+  font-size:  0.75rem;
+  color:      rgba(255, 255, 255, 0.65);
+  font-weight: 400;
+}
+
+/* Segmented toggle: Libera / Griglia */
+.lavagna-toggle {
+  display:          flex;
+  background:       rgba(0, 0, 0, 0.28);
+  border:           1px solid rgba(255, 255, 255, 0.22);
+  border-radius:    9999px;
+  padding:          3px;
+  gap:              2px;
+}
+
+.lavagna-toggle-btn {
+  min-height:     36px;
+  min-width:      52px;
+  padding:        0 0.875rem;
+  border-radius:  9999px;
+  border:         none;
+  font-size:      0.8125rem;
+  font-weight:    500;
+  cursor:         pointer;
+  transition:     background 150ms ease, color 150ms ease, box-shadow 150ms ease;
+  background:     transparent;
+  color:          rgba(255, 255, 255, 0.55);
+}
+
+.lavagna-toggle-btn[aria-pressed="true"] {
+  background: rgba(255, 255, 255, 0.95);
+  color:      #1a1a1a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+}
+
+.lavagna-toggle-btn:not([aria-pressed="true"]):hover {
+  color:      rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.lavagna-toggle-btn:focus-visible {
+  outline:        3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.lavagna-icon-btn {
+  width:           40px;
+  height:          40px;
+  min-width:       44px;
+  min-height:      44px;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  border-radius:   50%;
+  border:          1px solid rgba(255, 255, 255, 0.35);
+  background:      rgba(255, 255, 255, 0.08);
+  color:           rgba(255, 255, 255, 0.55);
+  cursor:          not-allowed;  /* pen is not yet implemented */
+  opacity:         0.6;
+}
+
+.lavagna-add-btn {
+  display:        flex;
+  align-items:    center;
+  gap:            0.375rem;
+  min-height:     40px;
+  min-width:      44px;
+  padding:        0 1.25rem;
+  border-radius:  9999px;
+  border:         none;
+  background:     #2563EB;
+  color:          #ffffff;
+  font-size:      0.875rem;
+  font-weight:    600;
+  cursor:         pointer;
+  transition:     background 150ms ease;
+}
+
+.lavagna-add-btn:hover        { background: #1D4ED8; }
+.lavagna-add-btn:focus-visible {
+  outline:        3px solid var(--focus-ring);
+  outline-offset: 3px;
+  box-shadow:     0 0 0 1px var(--focus-ring-bg);
+}
+
+/* ── Board wrap + surface ── */
+
+.lavagna-board-wrap {
+  flex:     1;
+  min-height: 0;
+  padding:  24px 32px;
+  display:  flex;
+}
+
+.lavagna-board {
+  flex:             1;
+  position:         relative;
+  border-radius:    24px;
+  border:           1px solid #ddd9d0;
+  /* Warm off-white + subtle dot grid for spatial reference */
+  background-color: #faf8f4;
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.07) 1px, transparent 1px);
+  background-size:  28px 28px;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.10),
+    0 1px 4px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.80);
+  overflow:         hidden;
+}
+
+/* ── Free mode: grid overlay ── */
+
+.lavagna-grid-mode {
+  display:               grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap:                   24px;
+  padding:               32px;
+  align-content:         start;
+  height:                100%;
+  overflow-y:            auto;
+}
+
+/* ── Post-it note ── */
+
+.postit {
+  width:         clamp(160px, 18vw, 210px);
+  height:        clamp(160px, 18vw, 210px);
+  border-radius: 3px;
+  padding:       14px 16px 10px;
+  font-family:   var(--font-postit), cursive;
+  font-size:     clamp(0.9rem, 1.5vw, 1.05rem);
+  line-height:   1.5;
+  color:         #2d2415;
+  cursor:        pointer;
+  user-select:   none;
+  -webkit-user-select: none;
+  /* Layered shadow: top-edge highlight + main cast shadow + ambient */
+  box-shadow:
+    0 -1px 0 rgba(255, 255, 255, 0.40) inset,
+    2px 3px 0 rgba(0, 0, 0, 0.06),
+    3px 6px 16px rgba(0, 0, 0, 0.14),
+    0 1px 4px rgba(0, 0, 0, 0.07);
+  display:        flex;
+  flex-direction: column;
+  position:       absolute;
+  top:            0;
+  left:           0;
+  touch-action:   none;  /* prevent browser scroll during drag */
+  transition:     box-shadow 150ms ease, filter 150ms ease;
+}
+
+.postit:hover:not(.postit--dragging) {
+  box-shadow:
+    0 -1px 0 rgba(255, 255, 255, 0.40) inset,
+    3px 5px 0 rgba(0, 0, 0, 0.07),
+    5px 10px 22px rgba(0, 0, 0, 0.20),
+    0 2px 6px rgba(0, 0, 0, 0.09);
+  z-index: 10;
+}
+
+/* Grid mode: static, flat */
+.postit--grid {
+  position:  static;
+  transform: none !important;
+  cursor:    pointer;
+  width:     100%;
+  height:    auto;
+  min-height: clamp(140px, 16vw, 180px);
+}
+
+/* Focus ring: dark outline visible on all pastel backgrounds */
+.postit:focus-visible {
+  outline:        3px solid rgba(0, 0, 0, 0.55);
+  outline-offset: 3px;
+  box-shadow:
+    0 -1px 0 rgba(255, 255, 255, 0.40) inset,
+    2px 3px 0 rgba(0, 0, 0, 0.06),
+    3px 6px 16px rgba(0, 0, 0, 0.14),
+    0 0 0 5px rgba(37, 99, 235, 0.30);
+}
+
+/* Dragging: clearly lifted off the board */
+.postit--dragging {
+  box-shadow:
+    0 -1px 0 rgba(255, 255, 255, 0.40) inset,
+    6px 12px 0 rgba(0, 0, 0, 0.08),
+    8px 20px 36px rgba(0, 0, 0, 0.28),
+    0 4px 12px rgba(0, 0, 0, 0.12);
+  filter:  brightness(1.02);
+  z-index: 100;
+}
+
+.postit-content {
+  flex:        1;
+  overflow:    hidden;
+  word-break:  break-word;
+  white-space: pre-wrap;
+}
+
+/* Placeholder: visually lighter and italic — clearly not real content */
+.postit-content em {
+  color:      rgba(45, 36, 21, 0.32);
+  font-style: italic;
+}
+
+.postit-stickers {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       3px;
+  margin-top: 6px;
+}
+
+.postit-sticker {
+  font-size:     1rem;
+  line-height:   1;
+  border-radius: 9999px;
+  padding:       2px 5px;
+}
+
+.postit-date {
+  font-size:   0.65rem;
+  color:       rgba(0, 0, 0, 0.45);
+  margin-top:  auto;
+  padding-top: 6px;
+  font-family: system-ui, sans-serif;
+}
+
+/* ============================================================
+   NOTA DETAIL
+   ============================================================ */
+
+.nota-screen {
+  height:         100dvh;
+  display:        flex;
+  flex-direction: column;
+  background: linear-gradient(
+    var(--gradient-angle),
+    var(--gradient-start),
+    var(--gradient-end)
+  );
+  color: var(--text-primary);
+  padding:
+    env(safe-area-inset-top,    0px)
+    env(safe-area-inset-right,  0px)
+    env(safe-area-inset-bottom, 0px)
+    env(safe-area-inset-left,   0px);
+}
+
+/* ── Nota header ── */
+
+.nota-header {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  padding:         0.875rem 1.5rem;
+  border-bottom:   1px solid rgba(255, 255, 255, 0.15);
+  background:      rgba(0, 0, 0, 0.10);
+  flex-shrink:     0;
+}
+
+.nota-back-btn {
+  display:         flex;
+  align-items:     center;
+  gap:             0.25rem;
+  color:           var(--text-primary);
+  text-decoration: none;
+  font-size:       0.875rem;
+  font-weight:     500;
+  min-height:      44px;
+  padding:         0 0.875rem;
+  border-radius:   22px;
+  border:          1px solid rgba(255, 255, 255, 0.30);
+  background:      rgba(255, 255, 255, 0.08);
+  transition:      background 150ms ease;
+}
+
+.nota-back-btn:hover        { background: rgba(255, 255, 255, 0.16); }
+.nota-back-btn:focus-visible {
+  outline:        3px solid var(--focus-ring);
+  outline-offset: 3px;
+  box-shadow:     0 0 0 1px var(--focus-ring-bg);
+}
+
+.nota-title {
+  font-size:   1rem;
+  font-weight: 600;
+  color:       var(--text-primary);
+}
+
+.nota-status {
+  font-size:  0.75rem;
+  color:      rgba(255, 255, 255, 0.65);
+}
+
+/* ── Nota body: two columns ── */
+
+.nota-body {
+  flex:           1;
+  min-height:     0;
+  display:        flex;
+  overflow:       hidden;
+}
+
+.nota-preview-panel {
+  flex:            0 0 60%;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  padding:         32px;
+  background:      rgba(255, 255, 255, 0.04);
+  border-right:    1px solid rgba(255, 255, 255, 0.12);
+}
+
+.nota-tools-panel {
+  flex:       1;
+  overflow-y: auto;
+  padding:    24px;
+  display:    flex;
+  flex-direction: column;
+  gap:        20px;
+}
+
+/* Large post-it preview in Nota */
+.nota-postit-preview {
+  width:         280px;
+  height:        280px;
+  border-radius: 4px;
+  padding:       20px;
+  font-family:   var(--font-postit), cursive;
+  font-size:     1.1rem;
+  line-height:   1.55;
+  color:         #2d2415;
+  box-shadow:
+    0 -1px 0 rgba(255, 255, 255, 0.40) inset,
+    3px 5px 0 rgba(0, 0, 0, 0.07),
+    5px 10px 24px rgba(0, 0, 0, 0.18),
+    0 2px 6px rgba(0, 0, 0, 0.09);
+  display:       flex;
+  flex-direction: column;
+}
+
+.nota-postit-content-area {
+  flex:           1;
+  background:     transparent;
+  border:         none;
+  outline:        none;
+  font:           inherit;
+  color:          #2d2415;
+  resize:         none;
+  cursor:         text;
+  word-break:     break-word;
+  white-space:    pre-wrap;
+  padding:        0;
+  width:          100%;
+}
+
+.nota-postit-content-area::placeholder {
+  color:      rgba(45, 36, 21, 0.32);
+  font-style: italic;
+}
+
+.nota-postit-date {
+  font-size:   0.7rem;
+  color:       rgba(0, 0, 0, 0.45);
+  margin-top:  auto;
+  padding-top: 8px;
+  font-family: system-ui, sans-serif;
+}
+
+/* ── Pinned notice ── */
+
+.nota-pinned-notice {
+  background:   #FFF3CD;
+  border-left:  4px solid #F59E0B;
+  border-radius: 8px;
+  padding:      12px 14px;
+}
+
+.nota-pinned-title {
+  font-size:   0.875rem;
+  font-weight: 700;
+  color:       #92400E;
+  margin-bottom: 4px;
+}
+
+.nota-pinned-desc {
+  font-size:  0.8125rem;
+  color:      #78350F;
+  line-height: 1.45;
+}
+
+/* ── Tools grid ── */
+
+.nota-tools-grid {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   10px;
+}
+
+.nota-tool-btn {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  gap:             6px;
+  padding:         14px 8px 12px;
+  border-radius:   12px;
+  border:          1px solid rgba(255, 255, 255, 0.20);
+  background:      rgba(255, 255, 255, 0.92);
+  color:           #1a1a1a;
+  font-size:       0.75rem;
+  font-weight:     500;
+  cursor:          pointer;
+  text-align:      center;
+  transition:      background 120ms ease;
+}
+
+.nota-tool-btn:hover        { background: rgba(255, 255, 255, 1); }
+.nota-tool-btn:focus-visible {
+  outline:        3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.nota-tool-btn--destructive {
+  color:            #DC2626;
+  border-color:     rgba(220, 38, 38, 0.25);
+  background:       rgba(255, 220, 220, 0.85);
+}
+
+.nota-tool-btn--destructive:hover { background: rgba(255, 220, 220, 1); }
+
+.nota-tool-icon { font-size: 1.25rem; }
+
+/* ── Color swatches ── */
+
+.nota-section-label {
+  font-size:    0.75rem;
+  font-weight:  600;
+  color:        rgba(255, 255, 255, 0.70);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: -8px;
+}
+
+.nota-colors {
+  display: flex;
+  gap:     10px;
+}
+
+.nota-color-swatch {
+  width:         28px;
+  height:        28px;
+  border-radius: 50%;
+  border:        2px solid transparent;
+  cursor:        pointer;
+  transition:    transform 120ms ease;
+}
+
+.nota-color-swatch:hover          { transform: scale(1.15); }
+.nota-color-swatch[aria-pressed="true"] {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px rgba(0,0,0,0.35);
+}
+
+.nota-color-swatch:focus-visible {
+  outline:        3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+/* ── Stickers ── */
+
+.nota-stickers {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       8px;
+}
+
+.nota-sticker-btn {
+  display:       flex;
+  align-items:   center;
+  gap:           4px;
+  padding:       5px 10px;
+  border-radius: 9999px;
+  border:        none;
+  font-size:     0.8125rem;
+  cursor:        pointer;
+  transition:    transform 120ms ease;
+}
+
+.nota-sticker-btn:hover        { transform: scale(1.1); }
+.nota-sticker-btn:focus-visible {
+  outline:        3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.nota-remove-sticker {
+  font-size:   0.75rem;
+  color:       rgba(255, 255, 255, 0.65);
+  background:  none;
+  border:      none;
+  cursor:      pointer;
+  padding:     4px 8px;
+  border-radius: 4px;
+  text-decoration: underline;
+}
+
+.nota-remove-sticker:focus-visible {
+  outline:        2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* ── Metadata ── */
+
+.nota-metadata {
+  font-size:   0.75rem;
+  color:       rgba(255, 255, 255, 0.50);
+  line-height: 1.6;
+  padding-top: 4px;
+  border-top:  1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ── Not-found ── */
+
+.nota-notfound {
+  flex:            1;
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  gap:             1.25rem;
+  padding:         2rem;
+  text-align:      center;
+}
+
+.nota-notfound-msg {
+  font-size:   1.125rem;
+  font-weight: 500;
+  color:       var(--text-primary);
+}
+
+.nota-notfound-sub {
+  font-size:  0.875rem;
+  color:      rgba(255, 255, 255, 0.65);
+  max-width:  30ch;
+}
+
+.nota-notfound-btn {
+  min-height:     44px;
+  padding:        0 1.5rem;
+  border-radius:  9999px;
+  border:         1px solid rgba(255, 255, 255, 0.50);
+  background:     rgba(255, 255, 255, 0.12);
+  color:          var(--text-primary);
+  font-size:      0.9375rem;
+  font-weight:    600;
+  cursor:         pointer;
+  transition:     background 150ms ease;
+  text-decoration: none;
+  display:        inline-flex;
+  align-items:    center;
+}
+
+.nota-notfound-btn:hover        { background: rgba(255, 255, 255, 0.22); }
+.nota-notfound-btn:focus-visible {
+  outline:        3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+/* ============================================================
+   RESPONSIVE — Lavagna + Nota
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .lavagna-board-wrap  { padding: 12px 16px; }
+  .lavagna-header      { padding: 0.75rem 1rem; }
+  .lavagna-add-label   { display: none; }  /* icon-only on narrow screens */
+
+  /* Nota: single column */
+  .nota-body           { flex-direction: column; overflow-y: auto; }
+  .nota-preview-panel  {
+    flex:         none;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    padding:      24px 24px 20px;
+  }
+  .nota-tools-panel    { flex: none; overflow-y: visible; }
+}
+
+@media (max-width: 480px) {
+  .lavagna-count       { display: none; }
+  .nota-postit-preview { width: 240px; height: 240px; }
+}

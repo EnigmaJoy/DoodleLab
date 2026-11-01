@@ -1,0 +1,121 @@
+'use client'
+
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useReducer,
+  type Dispatch,
+  type ReactNode,
+} from 'react'
+import type { PostIt, PostItAction, PostItState } from './postit-types'
+import { generateRotation } from './postit-utils'
+
+// ── Reducer ──────────────────────────────────────────────────────────────────
+
+export function postItReducer(state: PostItState, action: PostItAction): PostItState {
+  switch (action.type) {
+    case 'ADD_NOTE': {
+      const now: string = new Date().toISOString()
+      const note: PostIt = {
+        id:        crypto.randomUUID(),
+        content:   '',
+        color:     'yellow',
+        rotation:  generateRotation(),
+        position:  { xPct: 0.35, yPct: 0.35 },
+        stickers:  [],
+        pinned:    false,
+        createdAt: now,
+        updatedAt: now,
+        ...action.payload,
+      }
+      return { ...state, notes: [...state.notes, note] }
+    }
+
+    case 'UPDATE_NOTE': {
+      const { id, ...fields } = action.payload
+      // Explicitly exclude position to enforce the invariant
+      const { position: _pos, ...safeFields } = fields as typeof fields & { position?: unknown }
+      void _pos
+      return {
+        ...state,
+        notes: state.notes.map(n =>
+          n.id === id
+            ? { ...n, ...safeFields, updatedAt: new Date().toISOString() }
+            : n
+        ),
+      }
+    }
+
+    case 'MOVE_NOTE': {
+      const { id, xPct, yPct } = action.payload
+      return {
+        ...state,
+        notes: state.notes.map(n =>
+          n.id === id ? { ...n, position: { xPct, yPct } } : n
+        ),
+      }
+    }
+
+    case 'DELETE_NOTE':
+      return {
+        ...state,
+        notes: state.notes.filter(n => n.id !== action.payload.id),
+      }
+
+    case 'TOGGLE_PIN':
+      return {
+        ...state,
+        notes: state.notes.map(n =>
+          n.id === action.payload.id ? { ...n, pinned: !n.pinned } : n
+        ),
+      }
+
+    case 'SET_VIEW':
+      // Only mode changes — notes are untouched
+      return { ...state, mode: action.payload.mode }
+
+    default:
+      return state
+  }
+}
+
+// ── Context ──────────────────────────────────────────────────────────────────
+
+export interface PostItContextValue {
+  state:    PostItState
+  dispatch: Dispatch<PostItAction>
+}
+
+const PostItContext = createContext<PostItContextValue | null>(null)
+
+export function PostItProvider({
+  children,
+  initialNotes = [],
+}: {
+  children:      ReactNode
+  initialNotes?: PostIt[]
+}) {
+  const [state, dispatch] = useReducer(postItReducer, {
+    notes: initialNotes,
+    mode:  'free',
+  })
+  const value = useMemo(() => ({ state, dispatch }), [state, dispatch])
+  return (
+    <PostItContext.Provider value={value}>
+      {children}
+    </PostItContext.Provider>
+  )
+}
+
+export function usePostItContext(): PostItContextValue {
+  const ctx = useContext(PostItContext)
+  if (!ctx) throw new Error('usePostItContext must be used inside PostItProvider')
+  return ctx
+}
+
+/** Returns a single note by id, or undefined (e.g. after refresh). */
+export function usePostIt(id: string): PostIt | undefined {
+  const { state } = usePostItContext()
+  return state.notes.find(n => n.id === id)
+}
