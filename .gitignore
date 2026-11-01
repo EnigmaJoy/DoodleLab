@@ -151,3 +151,6 @@ vite.config.ts.timestamp-*
 # Claude Code
 .claude/
 CLAUDE.md
+
+# JetBrains IDE settings
+.idea/

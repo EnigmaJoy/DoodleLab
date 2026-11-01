@@ -1,6 +1,6 @@
 // app/layout.tsx
 import type { Metadata } from 'next'
-import { Sacramento, Kalam } from 'next/font/google'
+import { Caveat, Sacramento, Kalam } from 'next/font/google'
 import { PaletteSwitcher } from '@/dev/PaletteSwitcher'
 import { PALETTE_COUNT } from '@/lib/palettes'
 import './globals.css'

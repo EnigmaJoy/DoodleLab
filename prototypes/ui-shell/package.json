@@ -7,6 +7,8 @@
     "build": "next build --turbopack",
     "start": "next start",
     "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "node --experimental-websocket e2e/oggi-time-blocks.mjs && node --experimental-websocket e2e/oggi-tasks.mjs && node --experimental-websocket e2e/oggi-block-actions.mjs",
     "test:watch": "vitest"
   },
   "dependencies": {
