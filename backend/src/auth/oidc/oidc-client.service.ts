@@ -72,16 +72,17 @@ export class OidcClientService implements OnModuleInit {
     code:          string
     codeVerifier:  string
     nonce:         string
+    iss?:          string
   }): Promise<{ idTokenClaims: Record<string, unknown>; refreshToken: string; idTokenRaw: string }> {
-    const { authorizationCodeGrant } = await import('openid-client')
+    const { authorizationCodeGrant, skipStateCheck } = await import('openid-client')
 
     const tokens = await authorizationCodeGrant(
       this.oidcConfig as unknown as Parameters<typeof authorizationCodeGrant>[0],
-      (() => { const u = new URL(this.redirectUri); u.searchParams.set('code', params.code); return u })(),
+      (() => { const u = new URL(this.redirectUri); u.searchParams.set('code', params.code); if (params.iss) u.searchParams.set('iss', params.iss); return u })(),
       {
         pkceCodeVerifier: params.codeVerifier,
         expectedNonce:    params.nonce,
-        expectedState:    undefined,
+        expectedState:    skipStateCheck as unknown as string,
       },
     )
 

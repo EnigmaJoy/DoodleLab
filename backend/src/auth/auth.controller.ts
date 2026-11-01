@@ -67,6 +67,7 @@ export class AuthController {
     }
 
     const code = query['code']
+    const iss  = typeof query['iss'] === 'string' ? query['iss'] : undefined
     if (!code || !state) return this._failRedirect(res, 'failed', 'missing_code_or_state', txId, state)
 
     const pending = await this.pendingAuth.consume(txId, state)
@@ -78,8 +79,10 @@ export class AuthController {
         code,
         codeVerifier: pending.codeVerifier,
         nonce:        pending.nonce,
+        iss,
       })
-    } catch {
+    } catch (err) {
+      this.logger.warn(`token_exchange error: ${(err as Error)?.message ?? err}`)
       return this._failRedirect(res, 'failed', 'token_exchange')
     }
 

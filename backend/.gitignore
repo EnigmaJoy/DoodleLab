@@ -6,6 +6,9 @@
 # Build output
 dist/
 coverage/
+test/**/*.js
+test/**/*.js.map
+test/**/*.d.ts
 
 # Dependencies
 node_modules/

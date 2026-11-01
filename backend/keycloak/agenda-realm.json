@@ -63,11 +63,33 @@
   "authenticationFlows": [
     {
       "alias": "post broker login with otp",
-      "description": "Post-broker login flow requiring OTP",
+      "description": "Post-broker login flow requiring OTP at LOA 2",
       "providerId": "basic-flow",
       "topLevel": true,
       "builtIn": false,
       "authenticationExecutions": [
+        {
+          "authenticatorFlow": true,
+          "requirement": "CONDITIONAL",
+          "priority": 10,
+          "flowAlias": "post broker login with otp - otp loa2"
+        }
+      ]
+    },
+    {
+      "alias": "post broker login with otp - otp loa2",
+      "description": "Conditional OTP sub-flow that achieves LOA 2",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "conditional-level-of-authentication",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "authenticatorConfig": "loa-2-config"
+        },
         {
           "authenticator": "auth-otp-form",
           "authenticatorFlow": false,
@@ -76,6 +98,16 @@
           "userSetupAllowed": true
         }
       ]
+    }
+  ],
+  "authenticatorConfig": [
+    {
+      "alias": "loa-2-config",
+      "config": {
+        "loa-condition-level": "2",
+        "loa-max-age": "86400",
+        "store-loa": "true"
+      }
     }
   ],
   "requiredActions": [
