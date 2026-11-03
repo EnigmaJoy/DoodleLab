@@ -4,10 +4,11 @@ import { render, screen, fireEvent, act } from '@testing-library/react'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
-const mockPush = vi.fn()
+const mockPush    = vi.fn()
+const mockReplace = vi.fn()
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace }),
 }))
 
 const mockSetup = vi.fn()
@@ -109,7 +110,7 @@ describe('VaultSetupPage — Step 2', () => {
     expect((screen.getByTestId('inizia-btn') as HTMLButtonElement).disabled).toBe(false)
   })
 
-  it('e. "Inizia" calls setup() with correct args and navigates to "/"', async () => {
+  it('e. "Inizia" calls setup() with correct args and navigates to "/?view=menu"', async () => {
     const testPin   = 'mypin1'
     const testEmail = 'user@example.com'
 
@@ -129,7 +130,7 @@ describe('VaultSetupPage — Step 2', () => {
 
     expect(mockSetup).toHaveBeenCalledOnce()
     expect(mockSetup).toHaveBeenCalledWith(testPin, EXPECTED_RECOVERY_CODE, testEmail)
-    expect(mockPush).toHaveBeenCalledWith('/')
+    expect(mockReplace).toHaveBeenCalledWith('/?view=menu')
   })
 
   it('e. "Inizia" calls setup() with undefined hint when email is empty', async () => {
@@ -145,6 +146,6 @@ describe('VaultSetupPage — Step 2', () => {
     })
 
     expect(mockSetup).toHaveBeenCalledWith(testPin, EXPECTED_RECOVERY_CODE, undefined)
-    expect(mockPush).toHaveBeenCalledWith('/')
+    expect(mockReplace).toHaveBeenCalledWith('/?view=menu')
   })
 })

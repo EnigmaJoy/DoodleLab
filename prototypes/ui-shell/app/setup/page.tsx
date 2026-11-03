@@ -73,7 +73,7 @@ export default function VaultSetupPage() {
     setError(null)
     try {
       await setup(pin, masterKeyHex, email || undefined)
-      router.push('/')
+      router.replace('/?view=menu')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Errore durante la creazione del vault.')
       setLoading(false)
