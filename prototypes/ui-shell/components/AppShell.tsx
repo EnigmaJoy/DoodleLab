@@ -79,6 +79,7 @@ export function AppShell({ initialView }: AppShellProps) {
             position:     'fixed',
             bottom:       '1.5rem',
             right:        '1.5rem',
+            zIndex:       3,
             background:   'rgba(255,255,255,0.12)',
             border:       '1px solid rgba(255,255,255,0.25)',
             borderRadius: '0.5rem',
