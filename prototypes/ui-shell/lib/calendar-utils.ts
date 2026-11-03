@@ -51,7 +51,7 @@ export function nextMonth(year: number, month: number): [number, number] {
   return month === 11 ? [year + 1, 0] : [year, month + 1]
 }
 
-/** Returns uppercase Italian day name with accent, e.g. "VENERDÌ" */
+/** Returns Italian day name with accent, e.g. "Venerdì" */
 export function getDayNameFull(ds: string): string {
   const [y, m, d] = ds.split('-').map(Number)
   const date = new Date(y, m - 1, d)
@@ -60,8 +60,6 @@ export function getDayNameFull(ds: string): string {
 
 /** Returns "25 ottobre" (day number + lowercase month, no year) */
 export function formatDayShort(ds: string): string {
-  const [y, m, d] = ds.split('-').map(Number)
-  // suppress "unused variable" lint — y is intentionally unused
-  void y
+  const [, m, d] = ds.split('-').map(Number)
   return `${d} ${MONTHS_IT[m - 1].toLowerCase()}`
 }
