@@ -30,12 +30,12 @@ export async function encrypt(
   const iv = crypto.getRandomValues(new Uint8Array(12))
   const encoded = new TextEncoder().encode(plaintext)
   const ciphertextBuf = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
+    { name: 'AES-GCM', iv, tagLength: 128 },
     key,
     encoded,
   )
   return {
-    iv:         toBase64url(iv.buffer),
+    iv:         toBase64url(iv.buffer.slice(iv.byteOffset, iv.byteOffset + iv.byteLength)),
     ciphertext: toBase64url(ciphertextBuf),
   }
 }
@@ -44,10 +44,13 @@ export async function decrypt(
   key: CryptoKey,
   data: VaultCiphertext,
 ): Promise<string> {
+  if (!data.iv || !data.ciphertext) {
+    throw new TypeError('VaultCiphertext fields must be non-empty strings')
+  }
   const iv = fromBase64url(data.iv)
   const ciphertext = fromBase64url(data.ciphertext)
   const plainBuf = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv },
+    { name: 'AES-GCM', iv, tagLength: 128 },
     key,
     ciphertext,
   )
