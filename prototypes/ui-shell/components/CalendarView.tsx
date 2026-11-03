@@ -19,6 +19,7 @@ import {
   getDayNameFull,
   formatDayShort,
 } from '@/lib/calendar-utils'
+import { useFocusReturn } from '@/lib/hooks/use-focus-return'
 
 const DAY_HEADERS = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
 const TIMELINE_HOURS = [8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
@@ -370,6 +371,8 @@ export function CalendarView() {
   const timelinePanelRef = useRef<HTMLDivElement | null>(null)
   const groupPanelRef    = useRef<HTMLDivElement | null>(null)
 
+  const returnFocus = useFocusReturn()
+
   const datesWithItems = getDatesWithItems()
 
   // Focus the grid cell when focusedDate changes (only when overlay is closed)
@@ -401,7 +404,7 @@ export function CalendarView() {
       const chip = chipRefs.current.get(openGroupId)
       setOpenGroupId(null)
       // chip focus happens after re-render; we need a tiny defer
-      setTimeout(() => chip?.focus(), 0)
+      returnFocus(chip)
     } else {
       setSelectedDate(null)
       setOpenGroupId(null)
@@ -453,7 +456,7 @@ export function CalendarView() {
     setSelectedDate(null)
     setOpenGroupId(null)
     if (last) {
-      setTimeout(() => dayRefs.current.get(last)?.focus(), 0)
+      returnFocus(dayRefs.current.get(last))
     }
   }
 
@@ -471,7 +474,7 @@ export function CalendarView() {
   function handleGroupClose() {
     const chip = chipRefs.current.get(openGroupId ?? '')
     setOpenGroupId(null)
-    setTimeout(() => chip?.focus(), 0)
+    returnFocus(chip)
   }
 
   function handleGridKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
