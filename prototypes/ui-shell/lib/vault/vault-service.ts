@@ -6,7 +6,9 @@ import { LocalStorageAdapter } from '../storage/local-storage-adapter'
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const META_KEY = 'doodlelab:vault:meta:v1'
+function metaKey(userId: string): string {
+  return `doodlelab:vault:meta:${userId}:v1`
+}
 
 // Logical keys that repositories use — VaultStorageAdapter maps these to vault keys
 const VAULT_LOGICAL_KEYS = [
@@ -18,12 +20,15 @@ const VAULT_LOGICAL_KEYS = [
 ]
 
 // Phase 1 key → Phase 2 vault key (used only for one-time migration in setup())
-const PHASE1_MIGRATION_MAP: Record<string, string> = {
-  'doodlelab:calendar:v1': 'doodlelab:vault:calendar:v1',
-  'doodlelab:daily:v1':    'doodlelab:vault:daily:v1',
-  'doodlelab:journal:v1':  'doodlelab:vault:journal:v1',
-  'doodlelab:inbox:v1':    'doodlelab:vault:inbox:v1',
-  'doodlelab:board:v2':    'doodlelab:vault:board:v3',
+// Physical vault keys are now userId-namespaced.
+function phase1MigrationMap(userId: string): Record<string, string> {
+  return {
+    'doodlelab:calendar:v1': `doodlelab:vault:data:${userId}:calendar:v1`,
+    'doodlelab:daily:v1':    `doodlelab:vault:data:${userId}:daily:v1`,
+    'doodlelab:journal:v1':  `doodlelab:vault:data:${userId}:journal:v1`,
+    'doodlelab:inbox:v1':    `doodlelab:vault:data:${userId}:inbox:v1`,
+    'doodlelab:board:v2':    `doodlelab:vault:data:${userId}:board:v3`,
+  }
 }
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -78,7 +83,8 @@ async function importMasterKey(hex: string): Promise<CryptoKey> {
 
 export class VaultService extends ChangeNotifier {
   private _state: VaultState
-  private readonly inner = new LocalStorageAdapter()
+  private readonly inner  = new LocalStorageAdapter()
+  private readonly userId: string
 
   private inactivityTimer: ReturnType<typeof setTimeout> | null = null
   private readonly INACTIVITY_MS = 30 * 60 * 1000
@@ -91,9 +97,10 @@ export class VaultService extends ChangeNotifier {
     this.resetInactivityTimer()
   }
 
-  constructor() {
+  constructor(userId: string) {
     super()
-    const meta = this.inner.read(META_KEY)
+    this.userId = userId
+    const meta  = this.inner.read(metaKey(userId))
     this._state = meta ? { status: 'locked' } : { status: 'uninitialized' }
   }
 
@@ -119,7 +126,7 @@ export class VaultService extends ChangeNotifier {
     const verifierCiphertext  = await encrypt(masterKey, 'vault-ok')
 
     // One-time migration: Phase 1 plaintext → encrypted vault keys
-    for (const [phase1Key, vaultKey] of Object.entries(PHASE1_MIGRATION_MAP)) {
+    for (const [phase1Key, vaultKey] of Object.entries(phase1MigrationMap(this.userId))) {
       const raw = this.inner.read(phase1Key)
       if (raw !== null) {
         const ct = await encrypt(masterKey, raw)
@@ -135,7 +142,7 @@ export class VaultService extends ChangeNotifier {
       createdAt:          new Date().toISOString(),
       verifierCiphertext,
     }
-    this.inner.write(META_KEY, JSON.stringify(meta))
+    this.inner.write(metaKey(this.userId), JSON.stringify(meta))
 
     await this.activateWithMasterKey(masterKey)
   }
@@ -145,7 +152,7 @@ export class VaultService extends ChangeNotifier {
    */
   async unlock(pin: string): Promise<boolean> {
     try {
-      const metaRaw = this.inner.read(META_KEY)
+      const metaRaw = this.inner.read(metaKey(this.userId))
       if (metaRaw === null) return false
       const meta = JSON.parse(metaRaw) as VaultMeta
 
@@ -167,7 +174,7 @@ export class VaultService extends ChangeNotifier {
    */
   async recover(recoveryCode: string): Promise<boolean> {
     try {
-      const metaRaw = this.inner.read(META_KEY)
+      const metaRaw = this.inner.read(metaKey(this.userId))
       if (metaRaw === null) return false
       if (!/^[0-9a-fA-F]{64}$/.test(recoveryCode)) return false
       const meta       = JSON.parse(metaRaw) as VaultMeta
@@ -211,6 +218,7 @@ export class VaultService extends ChangeNotifier {
       masterKey,
       this.inner,
       VAULT_LOGICAL_KEYS,
+      this.userId,       // ← NEW 4th argument
     )
     setStorageAdapter(adapter)
     resetAllRepositories()
@@ -247,9 +255,11 @@ export class VaultService extends ChangeNotifier {
 
 // ── Singleton factory ─────────────────────────────────────────────────────────
 
-let vaultServiceInstance: VaultService | null = null
+const vaultServiceCache = new Map<string, VaultService>()
 
-export function getVaultService(): VaultService {
-  vaultServiceInstance ??= new VaultService()
-  return vaultServiceInstance
+export function getVaultService(userId: string): VaultService {
+  if (!vaultServiceCache.has(userId)) {
+    vaultServiceCache.set(userId, new VaultService(userId))
+  }
+  return vaultServiceCache.get(userId)!
 }
