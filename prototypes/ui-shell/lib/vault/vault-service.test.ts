@@ -102,6 +102,14 @@ describe('VaultService', () => {
     expect(svc.getState().status).toBe('locked')
   })
 
+  it('recover() returns false when vault is uninitialized (no meta)', async () => {
+    const svc = new VaultService()
+    expect(svc.getState().status).toBe('uninitialized')
+    const ok = await svc.recover(makeMasterKeyHex())
+    expect(ok).toBe(false)
+    expect(svc.getState().status).toBe('uninitialized')
+  })
+
   it('setup() migrates Phase 1 plaintext data to vault keys', async () => {
     // Plant Phase 1 data
     localStorage.setItem('doodlelab:daily:v1', '{"tasks":[]}')

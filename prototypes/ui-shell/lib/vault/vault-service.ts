@@ -164,6 +164,7 @@ export class VaultService extends ChangeNotifier {
    */
   async recover(recoveryCode: string): Promise<boolean> {
     try {
+      if (this.inner.read(META_KEY) === null) return false
       if (!/^[0-9a-fA-F]{48}$/.test(recoveryCode)) return false
       const masterKey = await importMasterKey(recoveryCode)
       await this.activateWithMasterKey(masterKey)
@@ -178,6 +179,7 @@ export class VaultService extends ChangeNotifier {
    * adapter, resets all repository singletons.
    */
   lock(): void {
+    if (this._state.status === 'uninitialized') return
     if (this._state.status === 'unlocked') {
       void this._state.adapter.destroy()
     }
@@ -223,6 +225,7 @@ export class VaultService extends ChangeNotifier {
   }
 
   private resetInactivityTimer(): void {
+    if (typeof document === 'undefined') return
     if (this.inactivityTimer !== null) clearTimeout(this.inactivityTimer)
     this.inactivityTimer = setTimeout(() => this.lock(), this.INACTIVITY_MS)
   }
