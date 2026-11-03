@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { getVaultService, type VaultState } from '@/lib/vault/vault-service'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -66,15 +66,22 @@ export function useVaultContext(): VaultContextValue {
 
 // ── AppGate ───────────────────────────────────────────────────────────────────
 
+const VAULT_PATHS = new Set(['/setup', '/unlock'])
+
 export function AppGate({ children }: { children: ReactNode }): ReactNode {
   const { state } = useVaultContext()
   const router = useRouter()
+  const pathname = usePathname()
+  const isVaultPage = VAULT_PATHS.has(pathname)
 
   useEffect(() => {
+    // Never redirect when already on a vault page — avoids infinite redirect loops.
+    if (isVaultPage) return
     if (state.status === 'uninitialized') router.replace('/setup')
     else if (state.status === 'locked') router.replace('/unlock')
-  }, [state.status, router])
+  }, [state.status, router, isVaultPage])
 
-  if (state.status === 'unlocked') return <>{children}</>
+  // /setup and /unlock are always rendered regardless of vault state.
+  if (isVaultPage || state.status === 'unlocked') return <>{children}</>
   return null
 }

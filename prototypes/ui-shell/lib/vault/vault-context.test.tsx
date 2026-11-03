@@ -75,13 +75,16 @@ vi.mock('@/lib/vault/argon2-adapter', () => ({
   },
 }))
 
+const mockPathname = { value: '/' }
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
+  usePathname: vi.fn(() => mockPathname.value),
 }))
 
 // Import after mocks are set up
 import { VaultProvider, useVaultContext, AppGate } from './vault-context'
 import { useRouter } from 'next/navigation'
+// mockPathname is declared in the vi.mock factory above; close over it here for test use
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -262,5 +265,25 @@ describe('AppGate', () => {
 
     expect(screen.queryByText('protected content')).toBeNull()
     expect(mockReplace).toHaveBeenCalledWith('/unlock')
+  })
+
+  it('renders children on /setup and /unlock regardless of vault state', async () => {
+    // state is uninitialized — normally would redirect, but not on vault pages
+    for (const path of ['/setup', '/unlock']) {
+      mockPathname.value = path
+      const { unmount } = await act(async () =>
+        render(
+          <VaultProvider>
+            <AppGate>
+              <span>vault page content</span>
+            </AppGate>
+          </VaultProvider>,
+        ),
+      )
+      expect(screen.getByText('vault page content')).toBeDefined()
+      expect(mockReplace).not.toHaveBeenCalled()
+      unmount()
+    }
+    mockPathname.value = '/'
   })
 })
