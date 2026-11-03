@@ -4,10 +4,11 @@ import { render, screen, fireEvent, act } from '@testing-library/react'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
-const mockPush = vi.fn()
+const mockPush    = vi.fn()
+const mockReplace = vi.fn()
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace }),
 }))
 
 const mockUnlock  = vi.fn()
@@ -52,7 +53,7 @@ describe('VaultUnlockPage', () => {
 
     expect(mockUnlock).toHaveBeenCalledOnce()
     expect(mockUnlock).toHaveBeenCalledWith('123456')
-    expect(mockPush).toHaveBeenCalledWith('/')
+    expect(mockReplace).toHaveBeenCalledWith('/?view=menu')
   })
 
   it('c. Failed unlock shows "PIN non corretto" error', async () => {
@@ -66,7 +67,7 @@ describe('VaultUnlockPage', () => {
     })
 
     expect(mockUnlock).toHaveBeenCalledOnce()
-    expect(mockPush).not.toHaveBeenCalled()
+    expect(mockReplace).not.toHaveBeenCalled()
     expect(screen.getByTestId('error-msg').textContent).toBe('PIN non corretto')
   })
 
@@ -99,7 +100,7 @@ describe('VaultUnlockPage', () => {
 
     expect(mockRecover).toHaveBeenCalledOnce()
     expect(mockRecover).toHaveBeenCalledWith(testCode)
-    expect(mockPush).toHaveBeenCalledWith('/')
+    expect(mockReplace).toHaveBeenCalledWith('/?view=menu')
   })
 
   it('g. Failed recover shows "Codice non valido" error', async () => {
@@ -116,7 +117,7 @@ describe('VaultUnlockPage', () => {
     })
 
     expect(mockRecover).toHaveBeenCalledOnce()
-    expect(mockPush).not.toHaveBeenCalled()
+    expect(mockReplace).not.toHaveBeenCalled()
     expect(screen.getByTestId('error-msg').textContent).toBe('Codice non valido')
   })
 })

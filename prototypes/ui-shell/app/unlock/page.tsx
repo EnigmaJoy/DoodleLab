@@ -44,7 +44,7 @@ export default function VaultUnlockPage() {
     setError(null)
     const ok = await unlock(pin)
     if (ok) {
-      router.push('/')
+      router.replace('/?view=menu')
     } else {
       setError('PIN non corretto')
       setLoading(false)
@@ -59,7 +59,7 @@ export default function VaultUnlockPage() {
     setError(null)
     const ok = await recover(recoveryCode)
     if (ok) {
-      router.push('/')
+      router.replace('/?view=menu')
     } else {
       setError('Codice non valido')
       setLoading(false)
