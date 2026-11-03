@@ -1,5 +1,4 @@
 import type { StorageAdapter } from '../storage/storage-adapter'
-import type { LocalStorageAdapter } from '../storage/local-storage-adapter'
 import { encrypt, decrypt } from './vault-crypto'
 
 // Maps logical keys (used by repositories) to encrypted vault keys (in localStorage)
@@ -46,12 +45,12 @@ class AsyncQueue {
 export class VaultStorageAdapter implements StorageAdapter {
   private readonly cache:      Map<string, string>
   private readonly key:        CryptoKey
-  private readonly inner:      LocalStorageAdapter
+  private readonly inner:      StorageAdapter
   private readonly writeQueue: AsyncQueue
 
   private constructor(
     key:   CryptoKey,
-    inner: LocalStorageAdapter,
+    inner: StorageAdapter,
     cache: Map<string, string>,
   ) {
     this.key        = key
@@ -68,7 +67,7 @@ export class VaultStorageAdapter implements StorageAdapter {
    */
   static async create(
     key:         CryptoKey,
-    inner:       LocalStorageAdapter,
+    inner:       StorageAdapter,
     logicalKeys: string[],
   ): Promise<VaultStorageAdapter> {
     const cache = new Map<string, string>()
@@ -98,6 +97,8 @@ export class VaultStorageAdapter implements StorageAdapter {
     this.cache.set(key, value)
     const vaultKey = VAULT_KEY_MAP[key] ?? key
     this.writeQueue.enqueue(async () => {
+      // Capture `value` at enqueue time — do NOT read from cache here.
+      // Cache may have been updated by a subsequent write before this task runs.
       const ct = await encrypt(this.key, value)
       this.inner.write(vaultKey, JSON.stringify(ct))
     })

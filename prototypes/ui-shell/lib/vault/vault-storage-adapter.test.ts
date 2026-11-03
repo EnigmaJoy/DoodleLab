@@ -96,4 +96,21 @@ describe('VaultStorageAdapter', () => {
     await a2.destroy()
     expect(inner.read('doodlelab:vault:daily:v1')).toBeNull()  // storage removed
   })
+
+  it('create() with wrong key returns null for encrypted entries (auth tag failure)', async () => {
+    const inner = new LocalStorageAdapter()
+    const keyA = await makeKey()
+    const keyB = await crypto.subtle.generateKey(
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt'],
+    )
+    // Write with keyA
+    const a1 = await VaultStorageAdapter.create(keyA, inner, LOGICAL_KEYS)
+    a1.write('doodlelab:daily:v1', 'secret data')
+    await a1.destroy()
+    // Load with wrong keyB — decrypt fails, cache entry must be absent
+    const a2 = await VaultStorageAdapter.create(keyB, inner, LOGICAL_KEYS)
+    expect(a2.read('doodlelab:daily:v1')).toBeNull()
+  })
 })
