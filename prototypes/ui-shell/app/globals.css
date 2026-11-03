@@ -98,36 +98,8 @@ body {
 }
 
 /* ============================================================
-   WELCOME SCREEN
+   WELCOME TEXT
    ============================================================ */
-
-.welcome-screen {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  height: 100dvh;
-  background: linear-gradient(
-    var(--gradient-angle),
-    var(--gradient-start),
-    var(--gradient-end)
-  );
-  padding:
-    env(safe-area-inset-top, 0px)
-    env(safe-area-inset-right, 0px)
-    env(safe-area-inset-bottom, 0px)
-    env(safe-area-inset-left, 0px);
-}
-
-.welcome-main {
-  display:         flex;
-  flex-direction:  column;
-  align-items:     center;
-  justify-content: center;
-  height:          100%;
-  gap:             48px;
-  /* Horizontal padding prevents the wide script text from touching viewport edges */
-  padding:         0 clamp(1rem, 5vw, 3rem);
-}
 
 /* Visually hidden but available to screen readers */
 .sr-only {
@@ -140,23 +112,6 @@ body {
   clip:       rect(0, 0, 0, 0);
   white-space: nowrap;
   border:     0;
-}
-
-/* Tap/click target wrapping the animated "Welcome" text */
-.welcome-replay-btn {
-  background: none;
-  border:     none;
-  padding:    8px;
-  margin:     -8px;
-  cursor:     pointer;
-  overflow:   visible;
-}
-
-.welcome-replay-btn:focus-visible {
-  outline:        3px solid var(--focus-ring);
-  outline-offset: 8px;
-  border-radius:  4px;
-  box-shadow:     0 0 0 1px var(--focus-ring-bg);
 }
 
 /* Grid stacks stroke and fill layers without absolute positioning */
@@ -201,47 +156,6 @@ body {
 @keyframes fill-in {
   from { opacity: 0; }
   to   { opacity: 1; }
-}
-
-.inizia-button {
-  min-height:     56px;
-  min-width:      44px;
-  padding:        0 36px;
-  border-radius:  28px;
-  background:     rgba(255, 255, 255, 0.20);
-  color:          #ffffff;
-  border:         2px solid rgba(255, 255, 255, 0.85);
-  font-size:      1.125rem;
-  font-weight:    700;
-  letter-spacing: 0.03em;
-  cursor:         pointer;
-  animation:      welcome-button-appear 600ms ease 3.4s both;
-}
-
-/* Block interaction until animation completes (JS adds .ready class) */
-.inizia-button:not(.ready) {
-  pointer-events: none;
-}
-
-.inizia-button:hover {
-  background: rgba(255, 255, 255, 0.30);
-}
-
-.inizia-button:focus-visible {
-  outline:        3px solid var(--focus-ring);
-  outline-offset: 3px;
-  box-shadow:     0 0 0 1px var(--focus-ring-bg);
-}
-
-@keyframes welcome-button-appear {
-  from {
-    opacity:   0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity:   1;
-    transform: translateY(0);
-  }
 }
 
 /* ============================================================

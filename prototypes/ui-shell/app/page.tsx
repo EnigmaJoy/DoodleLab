@@ -9,6 +9,6 @@ interface Props {
 export default async function Home({ searchParams }: Props) {
   const params       = await searchParams
   const initialView: AppView =
-    params.view === 'menu' ? 'MENU_CLOSED' : 'WELCOME'
+    params.view === 'menu' ? 'MENU_OPEN' : 'MENU_CLOSED'
   return <AppShell initialView={initialView} />
 }
