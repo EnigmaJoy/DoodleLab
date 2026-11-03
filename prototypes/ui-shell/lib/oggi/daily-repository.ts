@@ -4,7 +4,7 @@
 // increment (see PERSISTENCE_MODE). A durable implementation must go through
 // the encrypted vault once it exists - never plain localStorage/IndexedDB.
 
-import { ChangeNotifier, createId } from '../store'
+import { ChangeNotifier, createId, registerReset, getStorageAdapter } from '../store'
 import { parseTime, type DayKey } from '../day'
 import { getCalendarRepository } from '../calendar-repository'
 import type {
@@ -15,7 +15,6 @@ import {
   type FixedInterval, type PlacementError, type Slot,
 } from './time-blocks'
 import type { StorageAdapter } from '../storage/storage-adapter'
-import { LocalStorageAdapter } from '../storage/local-storage-adapter'
 
 export type TaskError =
   | { type: 'empty-title' }
@@ -451,8 +450,10 @@ export class InMemoryDailyRepository extends ChangeNotifier implements DailyRepo
   }
 }
 
-let instance: DailyRepository | null = null
+let dailyInstance: DailyRepository | null = null
 let simulatedFailure: string | null = null
+
+registerReset(() => { dailyInstance = null })
 
 /** Development only: make the next task and time-block writes fail (null to stop) */
 export function simulateWriteFailure(message: string | null): void {
@@ -463,10 +464,12 @@ export function simulateWriteFailure(message: string | null): void {
 /** Session-wide instance shared by every section that needs daily data */
 export function getDailyRepository(): DailyRepository {
   // Fixed appointments come from the same source Calendario reads
-  instance ??= new InMemoryDailyRepository({
-    fixedIntervals: day => fixedIntervals(getCalendarRepository().getItemsForDate(day)),
-    writeGuard:     () => simulatedFailure,
-    storage:        new LocalStorageAdapter(),
-  })
-  return instance
+  if (!dailyInstance) {
+    dailyInstance = new InMemoryDailyRepository({
+      fixedIntervals: day => fixedIntervals(getCalendarRepository().getItemsForDate(day)),
+      writeGuard:     () => simulatedFailure,
+      storage:        getStorageAdapter(),
+    })
+  }
+  return dailyInstance
 }

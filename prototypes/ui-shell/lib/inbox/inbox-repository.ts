@@ -3,9 +3,8 @@
 // lands here uncategorised; triage into tasks/PostIts/events happens later
 // in Inbox. Do not create section-specific capture stores.
 
-import { ChangeNotifier, createId } from '../store'
+import { ChangeNotifier, createId, registerReset, getStorageAdapter } from '../store'
 import type { StorageAdapter } from '../storage/storage-adapter'
-import { LocalStorageAdapter } from '../storage/local-storage-adapter'
 
 export interface InboxItem {
   id:        string
@@ -86,9 +85,13 @@ export class InMemoryInboxRepository extends ChangeNotifier implements InboxRepo
   }
 }
 
-let instance: InboxRepository | null = null
+let inboxInstance: InboxRepository | null = null
+
+registerReset(() => { inboxInstance = null })
 
 export function getInboxRepository(): InboxRepository {
-  instance ??= new InMemoryInboxRepository(new LocalStorageAdapter())
-  return instance
+  if (!inboxInstance) {
+    inboxInstance = new InMemoryInboxRepository(getStorageAdapter())
+  }
+  return inboxInstance
 }

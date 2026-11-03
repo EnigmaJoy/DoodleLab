@@ -5,10 +5,9 @@
 // Typed text only: handwriting must use the vector-ink architecture once it
 // exists, never a raster snapshot stored here.
 
-import { ChangeNotifier, createId } from '../store'
+import { ChangeNotifier, createId, registerReset, getStorageAdapter } from '../store'
 import type { DayKey } from '../day'
 import type { StorageAdapter } from '../storage/storage-adapter'
-import { LocalStorageAdapter } from '../storage/local-storage-adapter'
 
 export interface JournalEntry {
   id:        string
@@ -92,9 +91,13 @@ export class InMemoryJournalRepository extends ChangeNotifier implements Journal
   }
 }
 
-let instance: JournalRepository | null = null
+let journalInstance: JournalRepository | null = null
+
+registerReset(() => { journalInstance = null })
 
 export function getJournalRepository(): JournalRepository {
-  instance ??= new InMemoryJournalRepository(new LocalStorageAdapter())
-  return instance
+  if (!journalInstance) {
+    journalInstance = new InMemoryJournalRepository(getStorageAdapter())
+  }
+  return journalInstance
 }

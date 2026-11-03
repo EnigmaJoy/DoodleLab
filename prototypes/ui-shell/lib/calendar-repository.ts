@@ -1,8 +1,8 @@
 // lib/calendar-repository.ts
 // Reactive, localStorage-backed repository for calendar items.
 
-import { ChangeNotifier, createId } from './store'
-import { LocalStorageAdapter } from './storage/local-storage-adapter'
+import { ChangeNotifier, createId, registerReset, getStorageAdapter } from './store'
+import type { StorageAdapter } from './storage/storage-adapter'
 import { MOCK_ITEMS } from './calendar-mock'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -64,9 +64,9 @@ interface StoredPayload {
 export class LocalCalendarRepository extends ChangeNotifier implements CalendarRepository {
   private items = new Map<string, CalendarItem>()
   private seededWithFixtures = false
-  private adapter: LocalStorageAdapter
+  private adapter: StorageAdapter
 
-  constructor(adapter: LocalStorageAdapter) {
+  constructor(adapter: StorageAdapter) {
     super()
     this.adapter = adapter
     this.load()
@@ -182,7 +182,11 @@ export class LocalCalendarRepository extends ChangeNotifier implements CalendarR
 
 let instance: CalendarRepository | null = null
 
+registerReset(() => { instance = null })
+
 export function getCalendarRepository(): CalendarRepository {
-  instance ??= new LocalCalendarRepository(new LocalStorageAdapter())
+  if (!instance) {
+    instance = new LocalCalendarRepository(getStorageAdapter())
+  }
   return instance
 }
