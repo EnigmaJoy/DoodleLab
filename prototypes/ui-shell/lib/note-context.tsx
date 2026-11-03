@@ -11,12 +11,13 @@ import {
 } from 'react'
 import type { Note, NoteAction, NoteState } from './note-types'
 import { generateRotation } from './note-utils'
+import { getStorageAdapter } from './store'
 
 const STORAGE_KEY = 'doodlelab:board:v2'
 
 function loadFromStorage(): NoteState | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = getStorageAdapter().read(STORAGE_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw) as { notes?: unknown; mode?: unknown }
     if (!Array.isArray(parsed.notes)) return null
@@ -28,11 +29,7 @@ function loadFromStorage(): NoteState | null {
 }
 
 function saveToStorage(state: NoteState): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-  } catch {
-    // Storage full or unavailable — fail silently
-  }
+  getStorageAdapter().write(STORAGE_KEY, JSON.stringify(state))
 }
 
 // ── Reducer ──────────────────────────────────────────────────────────────────
@@ -126,7 +123,7 @@ export function NoteProvider({
     (s) => loadFromStorage() ?? s,
   )
 
-  // Persist to localStorage whenever state changes
+  // Persist to storage whenever state changes
   useEffect(() => {
     saveToStorage(state)
   }, [state])
