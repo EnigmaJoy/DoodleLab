@@ -50,7 +50,7 @@ export interface TimeBlock {
   updatedAt: number
 }
 
-export type EnergyLevel = 'bassa' | 'media' | 'alta'
+export type EnergyLevel = 'low' | 'medium' | 'high'
 
 /** User-defined activity suitable for an energy level. Not day-scoped. */
 export interface EnergyActivity {

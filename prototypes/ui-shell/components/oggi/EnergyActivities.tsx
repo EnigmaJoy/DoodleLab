@@ -9,9 +9,9 @@ import { ConfirmAction, useAnnounce, useRepository } from './shared'
 import { PlusIcon } from './icons'
 
 const LEVELS: Array<{ id: EnergyLevel; label: string }> = [
-  { id: 'bassa', label: 'Bassa' },
-  { id: 'media', label: 'Media' },
-  { id: 'alta',  label: 'Alta'  },
+  { id: 'low',    label: 'Bassa' },
+  { id: 'medium', label: 'Media' },
+  { id: 'high',   label: 'Alta'  },
 ]
 
 /**

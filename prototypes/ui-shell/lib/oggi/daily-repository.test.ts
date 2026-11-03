@@ -107,9 +107,9 @@ describe('check-in', () => {
 describe('energy activities', () => {
   it('lists only activities for the chosen level', () => {
     const repo = new InMemoryDailyRepository()
-    repo.addEnergyActivity('bassa', 'Riordinare la scrivania')
-    repo.addEnergyActivity('alta', 'Fare la dichiarazione')
-    expect(repo.listEnergyActivities('bassa').map(a => a.title)).toEqual(['Riordinare la scrivania'])
-    expect(repo.listEnergyActivities('media')).toEqual([])
+    repo.addEnergyActivity('low', 'Riordinare la scrivania')
+    repo.addEnergyActivity('high', 'Fare la dichiarazione')
+    expect(repo.listEnergyActivities('low').map(a => a.title)).toEqual(['Riordinare la scrivania'])
+    expect(repo.listEnergyActivities('medium')).toEqual([])
   })
 })
