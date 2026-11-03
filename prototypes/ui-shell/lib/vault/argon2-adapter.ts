@@ -1,4 +1,8 @@
-import argon2 from 'argon2-browser'
+// argon2-bundled.min.js has the WASM binary embedded as a base64 data URI —
+// no separate WASM fetch, no require('fs'), safe to bundle with Next.js / Turbopack.
+// The import is deferred inside deriveKey() so the heavy WASM initialization
+// only happens when the user actually enters their PIN, never during SSR or build.
+import type Argon2Browser from 'argon2-browser'
 
 export interface Argon2Params {
   memory:      number   // KB, default 65536 (64 MB)
@@ -14,41 +18,16 @@ const DEFAULTS: Argon2Params = {
   hashLength:  32,
 }
 
-/**
- * In Node.js environments (tests), argon2-browser's Emscripten dist tries to
- * load the WASM via fetch(), which fails. We pre-configure globalThis.self with
- * a custom instantiateWasm hook so the WASM bytes are read via fs instead.
- * This is a no-op in browser environments where fetch works normally.
- */
-function ensureNodeWasmLoader(): void {
-  if (
-    typeof process === 'object' &&
-    typeof process.versions?.node === 'string' &&
-    typeof (globalThis as Record<string, unknown>).self === 'undefined'
-  ) {
-    const fs  = require('fs')   as typeof import('fs')
-    const url = require('url')  as typeof import('url')
-    const path = require('path') as typeof import('path')
-    const wasmPath = path.resolve(
-      path.dirname(url.fileURLToPath(import.meta.url)),
-      '../../node_modules/argon2-browser/dist/argon2.wasm',
-    )
-    ;(globalThis as Record<string, unknown>).self = {
-      Module: {
-        instantiateWasm(
-          imports: WebAssembly.Imports,
-          successCallback: (instance: WebAssembly.Instance) => void,
-        ) {
-          const bytesBuffer = new Uint8Array(fs.readFileSync(wasmPath)).buffer as ArrayBuffer
-          WebAssembly.instantiate(bytesBuffer, imports).then((output: WebAssembly.WebAssemblyInstantiatedSource) => {
-            successCallback(output.instance)
-          })
-          return {}
-        },
-      },
-      process,
-    }
-  }
+let _argon2: typeof Argon2Browser | null = null
+
+async function loadArgon2(): Promise<typeof Argon2Browser> {
+  if (_argon2) return _argon2
+  // Dynamic import keeps the bundled WASM out of the initial JS bundle and
+  // prevents Turbopack from trying to process argon2.wasm as a native module.
+  const mod = await import('argon2-browser/dist/argon2-bundled.min.js' as string) as
+    { default?: typeof Argon2Browser } & typeof Argon2Browser
+  _argon2 = mod.default ?? (mod as unknown as typeof Argon2Browser)
+  return _argon2
 }
 
 /**
@@ -60,7 +39,7 @@ export async function deriveKey(
   salt: Uint8Array,
   params?: Partial<Argon2Params>,
 ): Promise<CryptoKey> {
-  ensureNodeWasmLoader()
+  const argon2 = await loadArgon2()
   const p = { ...DEFAULTS, ...params }
   const result = await argon2.hash({
     pass:        password,
