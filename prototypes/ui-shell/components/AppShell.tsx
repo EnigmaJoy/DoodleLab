@@ -3,6 +3,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useVaultContext } from '@/lib/vault/vault-context'
 import { WelcomeScreen } from './WelcomeScreen'
 import { RadialMenu } from './RadialMenu'
 
@@ -15,6 +16,7 @@ interface AppShellProps {
 export function AppShell({ initialView }: AppShellProps) {
   const [view, setView] = useState<AppView>(initialView)
   const router          = useRouter()
+  const { logout }      = useVaultContext()
 
   // prevViewRef distinguishes mount from genuine in-app transitions.
   // - On initial mount: prevView is null -> skip focus assignment.
@@ -70,6 +72,26 @@ export function AppShell({ initialView }: AppShellProps) {
         firstFallbackItemRef={firstFallbackItemRef}
         centerButtonRef={centerButtonRef}
       />
+      {view !== 'WELCOME' && (
+        <button
+          onClick={logout}
+          style={{
+            position:     'fixed',
+            bottom:       '1.5rem',
+            right:        '1.5rem',
+            background:   'rgba(255,255,255,0.12)',
+            border:       '1px solid rgba(255,255,255,0.25)',
+            borderRadius: '0.5rem',
+            color:        'rgba(255,255,255,0.75)',
+            fontSize:     '0.8rem',
+            padding:      '0.4rem 0.75rem',
+            cursor:       'pointer',
+          }}
+          aria-label="Esci"
+        >
+          Esci
+        </button>
+      )}
     </>
   )
 }
