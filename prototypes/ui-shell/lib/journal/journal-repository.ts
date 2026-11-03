@@ -7,6 +7,8 @@
 
 import { ChangeNotifier, createId } from '../store'
 import type { DayKey } from '../day'
+import type { StorageAdapter } from '../storage/storage-adapter'
+import { LocalStorageAdapter } from '../storage/local-storage-adapter'
 
 export interface JournalEntry {
   id:        string
@@ -23,10 +25,41 @@ export interface JournalRepository {
   /** Writes the body of `day`'s entry, creating it on first non-empty write */
   writeEntry(day: DayKey, body: string, now?: number): JournalEntry | null
   listEntries(): JournalEntry[]
+  deleteEntry(day: DayKey): boolean
 }
 
 export class InMemoryJournalRepository extends ChangeNotifier implements JournalRepository {
   private entries = new Map<DayKey, JournalEntry>()
+  private storage?: StorageAdapter
+
+  constructor(storage?: StorageAdapter) {
+    super()
+    this.storage = storage
+    if (storage) this.load(storage)
+  }
+
+  private load(storage: StorageAdapter): void {
+    try {
+      const raw = storage.read('doodlelab:journal:v1')
+      if (!raw) return
+      const payload = JSON.parse(raw) as { entries?: unknown }
+      if (!Array.isArray(payload.entries)) return
+      for (const entry of payload.entries as JournalEntry[]) {
+        this.entries.set(entry.day, entry)
+      }
+    } catch { /* corrupt data — start empty */ }
+  }
+
+  protected override notify(): void {
+    this.persist()
+    super.notify()
+  }
+
+  private persist(): void {
+    if (!this.storage) return
+    const payload = { entries: [...this.entries.values()] }
+    this.storage.write('doodlelab:journal:v1', JSON.stringify(payload))
+  }
 
   getEntry(day: DayKey): JournalEntry | null {
     return this.entries.get(day) ?? null
@@ -51,11 +84,17 @@ export class InMemoryJournalRepository extends ChangeNotifier implements Journal
   listEntries(): JournalEntry[] {
     return [...this.entries.values()].sort((a, b) => b.day.localeCompare(a.day))
   }
+
+  deleteEntry(day: DayKey): boolean {
+    const removed = this.entries.delete(day)
+    if (removed) this.notify()
+    return removed
+  }
 }
 
 let instance: JournalRepository | null = null
 
 export function getJournalRepository(): JournalRepository {
-  instance ??= new InMemoryJournalRepository()
+  instance ??= new InMemoryJournalRepository(new LocalStorageAdapter())
   return instance
 }
