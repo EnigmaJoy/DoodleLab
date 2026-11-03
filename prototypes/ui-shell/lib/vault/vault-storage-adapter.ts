@@ -1,13 +1,17 @@
 import type { StorageAdapter } from '../storage/storage-adapter'
 import { encrypt, decrypt } from './vault-crypto'
 
-// Maps logical keys (used by repositories) to encrypted vault keys (in localStorage)
-const VAULT_KEY_MAP: Record<string, string> = {
-  'doodlelab:calendar:v1': 'doodlelab:vault:calendar:v1',
-  'doodlelab:daily:v1':    'doodlelab:vault:daily:v1',
-  'doodlelab:journal:v1':  'doodlelab:vault:journal:v1',
-  'doodlelab:inbox:v1':    'doodlelab:vault:inbox:v1',
-  'doodlelab:board:v2':    'doodlelab:vault:board:v3',
+// Builds a per-user physical key map.
+// Repositories use logical keys (e.g. 'doodlelab:daily:v1').
+// VaultStorageAdapter stores them under namespaced vault keys in localStorage.
+function buildKeyMap(userId: string): Record<string, string> {
+  return {
+    'doodlelab:calendar:v1': `doodlelab:vault:data:${userId}:calendar:v1`,
+    'doodlelab:daily:v1':    `doodlelab:vault:data:${userId}:daily:v1`,
+    'doodlelab:journal:v1':  `doodlelab:vault:data:${userId}:journal:v1`,
+    'doodlelab:inbox:v1':    `doodlelab:vault:data:${userId}:inbox:v1`,
+    'doodlelab:board:v2':    `doodlelab:vault:data:${userId}:board:v3`,
+  }
 }
 
 // ── AsyncQueue ───────────────────────────────────────────────────────────────
@@ -47,36 +51,40 @@ export class VaultStorageAdapter implements StorageAdapter {
   private readonly key:        CryptoKey
   private readonly inner:      StorageAdapter
   private readonly writeQueue: AsyncQueue
+  private readonly keyMap:     Record<string, string>
 
   private constructor(
-    key:   CryptoKey,
-    inner: StorageAdapter,
-    cache: Map<string, string>,
+    key:    CryptoKey,
+    inner:  StorageAdapter,
+    cache:  Map<string, string>,
+    keyMap: Record<string, string>,
   ) {
     this.key        = key
     this.inner      = inner
     this.cache      = cache
     this.writeQueue = new AsyncQueue()
+    this.keyMap     = keyMap
   }
 
   /**
-   * Async factory. For each logical key, reads the corresponding vault key
-   * from localStorage, decrypts it, and populates the in-memory cache.
-   * If a vault entry is absent or decryption fails, that cache entry is omitted
-   * (repository sees first-run state).
+   * Async factory. Builds the per-user key map, then for each logical key reads
+   * the corresponding vault key from localStorage, decrypts it, and populates
+   * the in-memory cache. Corrupt or missing entries are silently skipped.
    */
   static async create(
     key:         CryptoKey,
     inner:       StorageAdapter,
     logicalKeys: string[],
+    userId:      string,
   ): Promise<VaultStorageAdapter> {
-    const cache = new Map<string, string>()
+    const keyMap = buildKeyMap(userId)
+    const cache  = new Map<string, string>()
     for (const logicalKey of logicalKeys) {
-      const vaultKey = VAULT_KEY_MAP[logicalKey] ?? logicalKey
+      const vaultKey = keyMap[logicalKey] ?? logicalKey
       const raw = inner.read(vaultKey)
       if (raw !== null) {
         try {
-          const ct = JSON.parse(raw) as { iv: string; ciphertext: string }
+          const ct        = JSON.parse(raw) as { iv: string; ciphertext: string }
           const plaintext = await decrypt(key, ct)
           cache.set(logicalKey, plaintext)
         } catch {
@@ -84,7 +92,7 @@ export class VaultStorageAdapter implements StorageAdapter {
         }
       }
     }
-    return new VaultStorageAdapter(key, inner, cache)
+    return new VaultStorageAdapter(key, inner, cache, keyMap)
   }
 
   // ── StorageAdapter interface ───────────────────────────────────────────────
@@ -95,7 +103,7 @@ export class VaultStorageAdapter implements StorageAdapter {
 
   write(key: string, value: string): void {
     this.cache.set(key, value)
-    const vaultKey = VAULT_KEY_MAP[key] ?? key
+    const vaultKey = this.keyMap[key] ?? key
     this.writeQueue.enqueue(async () => {
       // Capture `value` at enqueue time — do NOT read from cache here.
       // Cache may have been updated by a subsequent write before this task runs.
@@ -106,7 +114,7 @@ export class VaultStorageAdapter implements StorageAdapter {
 
   remove(key: string): void {
     this.cache.delete(key)
-    const vaultKey = VAULT_KEY_MAP[key] ?? key
+    const vaultKey = this.keyMap[key] ?? key
     this.writeQueue.enqueue(async () => {
       this.inner.remove(vaultKey)
     })

@@ -24,19 +24,20 @@ async function makeKey(): Promise<CryptoKey> {
 }
 
 const LOGICAL_KEYS = ['doodlelab:daily:v1', 'doodlelab:board:v2']
+const TEST_USER = 'test-user'
 
 beforeEach(() => { localStorage.clear() })
 
 describe('VaultStorageAdapter', () => {
   it('read() returns null for a missing key', async () => {
     const key = await makeKey()
-    const adapter = await VaultStorageAdapter.create(key, new LocalStorageAdapter(), LOGICAL_KEYS)
+    const adapter = await VaultStorageAdapter.create(key, new LocalStorageAdapter(), LOGICAL_KEYS, TEST_USER)
     expect(adapter.read('doodlelab:daily:v1')).toBeNull()
   })
 
   it('write() updates cache synchronously — read() reflects it immediately', async () => {
     const key = await makeKey()
-    const adapter = await VaultStorageAdapter.create(key, new LocalStorageAdapter(), LOGICAL_KEYS)
+    const adapter = await VaultStorageAdapter.create(key, new LocalStorageAdapter(), LOGICAL_KEYS, TEST_USER)
     adapter.write('doodlelab:daily:v1', '{"tasks":[]}')
     expect(adapter.read('doodlelab:daily:v1')).toBe('{"tasks":[]}')
   })
@@ -44,11 +45,11 @@ describe('VaultStorageAdapter', () => {
   it('write() persists encrypted ciphertext to localStorage after flush', async () => {
     const inner = new LocalStorageAdapter()
     const key = await makeKey()
-    const adapter = await VaultStorageAdapter.create(key, inner, LOGICAL_KEYS)
+    const adapter = await VaultStorageAdapter.create(key, inner, LOGICAL_KEYS, TEST_USER)
     adapter.write('doodlelab:daily:v1', '{"tasks":[]}')
     await adapter.destroy()
     // Vault key (not logical key) must exist and not be plaintext
-    const stored = inner.read('doodlelab:vault:daily:v1')
+    const stored = inner.read('doodlelab:vault:data:test-user:daily:v1')
     expect(stored).not.toBeNull()
     expect(stored).not.toContain('tasks')  // must be ciphertext
   })
@@ -56,10 +57,10 @@ describe('VaultStorageAdapter', () => {
   it('board:v2 logical key is persisted under vault:board:v3', async () => {
     const inner = new LocalStorageAdapter()
     const key = await makeKey()
-    const adapter = await VaultStorageAdapter.create(key, inner, LOGICAL_KEYS)
+    const adapter = await VaultStorageAdapter.create(key, inner, LOGICAL_KEYS, TEST_USER)
     adapter.write('doodlelab:board:v2', '{"notes":[]}')
     await adapter.destroy()
-    expect(inner.read('doodlelab:vault:board:v3')).not.toBeNull()
+    expect(inner.read('doodlelab:vault:data:test-user:board:v3')).not.toBeNull()
     expect(inner.read('doodlelab:board:v2')).toBeNull()   // logical key must NOT be written plaintext
   })
 
@@ -67,17 +68,17 @@ describe('VaultStorageAdapter', () => {
     const inner = new LocalStorageAdapter()
     const key = await makeKey()
     // Write with first adapter
-    const a1 = await VaultStorageAdapter.create(key, inner, LOGICAL_KEYS)
+    const a1 = await VaultStorageAdapter.create(key, inner, LOGICAL_KEYS, TEST_USER)
     a1.write('doodlelab:daily:v1', '{"tasks":["x"]}')
     await a1.destroy()
     // Load with second adapter
-    const a2 = await VaultStorageAdapter.create(key, inner, LOGICAL_KEYS)
+    const a2 = await VaultStorageAdapter.create(key, inner, LOGICAL_KEYS, TEST_USER)
     expect(a2.read('doodlelab:daily:v1')).toBe('{"tasks":["x"]}')
   })
 
   it('destroy() drains the queue then clears the cache', async () => {
     const key = await makeKey()
-    const adapter = await VaultStorageAdapter.create(key, new LocalStorageAdapter(), LOGICAL_KEYS)
+    const adapter = await VaultStorageAdapter.create(key, new LocalStorageAdapter(), LOGICAL_KEYS, TEST_USER)
     adapter.write('doodlelab:daily:v1', 'some data')
     await adapter.destroy()
     expect(adapter.read('doodlelab:daily:v1')).toBeNull()
@@ -86,15 +87,15 @@ describe('VaultStorageAdapter', () => {
   it('remove() deletes from cache synchronously and from localStorage after flush', async () => {
     const inner = new LocalStorageAdapter()
     const key = await makeKey()
-    const adapter = await VaultStorageAdapter.create(key, inner, LOGICAL_KEYS)
+    const adapter = await VaultStorageAdapter.create(key, inner, LOGICAL_KEYS, TEST_USER)
     adapter.write('doodlelab:daily:v1', 'data')
     await adapter.destroy()
     // Re-create and remove
-    const a2 = await VaultStorageAdapter.create(key, inner, LOGICAL_KEYS)
+    const a2 = await VaultStorageAdapter.create(key, inner, LOGICAL_KEYS, TEST_USER)
     a2.remove('doodlelab:daily:v1')
     expect(a2.read('doodlelab:daily:v1')).toBeNull()  // cache cleared sync
     await a2.destroy()
-    expect(inner.read('doodlelab:vault:daily:v1')).toBeNull()  // storage removed
+    expect(inner.read('doodlelab:vault:data:test-user:daily:v1')).toBeNull()  // storage removed
   })
 
   it('create() with wrong key returns null for encrypted entries (auth tag failure)', async () => {
@@ -106,11 +107,11 @@ describe('VaultStorageAdapter', () => {
       ['encrypt', 'decrypt'],
     )
     // Write with keyA
-    const a1 = await VaultStorageAdapter.create(keyA, inner, LOGICAL_KEYS)
+    const a1 = await VaultStorageAdapter.create(keyA, inner, LOGICAL_KEYS, TEST_USER)
     a1.write('doodlelab:daily:v1', 'secret data')
     await a1.destroy()
     // Load with wrong keyB — decrypt fails, cache entry must be absent
-    const a2 = await VaultStorageAdapter.create(keyB, inner, LOGICAL_KEYS)
+    const a2 = await VaultStorageAdapter.create(keyB, inner, LOGICAL_KEYS, TEST_USER)
     expect(a2.read('doodlelab:daily:v1')).toBeNull()
   })
 })
