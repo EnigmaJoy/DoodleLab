@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { LOCALE } from '@/lib/constants'
 import { useNote, useNoteContext } from '@/lib/note-context'
 import { NoteHeader } from './NoteHeader'
+import { StickerList } from './StickerList'
 import { POST_IT_COLORS, STICKER_CONFIG, formatNoteDate } from '@/lib/note-utils'
 import type { NoteColor, StickerKey } from '@/lib/note-types'
 
@@ -129,19 +130,7 @@ export function NoteDetail({ id }: NoteDetailProps) {
               aria-label="Contenuto del post-it"
               style={{ backgroundColor: 'transparent', color: 'inherit' }}
             />
-            {note.stickers.length > 0 && (
-              <div className="postit-stickers" aria-hidden="true">
-                {note.stickers.map((key) => (
-                  <span
-                    key={key}
-                    className="postit-sticker"
-                    style={{ background: STICKER_CONFIG[key].bg }}
-                  >
-                    {STICKER_CONFIG[key].emoji}
-                  </span>
-                ))}
-              </div>
-            )}
+            <StickerList stickers={note.stickers} />
             {note.dueDate && (
               <div className="note-postit-date">
                 {new Date(note.dueDate).toLocaleDateString(LOCALE, { day: 'numeric', month: 'long' })}

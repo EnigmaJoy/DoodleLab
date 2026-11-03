@@ -4,8 +4,9 @@ import { useRef, useState, useCallback, useLayoutEffect, type RefObject } from '
 import { useRouter } from 'next/navigation'
 import { LOCALE } from '@/lib/constants'
 import type { Note, ViewMode } from '@/lib/note-types'
-import { POST_IT_COLORS, STICKER_CONFIG, pctToPx, pxToPct } from '@/lib/note-utils'
+import { POST_IT_COLORS, pctToPx, pxToPct } from '@/lib/note-utils'
 import { useDrag } from './useDrag'
+import { StickerList } from './StickerList'
 
 interface StickyNoteProps {
   note:         Note
@@ -134,19 +135,7 @@ export function StickyNote({ note, boardRef, boardSize, mode, onMoveCommit }: St
     >
       <div className="postit-content">{note.content || <em style={{ opacity: 0.4 }}>Tocca per aggiungere testo</em>}</div>
 
-      {note.stickers.length > 0 && (
-        <div className="postit-stickers" aria-hidden="true">
-          {note.stickers.map((key) => (
-            <span
-              key={key}
-              className="postit-sticker"
-              style={{ background: STICKER_CONFIG[key].bg }}
-            >
-              {STICKER_CONFIG[key].emoji}
-            </span>
-          ))}
-        </div>
-      )}
+      <StickerList stickers={note.stickers} />
 
       {note.dueDate && (
         <div className="postit-date">
