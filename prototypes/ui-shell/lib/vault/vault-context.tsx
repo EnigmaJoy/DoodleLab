@@ -83,8 +83,10 @@ export function VaultProvider({ children }: { children: ReactNode }): ReactNode 
   }, [vaultService])
 
   const logout = useCallback(async (): Promise<void> => {
-    // Lock vault first (clears in-memory key), then invalidate Google session.
-    vaultService?.lock()
+    // Flush pending writes without notifying React state — avoids a spurious
+    // redirect to /unlock before signOut navigates away to /login.
+    const s = vaultService?.getState()
+    if (s?.status === 'unlocked') await s.adapter.destroy()
     await signOut({ callbackUrl: '/login' })
   }, [vaultService])
 
