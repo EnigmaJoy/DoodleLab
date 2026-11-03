@@ -1,7 +1,12 @@
-import { describe, expect, it } from 'vitest'
-import { LocalStorageAdapter, type StorageAdapter } from './storage-adapter'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { StorageAdapter } from './storage-adapter'
+import { LocalStorageAdapter } from './local-storage-adapter'
 
 describe('LocalStorageAdapter', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
   it('writes and reads a value', () => {
     const adapter = new LocalStorageAdapter()
     adapter.write('test-key', 'test-value')
@@ -27,5 +32,13 @@ describe('LocalStorageAdapter', () => {
     expect(adapter.read('interface-test')).toBe('value')
     adapter.remove('interface-test')
     expect(adapter.read('interface-test')).toBeNull()
+  })
+
+  it('returns null when localStorage throws on read', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementationOnce(() => {
+      throw new Error('unavailable')
+    })
+    const adapter = new LocalStorageAdapter()
+    expect(adapter.read('any')).toBeNull()
   })
 })
