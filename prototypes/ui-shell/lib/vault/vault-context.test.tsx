@@ -81,6 +81,14 @@ vi.mock('next/navigation', () => ({
   usePathname: vi.fn(() => mockPathname.value),
 }))
 
+vi.mock('next-auth/react', () => ({
+  useSession: vi.fn(() => ({
+    data: { user: { id: 'test-user', name: 'Test User', email: 'test@example.com' } },
+    status: 'authenticated',
+  })),
+  signOut: vi.fn(async () => undefined),
+}))
+
 // Import after mocks are set up
 import { VaultProvider, useVaultContext, AppGate } from './vault-context'
 import { useRouter } from 'next/navigation'

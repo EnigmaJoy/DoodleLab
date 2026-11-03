@@ -5,9 +5,11 @@ import {
   useContext,
   useEffect,
   useState,
+  useCallback,
   type ReactNode,
 } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
+import { useSession, signOut } from 'next-auth/react'
 import { getVaultService, type VaultState } from '@/lib/vault/vault-service'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -18,6 +20,7 @@ export type VaultContextValue = {
   unlock:  (pin: string) => Promise<boolean>
   recover: (code: string) => Promise<boolean>
   lock:    () => void
+  logout:  () => Promise<void>
 }
 
 // ── Context ───────────────────────────────────────────────────────────────────
@@ -27,30 +30,66 @@ const VaultContext = createContext<VaultContextValue | null>(null)
 // ── VaultProvider ─────────────────────────────────────────────────────────────
 
 export function VaultProvider({ children }: { children: ReactNode }): ReactNode {
-  const vaultService = getVaultService()
-  const [state, setState] = useState<VaultState>(() => vaultService.getState())
+  const { data: session } = useSession()
+  const userId            = session?.user?.id ?? null
 
+  // Derive the VaultService for the current user (null if not logged in yet).
+  const vaultService = userId ? getVaultService(userId) : null
+
+  const [state, setState] = useState<VaultState>(() =>
+    vaultService ? vaultService.getState() : { status: 'uninitialized' },
+  )
+
+  // Re-subscribe whenever userId changes (login / logout).
   useEffect(() => {
+    if (!vaultService) {
+      setState({ status: 'uninitialized' })
+      return
+    }
+    // Sync state immediately in case vaultService already has a state.
+    setState(vaultService.getState())
     const unsubscribe = vaultService.subscribe(() => {
       setState(vaultService.getState())
     })
     return unsubscribe
   }, [vaultService])
 
-  const setup = (pin: string, masterKeyHex: string, hint?: string): Promise<void> =>
-    vaultService.setup(pin, masterKeyHex, hint)
+  const setup = useCallback(
+    (pin: string, masterKeyHex: string, hint?: string): Promise<void> => {
+      if (!vaultService) return Promise.reject(new Error('Not authenticated'))
+      return vaultService.setup(pin, masterKeyHex, hint)
+    },
+    [vaultService],
+  )
 
-  const unlock = (pin: string): Promise<boolean> =>
-    vaultService.unlock(pin)
+  const unlock = useCallback(
+    (pin: string): Promise<boolean> => {
+      if (!vaultService) return Promise.resolve(false)
+      return vaultService.unlock(pin)
+    },
+    [vaultService],
+  )
 
-  const recover = (code: string): Promise<boolean> =>
-    vaultService.recover(code)
+  const recover = useCallback(
+    (code: string): Promise<boolean> => {
+      if (!vaultService) return Promise.resolve(false)
+      return vaultService.recover(code)
+    },
+    [vaultService],
+  )
 
-  const lock = (): void =>
-    vaultService.lock()
+  const lock = useCallback((): void => {
+    vaultService?.lock()
+  }, [vaultService])
+
+  const logout = useCallback(async (): Promise<void> => {
+    // Lock vault first (clears in-memory key), then invalidate Google session.
+    vaultService?.lock()
+    await signOut({ callbackUrl: '/login' })
+  }, [vaultService])
 
   return (
-    <VaultContext.Provider value={{ state, setup, unlock, recover, lock }}>
+    <VaultContext.Provider value={{ state, setup, unlock, recover, lock, logout }}>
       {children}
     </VaultContext.Provider>
   )
@@ -67,21 +106,42 @@ export function useVaultContext(): VaultContextValue {
 // ── AppGate ───────────────────────────────────────────────────────────────────
 
 const VAULT_PATHS = new Set(['/setup', '/unlock'])
+const AUTH_PATHS  = new Set(['/login'])
 
 export function AppGate({ children }: { children: ReactNode }): ReactNode {
-  const { state } = useVaultContext()
-  const router = useRouter()
-  const pathname = usePathname()
+  const { data: session, status: authStatus } = useSession()
+  const { state: vaultState }                 = useVaultContext()
+  const router                                = useRouter()
+  const pathname                              = usePathname()
+
   const isVaultPage = VAULT_PATHS.has(pathname)
+  const isAuthPage  = AUTH_PATHS.has(pathname)
 
   useEffect(() => {
-    // Never redirect when already on a vault page — avoids infinite redirect loops.
-    if (isVaultPage) return
-    if (state.status === 'uninitialized') router.replace('/setup')
-    else if (state.status === 'locked') router.replace('/unlock')
-  }, [state.status, router, isVaultPage])
+    // Still loading session — wait.
+    if (authStatus === 'loading') return
 
-  // /setup and /unlock are always rendered regardless of vault state.
-  if (isVaultPage || state.status === 'unlocked') return <>{children}</>
+    // Not logged in with Google → go to login (unless already there).
+    if (!session && !isAuthPage) {
+      router.replace('/login')
+      return
+    }
+
+    // Logged in. Check vault state (skip on vault-setup pages to avoid loops).
+    if (session && !isVaultPage && !isAuthPage) {
+      if (vaultState.status === 'uninitialized') router.replace('/setup')
+      else if (vaultState.status === 'locked')   router.replace('/unlock')
+    }
+  }, [authStatus, session, vaultState.status, router, isVaultPage, isAuthPage])
+
+  // Show nothing while session is loading.
+  if (authStatus === 'loading') return null
+
+  // Always render auth pages and vault pages.
+  if (isAuthPage || isVaultPage) return <>{children}</>
+
+  // Render app only when fully authenticated + vault unlocked.
+  if (session && vaultState.status === 'unlocked') return <>{children}</>
+
   return null
 }
