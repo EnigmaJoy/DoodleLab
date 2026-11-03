@@ -14,6 +14,8 @@ import {
   DEFAULT_BLOCK_TITLE, currentTimeZone, fixedIntervals, validatePlacement,
   type FixedInterval, type PlacementError, type Slot,
 } from './time-blocks'
+import type { StorageAdapter } from '../storage/storage-adapter'
+import { LocalStorageAdapter } from '../storage/local-storage-adapter'
 
 export type TaskError =
   | { type: 'empty-title' }
@@ -91,6 +93,7 @@ export interface DailyRepository {
   // Energy activities
   listEnergyActivities(level: EnergyLevel): EnergyActivity[]
   addEnergyActivity(level: EnergyLevel, title: string): EnergyActivity | null
+  updateEnergyActivity(id: string, title: string): EnergyActivity | null
   deleteEnergyActivity(id: string): boolean
 
   // Check-in
@@ -114,6 +117,15 @@ function clampScale(value: number | undefined): number | undefined {
   return Math.max(1, Math.min(5, Math.round(value)))
 }
 
+const STORAGE_KEY = 'doodlelab:daily:v1'
+
+interface DailyPayload {
+  tasks:      Task[]
+  blocks:     TimeBlock[]
+  activities: EnergyActivity[]
+  checkIns:   CheckIn[]
+}
+
 export interface DailyRepositoryOptions {
   /** Protected appointment intervals for a day (default: none) */
   fixedIntervals?: (day: DayKey) => FixedInterval[]
@@ -124,6 +136,7 @@ export interface DailyRepositoryOptions {
    * refuses the write. Models a failing store (e.g. a locked vault).
    */
   writeGuard?:     () => string | null
+  storage?:        StorageAdapter
 }
 
 export class InMemoryDailyRepository extends ChangeNotifier implements DailyRepository {
@@ -131,6 +144,7 @@ export class InMemoryDailyRepository extends ChangeNotifier implements DailyRepo
   private readonly now:      () => number
   private readonly zone:     () => string
   private readonly guard:    () => string | null
+  private readonly storage:  StorageAdapter | undefined
 
   constructor(options: DailyRepositoryOptions = {}) {
     super()
@@ -138,12 +152,43 @@ export class InMemoryDailyRepository extends ChangeNotifier implements DailyRepo
     this.now      = options.now ?? Date.now
     this.zone     = options.timeZone ?? currentTimeZone
     this.guard    = options.writeGuard ?? (() => null)
+    this.storage  = options.storage
+
+    // Load persisted data from storage
+    try {
+      const raw = this.storage?.read(STORAGE_KEY)
+      if (raw) {
+        const payload = JSON.parse(raw) as DailyPayload
+        if (payload.tasks)      for (const t of payload.tasks)      this.tasks.set(t.id, t)
+        if (payload.blocks)     for (const b of payload.blocks)     this.blocks.set(b.id, b)
+        if (payload.activities) for (const a of payload.activities) this.activities.set(a.id, a)
+        if (payload.checkIns)   for (const c of payload.checkIns)   this.checkIns.set(c.day, c)
+      }
+    } catch {
+      // Corrupt or missing storage — start empty
+    }
   }
 
   private tasks      = new Map<string, Task>()
   private blocks     = new Map<string, TimeBlock>()
   private activities = new Map<string, EnergyActivity>()
   private checkIns   = new Map<DayKey, CheckIn>()
+
+  private persist(): void {
+    if (!this.storage) return
+    const payload: DailyPayload = {
+      tasks:      [...this.tasks.values()],
+      blocks:     [...this.blocks.values()],
+      activities: [...this.activities.values()],
+      checkIns:   [...this.checkIns.values()],
+    }
+    this.storage.write(STORAGE_KEY, JSON.stringify(payload))
+  }
+
+  protected override notify(): void {
+    this.persist()
+    super.notify()
+  }
 
   // -- Tasks ----------------------------------------------------------------
 
@@ -365,6 +410,17 @@ export class InMemoryDailyRepository extends ChangeNotifier implements DailyRepo
     return activity
   }
 
+  updateEnergyActivity(id: string, title: string): EnergyActivity | null {
+    const activity = this.activities.get(id)
+    if (!activity) return null
+    const cleaned = cleanTitle(title)
+    if (!cleaned) return null
+    const updated: EnergyActivity = { ...activity, title: cleaned }
+    this.activities.set(id, updated)
+    this.notify()
+    return updated
+  }
+
   deleteEnergyActivity(id: string): boolean {
     const removed = this.activities.delete(id)
     if (removed) this.notify()
@@ -410,6 +466,7 @@ export function getDailyRepository(): DailyRepository {
   instance ??= new InMemoryDailyRepository({
     fixedIntervals: day => fixedIntervals(getItemsForDate(day)),
     writeGuard:     () => simulatedFailure,
+    storage:        new LocalStorageAdapter(),
   })
   return instance
 }
