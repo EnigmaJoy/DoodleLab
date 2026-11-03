@@ -340,7 +340,7 @@ export function DayTimeline({ day, isToday, now }: Props) {
           <li><span className="today-swatch today-swatch--event" aria-hidden="true" />Appuntamento</li>
           <li><span className="today-swatch today-swatch--block" aria-hidden="true" />Blocco flessibile</li>
           <li><span className="today-swatch today-swatch--reminder" aria-hidden="true" />Promemoria</li>
-          <li><span className="today-swatch today-swatch--postit" aria-hidden="true" />PostIt</li>
+          <li><span className="today-swatch today-swatch--note" aria-hidden="true" />PostIt</li>
         </ul>
       </div>
 

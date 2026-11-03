@@ -819,7 +819,7 @@ body {
   color:      #0a2040;
 }
 
-.cal-item-chip--postit {
+.cal-item-chip--note {
   background: rgba(255, 230, 80, 0.92);
   color:      #2a1800;
   font-style: italic;
@@ -1000,7 +1000,7 @@ body {
   color:      #1e3a5f;
 }
 
-.cal-timeline-item--postit {
+.cal-timeline-item--note {
   background: #fce7f3;
   color:      #5a1a3a;
   font-style: italic;
@@ -1081,7 +1081,7 @@ body {
   color:      #9a3412;
 }
 
-.cal-group-item-badge--postit {
+.cal-group-item-badge--note {
   background: #fef9c3;
   color:      #713f12;
 }
@@ -1115,7 +1115,7 @@ body {
 }
 
 /* NOTA card: yellow background */
-.cal-group-item-card--postit {
+.cal-group-item-card--note {
   background:   #fef9c3;
   border-color: #fde047;
 }
@@ -1623,7 +1623,7 @@ body {
 .today-swatch--event    { background: #dde7fb; border: 1px solid #8ea6d8; }
 .today-swatch--block    { background: #f1f5ff; border: 1.5px dashed #3557c9; }
 .today-swatch--reminder { background: #fde3d6; border: 1px solid #e4a083; border-radius: 6px; }
-.today-swatch--postit   { background: var(--postit-paper); transform: rotate(-6deg); }
+.today-swatch--note   { background: var(--postit-paper); transform: rotate(-6deg); }
 
 .today-untimed {
   display:     flex;
@@ -1646,7 +1646,7 @@ body {
   cursor:        pointer;
 }
 
-.today-chip--postit { background: var(--postit-paper); font-family: var(--font-hand-stack); font-size: 1rem; }
+.today-chip--note { background: var(--postit-paper); font-family: var(--font-hand-stack); font-size: 1rem; }
 
 .today-timeline-scroll {
   position:      relative;
@@ -1751,7 +1751,7 @@ body {
 
 .today-entry--event    { background: #dde7fb; color: #1b3366; border: 1px solid #a9bde6; }
 .today-entry--reminder { background: #fde3d6; color: #7a2a0c; border: 1px solid #f1bca4; border-radius: 999px; }
-.today-entry--postit   {
+.today-entry--note   {
   background:  var(--postit-paper);
   color:       #3a2a00;
   border-radius: 2px;
@@ -2475,7 +2475,7 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .today-sand-stream { display: none; }
-  .today-entry--postit { transform: none; }
+  .today-entry--note { transform: none; }
 }
 
 @media (max-width: 480px) {
