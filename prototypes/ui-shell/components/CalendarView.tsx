@@ -243,7 +243,6 @@ interface TimelinePanelProps {
   date:         string
   items:        CalendarItem[]
   groups:       Map<string, CalendarItem[]>
-  openGroupId:  string | null
   onGroupOpen:  (gid: string) => void
   onClose:      () => void
   panelRef?:    React.RefObject<HTMLDivElement | null>
@@ -251,7 +250,7 @@ interface TimelinePanelProps {
   chipRefs:     React.MutableRefObject<Map<string, HTMLButtonElement>>
 }
 function TimelinePanel({
-  date, items, groups, openGroupId, onGroupOpen, onClose,
+  date, items, groups, onGroupOpen, onClose,
   panelRef, closeRef, chipRefs,
 }: TimelinePanelProps) {
   const dayName = getDayNameFull(date)
@@ -349,8 +348,6 @@ function TimelinePanel({
         })}
       </div>
 
-      {/* Suppress unused variable warning */}
-      {openGroupId === '__never__' && null}
     </div>
   )
 }
@@ -685,7 +682,6 @@ export function CalendarView() {
               date={selectedDate}
               items={overlayItems}
               groups={overlayGroups}
-              openGroupId={openGroupId}
               onGroupOpen={handleGroupOpen}
               onClose={handleCloseOverlay}
               panelRef={timelinePanelRef}

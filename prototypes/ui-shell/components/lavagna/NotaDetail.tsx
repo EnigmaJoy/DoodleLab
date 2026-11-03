@@ -130,9 +130,9 @@ export function NotaDetail({ id }: NotaDetailProps) {
             />
             {note.stickers.length > 0 && (
               <div className="postit-stickers" aria-hidden="true">
-                {note.stickers.map((key, i) => (
+                {note.stickers.map((key) => (
                   <span
-                    key={i}
+                    key={key}
                     className="postit-sticker"
                     style={{ background: STICKER_CONFIG[key].bg }}
                   >

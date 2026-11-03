@@ -59,8 +59,7 @@ export function postItReducer(state: PostItState, action: PostItAction): PostItS
     case 'UPDATE_NOTE': {
       const { id, ...fields } = action.payload
       // Explicitly exclude position to enforce the invariant
-      const { position: _pos, ...safeFields } = fields as typeof fields & { position?: unknown }
-      void _pos
+      const { position: _, ...safeFields } = fields as typeof fields & { position?: unknown }
       return {
         ...state,
         notes: state.notes.map(n =>

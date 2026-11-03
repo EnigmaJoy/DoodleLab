@@ -7,15 +7,8 @@ const MONTHS_IT = [
 
 // JS getDay() is 0=Sunday. We display Sun last (Mon-first grid).
 const DAYS_FULL_IT = [
-  'Domenica', 'Lunedi', 'Martedi', 'Mercoledi',
-  'Giovedi', 'Venerdi', 'Sabato',
-] as const
-
-// Italian day names with proper accents, uppercase, for the overlay header.
-// Index matches JS Date.getDay(): 0=Sunday, 1=Monday, …, 6=Saturday
-const DAYS_FULL_IT_ACCENTED = [
-  'DOMENICA', 'LUNEDÌ', 'MARTEDÌ', 'MERCOLEDÌ',
-  'GIOVEDÌ', 'VENERDÌ', 'SABATO',
+  'Domenica', 'Lunedì', 'Martedì', 'Mercoledì',
+  'Giovedì', 'Venerdì', 'Sabato',
 ] as const
 
 export function getDaysInMonth(year: number, month: number): number {
@@ -62,7 +55,7 @@ export function nextMonth(year: number, month: number): [number, number] {
 export function getDayNameFull(ds: string): string {
   const [y, m, d] = ds.split('-').map(Number)
   const date = new Date(y, m - 1, d)
-  return DAYS_FULL_IT_ACCENTED[date.getDay()]
+  return DAYS_FULL_IT[date.getDay()]
 }
 
 /** Returns "25 ottobre" (day number + lowercase month, no year) */
