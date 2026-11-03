@@ -6,7 +6,7 @@
 
 import { ChangeNotifier, createId } from '../store'
 import { parseTime, type DayKey } from '../day'
-import { getItemsForDate } from '../calendar-mock'
+import { getCalendarRepository } from '../calendar-repository'
 import type {
   CheckIn, EnergyActivity, EnergyLevel, NewTask, Task, TaskPatch, TimeBlock,
 } from './types'
@@ -464,7 +464,7 @@ export function simulateWriteFailure(message: string | null): void {
 export function getDailyRepository(): DailyRepository {
   // Fixed appointments come from the same source Calendario reads
   instance ??= new InMemoryDailyRepository({
-    fixedIntervals: day => fixedIntervals(getItemsForDate(day)),
+    fixedIntervals: day => fixedIntervals(getCalendarRepository().getItemsForDate(day)),
     writeGuard:     () => simulatedFailure,
     storage:        new LocalStorageAdapter(),
   })

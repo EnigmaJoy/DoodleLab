@@ -35,8 +35,7 @@ export function createId(prefix: string): string {
 }
 
 /**
- * Persistence mode of the repositories in this increment.
- * 'memory' = data lives only in the open tab and is lost on reload.
- * UI copy must reflect this; never claim data is saved permanently.
+ * Persistence mode for this increment.
+ * 'local' = data is persisted to localStorage and survives page reloads.
  */
-export const PERSISTENCE_MODE = 'memory' as const
+export const PERSISTENCE_MODE = 'local' as const

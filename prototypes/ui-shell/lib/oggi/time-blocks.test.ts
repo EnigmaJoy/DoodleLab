@@ -6,15 +6,16 @@ import {
   DAY_MINUTES, FIXED_WITHOUT_END_MINUTES, durationLabel, fixedIntervals, localTimeExists, nextFreeStart,
   proposeMove, proposeResizeEnd, proposeResizeStart, slotLabel, snapMinutes, validatePlacement,
 } from './time-blocks'
-import type { CalendarItem } from '../calendar-mock'
+import type { CalendarItem } from '../calendar-repository'
 
 const DAY = '2026-10-26'
+const CA = '2026-10-01T00:00:00.000Z'
 const meeting: CalendarItem = {
-  id: 'e1', date: DAY, kind: 'event', title: 'Riunione', time: '09:00', detail: { timeEnd: '10:00' },
+  id: 'e1', date: DAY, kind: 'event', title: 'Riunione', time: '09:00', detail: { timeEnd: '10:00' }, createdAt: CA,
 }
-const reminder: CalendarItem = { id: 'r1', date: DAY, kind: 'reminder', title: 'Pacco', time: '12:30' }
-const postit: CalendarItem   = { id: 'p1', date: DAY, kind: 'postit', title: 'Regalo', time: '14:00' }
-const noEnd: CalendarItem    = { id: 'e2', date: DAY, kind: 'event', title: 'Call', time: '16:00' }
+const reminder: CalendarItem = { id: 'r1', date: DAY, kind: 'reminder', title: 'Pacco', time: '12:30', createdAt: CA }
+const postit: CalendarItem   = { id: 'p1', date: DAY, kind: 'note', title: 'Regalo', time: '14:00', createdAt: CA }
+const noEnd: CalendarItem    = { id: 'e2', date: DAY, kind: 'event', title: 'Call', time: '16:00', createdAt: CA }
 const fixed = fixedIntervals([meeting, reminder, postit, noEnd])
 
 describe('snapping', () => {

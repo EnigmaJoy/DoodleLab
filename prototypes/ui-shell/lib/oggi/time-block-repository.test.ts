@@ -2,10 +2,22 @@ import { describe, expect, it } from 'vitest'
 import { InMemoryDailyRepository } from './daily-repository'
 import { DEFAULT_BLOCK_TITLE, fixedIntervals } from './time-blocks'
 import { buildTimeline } from './timeline'
-import { getItemsForDate, MOCK_ITEMS } from '../calendar-mock'
+import { MOCK_ITEMS } from '../calendar-mock'
+import type { CalendarItem } from '../calendar-repository'
 
 const DAY = '2026-10-26'
 const meetingDay = '2026-10-19' // fixture: events at 09:00 and 16:00 (no end)
+
+// Minimal fixtures needed to test appointment protection on meetingDay
+const CA = '2026-10-01T00:00:00.000Z'
+const MEETING_DAY_ITEMS: CalendarItem[] = [
+  { id: 'e5', date: meetingDay, kind: 'event', title: 'Workshop design', time: '09:00', color: 'blue', createdAt: CA },
+  { id: 'e6', date: meetingDay, kind: 'event', title: 'Call con cliente', time: '16:00', color: 'blue', createdAt: CA },
+]
+
+function getItemsForDate(day: string): CalendarItem[] {
+  return MEETING_DAY_ITEMS.filter(i => i.date === day)
+}
 
 function repoWithCalendar(guard?: () => string | null) {
   return new InMemoryDailyRepository({

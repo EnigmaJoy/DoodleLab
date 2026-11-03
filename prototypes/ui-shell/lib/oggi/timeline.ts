@@ -2,11 +2,11 @@
 // Projects shared entities onto the daily timeline. Entries keep a reference
 // to their source entity (same id) - nothing is copied or re-created.
 
-import type { CalendarItem } from '../calendar-mock'
+import type { CalendarItem } from '../calendar-repository'
 import { parseTime } from '../day'
 import type { TimeBlock } from './types'
 
-export type TimelineKind = 'event' | 'reminder' | 'postit' | 'block'
+export type TimelineKind = 'event' | 'reminder' | 'note' | 'block'
 
 interface BaseEntry {
   key:   string          // unique across kinds: `${kind}:${id}`
@@ -19,7 +19,7 @@ interface BaseEntry {
 }
 
 export interface CalendarTimelineEntry extends BaseEntry {
-  kind:   'event' | 'reminder' | 'postit'
+  kind:   'event' | 'reminder' | 'note'
   source: CalendarItem
 }
 
@@ -34,7 +34,7 @@ export type TimelineEntry = CalendarTimelineEntry | BlockTimelineEntry
 const VISUAL_MINUTES: Record<CalendarItem['kind'], number> = {
   event:    30,
   reminder: 30,
-  postit:   45,
+  note:     45,
 }
 
 export interface DayTimeline {

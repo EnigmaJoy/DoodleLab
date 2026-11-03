@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { buildTimeline, layoutLanes } from './timeline'
-import type { CalendarItem } from '../calendar-mock'
+import type { CalendarItem } from '../calendar-repository'
 import type { TimeBlock } from './types'
 
 const event: CalendarItem = {
   id: 'e1', date: '2026-10-26', kind: 'event', title: 'Riunione', time: '09:00',
-  detail: { timeEnd: '10:00' },
+  detail: { timeEnd: '10:00' }, createdAt: '2026-10-01T00:00:00.000Z',
 }
-const postit: CalendarItem = { id: 'p1', date: '2026-10-26', kind: 'postit', title: 'Nota', time: '09:30' }
-const untimed: CalendarItem = { id: 'p2', date: '2026-10-26', kind: 'postit', title: 'Senza ora' }
+const postit: CalendarItem = { id: 'p1', date: '2026-10-26', kind: 'note', title: 'Nota', time: '09:30', createdAt: '2026-10-01T00:00:00.000Z' }
+const untimed: CalendarItem = { id: 'p2', date: '2026-10-26', kind: 'note', title: 'Senza ora', createdAt: '2026-10-01T00:00:00.000Z' }
 const block: TimeBlock = {
   id: 'b1', day: '2026-10-26', title: 'Blocco', start: 630, duration: 90,
   timeZone: 'Europe/Rome', createdAt: 0, updatedAt: 0,
@@ -40,7 +40,7 @@ describe('layoutLanes', () => {
     const { timed } = buildTimeline([event, postit], [block])
     const lanes = layoutLanes(timed)
     expect(lanes.get('event:e1')).toEqual({ lane: 0, lanes: 2 })
-    expect(lanes.get('postit:p1')).toEqual({ lane: 1, lanes: 2 })
+    expect(lanes.get('note:p1')).toEqual({ lane: 1, lanes: 2 })
     expect(lanes.get('block:b1')).toEqual({ lane: 0, lanes: 1 })
   })
 })

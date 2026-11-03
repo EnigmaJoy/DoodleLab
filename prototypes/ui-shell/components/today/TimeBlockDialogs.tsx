@@ -11,7 +11,7 @@ import {
   nextFreeStart, slotLabel, snapUp, type Slot,
 } from '@/lib/oggi/time-blocks'
 import { getTimerStore } from '@/lib/oggi/timer-store'
-import { getItemsForDate } from '@/lib/calendar-mock'
+import { getCalendarRepository } from '@/lib/calendar-repository'
 import { formatDayHeading, formatTime, minutesOfDay, parseTime, type DayKey } from '@/lib/day'
 import type { TimeBlock } from '@/lib/oggi/types'
 import { openPanel, useAnnounce, useModal, useRepository } from './shared'
@@ -27,7 +27,7 @@ export function describeBlockError(error: BlockError): string {
 
 /** Suggested start for a new block: next free quarter hour today, 09:00 otherwise */
 export function suggestedStart(day: DayKey, isToday: boolean, now: Date, duration = DEFAULT_BLOCK_MINUTES): number {
-  const fixed = fixedIntervals(getItemsForDate(day))
+  const fixed = fixedIntervals(getCalendarRepository().getItemsForDate(day))
   const after = isToday ? snapUp(minutesOfDay(now)) : 9 * 60
   return nextFreeStart(day, after, duration, fixed) ?? after
 }

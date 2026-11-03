@@ -3,7 +3,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import Link from 'next/link'
-import { CALENDAR_SOURCE_IS_FIXTURE, getItemsForDate } from '@/lib/calendar-mock'
+import { getCalendarRepository } from '@/lib/calendar-repository'
 import { getDailyRepository } from '@/lib/oggi/daily-repository'
 import { buildTimeline, layoutLanes, type BlockTimelineEntry, type TimelineEntry } from '@/lib/oggi/timeline'
 import {
@@ -28,7 +28,7 @@ const KIND_LABEL: Record<TimelineEntry['kind'], string> = {
   event:    'Appuntamento',
   block:    'Blocco flessibile',
   reminder: 'Promemoria',
-  postit:   'PostIt',
+  note:     'PostIt',
 }
 
 type Mode = 'move' | 'resize-start' | 'resize-end'
@@ -76,8 +76,9 @@ interface Props {
 
 export function DayTimeline({ day, isToday, now }: Props) {
   const repo     = useRepository(getDailyRepository())
+  const calRepo  = useRepository(getCalendarRepository())
   const announce = useAnnounce()
-  const { timed, untimed } = buildTimeline(getItemsForDate(day), repo.listTimeBlocks(day))
+  const { timed, untimed } = buildTimeline(calRepo.getItemsForDate(day), repo.listTimeBlocks(day))
   const lanes    = layoutLanes(timed)
   const nowMin   = minutesOfDay(now)
   const isPastDay = day < toDayKey(now)
@@ -343,12 +344,6 @@ export function DayTimeline({ day, isToday, now }: Props) {
         </ul>
       </div>
 
-      {CALENDAR_SOURCE_IS_FIXTURE && (
-        <p className="today-fixture-note">
-          Appuntamenti, promemoria e PostIt sono dati di esempio, gli stessi del Calendario.
-        </p>
-      )}
-
       {untimed.length > 0 && (
         <div className="today-untimed">
           <span className="today-group-label">Senza orario</span>
@@ -527,7 +522,7 @@ function EntryContent({ entry }: { entry: Exclude<TimelineEntry, BlockTimelineEn
           <BellIcon size={13} /> Promemoria {range} · {entry.title}
         </span>
       )
-    case 'postit':
+    case 'note':
       return (
         <>
           <span className="today-entry-hand">{entry.title}</span>

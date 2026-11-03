@@ -10,7 +10,7 @@
 //   Two blocks at once is the user's choice, not an error.
 // - A block lives inside one local day and never crosses midnight.
 
-import type { CalendarItem } from '../calendar-mock'
+import type { CalendarItem } from '../calendar-repository'
 import { formatTime, parseDayKey, parseTime, type DayKey } from '../day'
 
 export const SNAP_MINUTES          = 15

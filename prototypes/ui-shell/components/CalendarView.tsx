@@ -3,12 +3,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import {
-  getItemsForDate,
-  getDatesWithItems,
-  getGroupsForDate,
-  type CalendarItem,
-} from '@/lib/calendar-mock'
+import { getCalendarRepository, type CalendarItem } from '@/lib/calendar-repository'
+import { useRepository } from '@/components/today/shared'
 import {
   getDaysInMonth,
   getFirstDayOffset,
@@ -103,7 +99,7 @@ interface GroupItemCardProps {
   item: CalendarItem
 }
 export function GroupItemCard({ item }: GroupItemCardProps) {
-  const isPostit   = item.kind === 'postit'
+  const isPostit   = item.kind === 'note'
   const isEvent    = item.kind === 'event'
   const isReminder = item.kind === 'reminder'
 
@@ -111,13 +107,13 @@ export function GroupItemCard({ item }: GroupItemCardProps) {
     ? 'cal-group-item-badge--event'
     : isReminder
     ? 'cal-group-item-badge--reminder'
-    : 'cal-group-item-badge--postit'
+    : 'cal-group-item-badge--note'
 
   const badgeLabel = isEvent ? 'EVENTO' : isReminder ? 'PROMEMORIA' : 'NOTA'
 
   const cardClass = [
     'cal-group-item-card',
-    isPostit ? 'cal-group-item-card--postit' : '',
+    isPostit ? 'cal-group-item-card--note' : '',
   ].filter(Boolean).join(' ')
 
   const timeDisplay = item.time
@@ -356,7 +352,8 @@ function TimelinePanel({
 // ─── CalendarView ───────────────────────────────────────────────────────────
 
 export function CalendarView() {
-  const today = todayString()
+  const today   = todayString()
+  const calRepo = useRepository(getCalendarRepository())
 
   const [year,         setYear]         = useState(() => new Date().getFullYear())
   const [month,        setMonth]        = useState(() => new Date().getMonth())
@@ -373,7 +370,7 @@ export function CalendarView() {
 
   const returnFocus = useFocusReturn()
 
-  const datesWithItems = getDatesWithItems()
+  const datesWithItems = calRepo.getDatesWithItems()
 
   // Focus the grid cell when focusedDate changes (only when overlay is closed)
   useEffect(() => {
@@ -552,8 +549,8 @@ export function CalendarView() {
   }
 
   // Items for the selected day (used by overlay)
-  const overlayItems  = selectedDate ? getItemsForDate(selectedDate) : []
-  const overlayGroups = selectedDate ? getGroupsForDate(selectedDate) : new Map<string, CalendarItem[]>()
+  const overlayItems  = selectedDate ? calRepo.getItemsForDate(selectedDate) : []
+  const overlayGroups = selectedDate ? calRepo.getGroupsForDate(selectedDate) : new Map<string, CalendarItem[]>()
   const openGroupItems = openGroupId ? (overlayGroups.get(openGroupId) ?? []) : []
 
   return (
@@ -624,7 +621,7 @@ export function CalendarView() {
               const isSelected = ds === selectedDate
               const isFocusTab = focusedDate ? ds === focusedDate : isToday
 
-              const dayItems = getItemsForDate(ds)
+              const dayItems = calRepo.getItemsForDate(ds)
               const visibleItems = dayItems.slice(0, 2)
               const moreCount    = dayItems.length - visibleItems.length
 
