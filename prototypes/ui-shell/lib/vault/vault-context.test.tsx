@@ -133,6 +133,60 @@ describe('VaultProvider', () => {
     expect(fakeService.lock).toHaveBeenCalled()
     expect(result.current.state.status).toBe('locked')
   })
+
+  it('unlock() delegates to vaultService.unlock() and returns boolean result', async () => {
+    fakeService.setState({ status: 'locked' })
+    const { result } = renderHook(() => useVaultContext(), { wrapper })
+
+    // Test unlock success (true)
+    let unlockResult: boolean
+    await act(async () => {
+      unlockResult = await result.current.unlock('1234')
+    })
+
+    expect(fakeService.unlock).toHaveBeenCalledWith('1234')
+    expect(unlockResult).toBe(true)
+
+    // Test unlock failure (false)
+    vi.clearAllMocks()
+    fakeService.unlock = vi.fn(async (_pin: string): Promise<boolean> => {
+      return false
+    })
+
+    await act(async () => {
+      unlockResult = await result.current.unlock('9999')
+    })
+
+    expect(fakeService.unlock).toHaveBeenCalledWith('9999')
+    expect(unlockResult).toBe(false)
+  })
+
+  it('recover() delegates to vaultService.recover() and returns boolean result', async () => {
+    fakeService.setState({ status: 'locked' })
+    const { result } = renderHook(() => useVaultContext(), { wrapper })
+
+    // Test recover success (true)
+    let recoverResult: boolean
+    await act(async () => {
+      recoverResult = await result.current.recover('recovery-code-123')
+    })
+
+    expect(fakeService.recover).toHaveBeenCalledWith('recovery-code-123')
+    expect(recoverResult).toBe(true)
+
+    // Test recover failure (false)
+    vi.clearAllMocks()
+    fakeService.recover = vi.fn(async (_code: string): Promise<boolean> => {
+      return false
+    })
+
+    await act(async () => {
+      recoverResult = await result.current.recover('invalid-code')
+    })
+
+    expect(fakeService.recover).toHaveBeenCalledWith('invalid-code')
+    expect(recoverResult).toBe(false)
+  })
 })
 
 describe('useVaultContext', () => {
