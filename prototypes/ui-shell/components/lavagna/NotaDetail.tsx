@@ -4,6 +4,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { LOCALE } from '@/lib/constants'
 import { usePostIt, usePostItContext } from '@/lib/postit-context'
 import { NotaHeader } from './NotaHeader'
 import { POST_IT_COLORS, STICKER_CONFIG, formatNoteDate } from '@/lib/postit-utils'
@@ -143,7 +144,7 @@ export function NotaDetail({ id }: NotaDetailProps) {
             )}
             {note.dueDate && (
               <div className="nota-postit-date">
-                {new Date(note.dueDate).toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}
+                {new Date(note.dueDate).toLocaleDateString(LOCALE, { day: 'numeric', month: 'long' })}
               </div>
             )}
           </div>

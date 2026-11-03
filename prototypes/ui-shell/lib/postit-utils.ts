@@ -1,3 +1,4 @@
+import { LOCALE } from './constants'
 import type { PostIt, PostItColor, PostItPosition, StickerKey } from './postit-types'
 
 // ── Coordinate math ──────────────────────────────────────────────────────────
@@ -55,11 +56,11 @@ export function formatNoteDate(iso: string): string {
     date.getMonth()    === now.getMonth()    &&
     date.getDate()     === now.getDate()
 
-  const time = date.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+  const time = date.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' })
 
   if (isToday) return `oggi alle ${time}`
 
-  return date.toLocaleDateString('it-IT', {
+  return date.toLocaleDateString(LOCALE, {
     day:   'numeric',
     month: 'long',
     year:  'numeric',

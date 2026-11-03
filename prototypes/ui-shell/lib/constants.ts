@@ -4,6 +4,9 @@ import type { SectionId } from './sections'
 
 export const APP_NAME = 'agenda'
 
+/** BCP-47 locale tag used for all date/time formatting in the app. */
+export const LOCALE = 'it-IT'
+
 /** Per-item stagger delay in ms. Applied as inline --stagger per RadialMenuItem. Provisional. */
 export const ITEM_STAGGER_MS = 55
 

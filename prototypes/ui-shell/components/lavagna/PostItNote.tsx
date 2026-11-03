@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback, useLayoutEffect, type RefObject } from 'react'
 import { useRouter } from 'next/navigation'
+import { LOCALE } from '@/lib/constants'
 import type { PostIt, ViewMode } from '@/lib/postit-types'
 import { POST_IT_COLORS, STICKER_CONFIG, pctToPx, pxToPct } from '@/lib/postit-utils'
 import { useDrag } from './useDrag'
@@ -149,7 +150,7 @@ export function PostItNote({ note, boardRef, boardSize, mode, onMoveCommit }: Po
 
       {note.dueDate && (
         <div className="postit-date">
-          {new Date(note.dueDate).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })}
+          {new Date(note.dueDate).toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' })}
         </div>
       )}
     </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { LOCALE } from '@/lib/constants'
 
 interface NotaHeaderProps {
   lastEditedAt?: string   // ISO-8601 of most recent UPDATE_NOTE; undefined = never edited
@@ -10,7 +11,7 @@ export function NotaHeader({ lastEditedAt }: NotaHeaderProps) {
   let statusText = 'Bozza in memoria'
   if (lastEditedAt) {
     const d    = new Date(lastEditedAt)
-    const time = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+    const time = d.toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit' })
     statusText = `In memoria · ${time}`
   }
 
