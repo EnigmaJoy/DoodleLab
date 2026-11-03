@@ -1,19 +1,19 @@
 'use client'
 
 import { useRef, useState, useEffect, useCallback } from 'react'
-import { usePostItContext } from '@/lib/postit-context'
-import { LavagnaHeader }   from './LavagnaHeader'
-import { PostItNote }      from './PostItNote'
-import type { PostItColor } from '@/lib/postit-types'
+import { useNoteContext } from '@/lib/note-context'
+import { BoardHeader }   from './BoardHeader'
+import { StickyNote }    from './StickyNote'
+import type { NoteColor } from '@/lib/note-types'
 
-const COLORS: PostItColor[] = ['yellow', 'pink', 'mint', 'blue', 'peach']
+const COLORS: NoteColor[] = ['yellow', 'pink', 'mint', 'blue', 'peach']
 
-export function LavagnaBoard() {
-  const { state, dispatch } = usePostItContext()
+export function NoteBoard() {
+  const { state, dispatch } = useNoteContext()
   const boardRef  = useRef<HTMLDivElement>(null)
   const [boardSize, setBoardSize] = useState({ w: 0, h: 0 })
 
-  // Track board dimensions so PostItNote can clamp at render time.
+  // Track board dimensions so StickyNote can clamp at render time.
   useEffect(() => {
     const board = boardRef.current
     if (!board) return
@@ -47,7 +47,7 @@ export function LavagnaBoard() {
 
   return (
     <main className="board-screen">
-      <LavagnaHeader
+      <BoardHeader
         noteCount={state.notes.length}
         mode={state.mode}
         onModeChange={handleModeChange}
@@ -62,7 +62,7 @@ export function LavagnaBoard() {
         >
           {state.mode === 'free' ? (
             state.notes.map(note => (
-              <PostItNote
+              <StickyNote
                 key={note.id}
                 note={note}
                 boardRef={boardRef}
@@ -74,7 +74,7 @@ export function LavagnaBoard() {
           ) : (
             <div className="board-grid-mode">
               {state.notes.map(note => (
-                <PostItNote
+                <StickyNote
                   key={note.id}
                   note={note}
                   boardRef={boardRef}

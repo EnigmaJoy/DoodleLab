@@ -1,17 +1,17 @@
-// components/board/LavagnaHeader.tsx
+// components/board/BoardHeader.tsx
 'use client'
 
 import Link from 'next/link'
-import type { ViewMode } from '@/lib/postit-types'
+import type { ViewMode } from '@/lib/note-types'
 
-interface LavagnaHeaderProps {
+interface BoardHeaderProps {
   noteCount:    number
   mode:         ViewMode
   onModeChange: (mode: ViewMode) => void
   onAddNote:    () => void
 }
 
-export function LavagnaHeader({ noteCount, mode, onModeChange, onAddNote }: LavagnaHeaderProps) {
+export function BoardHeader({ noteCount, mode, onModeChange, onAddNote }: BoardHeaderProps) {
   return (
     <header className="board-header" role="banner">
       <div className="board-header-left">

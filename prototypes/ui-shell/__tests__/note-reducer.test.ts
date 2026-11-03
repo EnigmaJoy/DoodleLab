@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { postItReducer } from '@/lib/postit-context'
-import type { PostItState, PostIt, PostItAction } from '@/lib/postit-types'
+import { noteReducer } from '@/lib/note-context'
+import type { NoteState, Note, NoteAction } from '@/lib/note-types'
 
-function makeState(overrides?: Partial<PostItState>): PostItState {
+function makeState(overrides?: Partial<NoteState>): NoteState {
   return {
     notes: [
       {
@@ -25,20 +25,20 @@ function makeState(overrides?: Partial<PostItState>): PostItState {
 describe('ADD_NOTE', () => {
   it('adds a note with a generated id', () => {
     const state = makeState({ notes: [] })
-    const next = postItReducer(state, { type: 'ADD_NOTE', payload: { content: 'Hello' } })
+    const next = noteReducer(state, { type: 'ADD_NOTE', payload: { content: 'Hello' } })
     expect(next.notes).toHaveLength(1)
     expect(next.notes[0].id).toBeTruthy()
     expect(next.notes[0].content).toBe('Hello')
   })
   it('assigns rotation in [-3, 3]', () => {
     const state = makeState({ notes: [] })
-    const next = postItReducer(state, { type: 'ADD_NOTE', payload: {} })
+    const next = noteReducer(state, { type: 'ADD_NOTE', payload: {} })
     expect(next.notes[0].rotation).toBeGreaterThanOrEqual(-3)
     expect(next.notes[0].rotation).toBeLessThanOrEqual(3)
   })
   it('assigns position with xPct and yPct in [0, 1]', () => {
     const state = makeState({ notes: [] })
-    const next = postItReducer(state, { type: 'ADD_NOTE', payload: {} })
+    const next = noteReducer(state, { type: 'ADD_NOTE', payload: {} })
     const { xPct, yPct } = next.notes[0].position
     expect(xPct).toBeGreaterThanOrEqual(0)
     expect(xPct).toBeLessThanOrEqual(1)
@@ -51,7 +51,7 @@ describe('UPDATE_NOTE', () => {
   it('updates content and updatedAt, leaves position untouched', () => {
     const state = makeState()
     const originalPos = state.notes[0].position
-    const next = postItReducer(state, {
+    const next = noteReducer(state, {
       type: 'UPDATE_NOTE',
       payload: { id: 'note-1', content: 'Updated' },
     })
@@ -61,7 +61,7 @@ describe('UPDATE_NOTE', () => {
   it('updates color without touching position', () => {
     const state = makeState()
     const originalPos = state.notes[0].position
-    const next = postItReducer(state, {
+    const next = noteReducer(state, {
       type: 'UPDATE_NOTE',
       payload: { id: 'note-1', color: 'mint' },
     })
@@ -70,7 +70,7 @@ describe('UPDATE_NOTE', () => {
   })
   it('does not modify notes with a different id', () => {
     const state = makeState()
-    const next = postItReducer(state, {
+    const next = noteReducer(state, {
       type: 'UPDATE_NOTE',
       payload: { id: 'other-id', content: 'Changed' },
     })
@@ -81,7 +81,7 @@ describe('UPDATE_NOTE', () => {
 describe('MOVE_NOTE', () => {
   it('updates only position', () => {
     const state = makeState()
-    const next = postItReducer(state, {
+    const next = noteReducer(state, {
       type: 'MOVE_NOTE',
       payload: { id: 'note-1', xPct: 0.8, yPct: 0.9 },
     })
@@ -92,10 +92,10 @@ describe('MOVE_NOTE', () => {
   })
   it('MOVE_NOTE then UPDATE_NOTE: position is preserved from MOVE_NOTE', () => {
     const state = makeState()
-    const after = postItReducer(state, {
+    const after = noteReducer(state, {
       type: 'MOVE_NOTE', payload: { id: 'note-1', xPct: 0.7, yPct: 0.8 },
     })
-    const final = postItReducer(after, {
+    const final = noteReducer(after, {
       type: 'UPDATE_NOTE', payload: { id: 'note-1', content: 'New content' },
     })
     expect(final.notes[0].position).toEqual({ xPct: 0.7, yPct: 0.8 })
@@ -103,10 +103,10 @@ describe('MOVE_NOTE', () => {
   })
   it('UPDATE_NOTE then MOVE_NOTE: content is preserved from UPDATE_NOTE', () => {
     const state = makeState()
-    const after = postItReducer(state, {
+    const after = noteReducer(state, {
       type: 'UPDATE_NOTE', payload: { id: 'note-1', content: 'Edited' },
     })
-    const final = postItReducer(after, {
+    const final = noteReducer(after, {
       type: 'MOVE_NOTE', payload: { id: 'note-1', xPct: 0.2, yPct: 0.3 },
     })
     expect(final.notes[0].content).toBe('Edited')
@@ -117,11 +117,11 @@ describe('MOVE_NOTE', () => {
 describe('DELETE_NOTE', () => {
   it('removes the target note', () => {
     const state = makeState()
-    const next = postItReducer(state, { type: 'DELETE_NOTE', payload: { id: 'note-1' } })
+    const next = noteReducer(state, { type: 'DELETE_NOTE', payload: { id: 'note-1' } })
     expect(next.notes).toHaveLength(0)
   })
   it('does not remove unrelated notes', () => {
-    const state: PostItState = {
+    const state: NoteState = {
       notes: [
         { id: 'a', content: 'A', color: 'yellow', rotation: 0,
           position: { xPct: 0.1, yPct: 0.1 }, stickers: [], pinned: false,
@@ -132,7 +132,7 @@ describe('DELETE_NOTE', () => {
       ],
       mode: 'free',
     }
-    const next = postItReducer(state, { type: 'DELETE_NOTE', payload: { id: 'a' } })
+    const next = noteReducer(state, { type: 'DELETE_NOTE', payload: { id: 'a' } })
     expect(next.notes).toHaveLength(1)
     expect(next.notes[0].id).toBe('b')
   })
@@ -141,13 +141,13 @@ describe('DELETE_NOTE', () => {
 describe('TOGGLE_PIN', () => {
   it('sets pinned to true when false', () => {
     const state = makeState()
-    const next = postItReducer(state, { type: 'TOGGLE_PIN', payload: { id: 'note-1' } })
+    const next = noteReducer(state, { type: 'TOGGLE_PIN', payload: { id: 'note-1' } })
     expect(next.notes[0].pinned).toBe(true)
   })
   it('is idempotent when toggled twice', () => {
     const state = makeState()
-    const once  = postItReducer(state, { type: 'TOGGLE_PIN', payload: { id: 'note-1' } })
-    const twice = postItReducer(once,  { type: 'TOGGLE_PIN', payload: { id: 'note-1' } })
+    const once  = noteReducer(state, { type: 'TOGGLE_PIN', payload: { id: 'note-1' } })
+    const twice = noteReducer(once,  { type: 'TOGGLE_PIN', payload: { id: 'note-1' } })
     expect(twice.notes[0].pinned).toBe(false)
   })
 })
@@ -155,21 +155,21 @@ describe('TOGGLE_PIN', () => {
 describe('SET_VIEW', () => {
   it('changes the view mode', () => {
     const state = makeState()
-    const next = postItReducer(state, { type: 'SET_VIEW', payload: { mode: 'grid' } })
+    const next = noteReducer(state, { type: 'SET_VIEW', payload: { mode: 'grid' } })
     expect(next.mode).toBe('grid')
   })
   it('does not mutate any note positions', () => {
     const state = makeState()
     const positions = state.notes.map(n => ({ ...n.position }))
-    const next = postItReducer(state, { type: 'SET_VIEW', payload: { mode: 'grid' } })
+    const next = noteReducer(state, { type: 'SET_VIEW', payload: { mode: 'grid' } })
     next.notes.forEach((note, i) => {
       expect(note.position).toEqual(positions[i])
     })
   })
   it('toggling free→grid→free preserves all positions', () => {
     const state = makeState()
-    const toGrid = postItReducer(state, { type: 'SET_VIEW', payload: { mode: 'grid' } })
-    const toFree = postItReducer(toGrid, { type: 'SET_VIEW', payload: { mode: 'free' } })
+    const toGrid = noteReducer(state, { type: 'SET_VIEW', payload: { mode: 'grid' } })
+    const toFree = noteReducer(toGrid, { type: 'SET_VIEW', payload: { mode: 'free' } })
     toFree.notes.forEach((note, i) => {
       expect(note.position).toEqual(state.notes[i].position)
     })
@@ -178,7 +178,7 @@ describe('SET_VIEW', () => {
     const state = makeState()
     let s = state
     for (let i = 0; i < 6; i++) {
-      s = postItReducer(s, { type: 'SET_VIEW', payload: { mode: i % 2 === 0 ? 'grid' : 'free' } })
+      s = noteReducer(s, { type: 'SET_VIEW', payload: { mode: i % 2 === 0 ? 'grid' : 'free' } })
     }
     s.notes.forEach((note, i) => {
       expect(note.position).toEqual(state.notes[i].position)

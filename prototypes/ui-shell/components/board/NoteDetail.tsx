@@ -1,52 +1,52 @@
-// components/board/NotaDetail.tsx
+// components/board/NoteDetail.tsx
 'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { LOCALE } from '@/lib/constants'
-import { usePostIt, usePostItContext } from '@/lib/postit-context'
-import { NotaHeader } from './NotaHeader'
-import { POST_IT_COLORS, STICKER_CONFIG, formatNoteDate } from '@/lib/postit-utils'
-import type { PostItColor, StickerKey } from '@/lib/postit-types'
+import { useNoteBoard, useNoteContext } from '@/lib/note-context'
+import { NoteHeader } from './NoteHeader'
+import { POST_IT_COLORS, STICKER_CONFIG, formatNoteDate } from '@/lib/note-utils'
+import type { NoteColor, StickerKey } from '@/lib/note-types'
 
-const COLOR_ORDER: PostItColor[]  = ['yellow', 'pink', 'mint', 'blue', 'peach']
+const COLOR_ORDER: NoteColor[]    = ['yellow', 'pink', 'mint', 'blue', 'peach']
 const STICKER_ORDER: StickerKey[] = [
   'star','heart','check','exclaim','bulb','home',
   'cart','sun','lightning','clock','phone','money',
 ]
 
-interface NotaDetailProps {
+interface NoteDetailProps {
   id: string
 }
 
-export function NotaDetail({ id }: NotaDetailProps) {
+export function NoteDetail({ id }: NoteDetailProps) {
   const router         = useRouter()
-  const note           = usePostIt(id)
-  const { dispatch }   = usePostItContext()
+  const note           = useNoteBoard(id)
+  const { dispatch }   = useNoteContext()
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   // ── Not found ────────────────────────────────────────────────────────────
   if (!note) {
     return (
-      <main className="nota-screen">
-        <header className="nota-header">
-          <Link href="/board" replace className="nota-back-btn">
+      <main className="note-screen">
+        <header className="note-header">
+          <Link href="/board" replace className="note-back-btn">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.8"
                 strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <span>Lavagna</span>
           </Link>
-          <h1 className="nota-title">Nota</h1>
-          <span className="nota-status" />
+          <h1 className="note-title">Nota</h1>
+          <span className="note-status" />
         </header>
-        <div className="nota-notfound">
-          <p className="nota-notfound-msg">Questa nota non è disponibile.</p>
-          <p className="nota-notfound-sub">
+        <div className="note-notfound">
+          <p className="note-notfound-msg">Questa nota non è disponibile.</p>
+          <p className="note-notfound-sub">
             Le note vengono conservate solo durante la sessione corrente.
           </p>
-          <Link href="/board" replace className="nota-notfound-btn">
+          <Link href="/board" replace className="note-notfound-btn">
             ← Torna alla Lavagna
           </Link>
         </div>
@@ -60,7 +60,7 @@ export function NotaDetail({ id }: NotaDetailProps) {
     dispatch({ type: 'UPDATE_NOTE', payload: { id, content: e.target.value } })
   }
 
-  function handleColorChange(color: PostItColor) {
+  function handleColorChange(color: NoteColor) {
     dispatch({ type: 'UPDATE_NOTE', payload: { id, color } })
   }
 
@@ -111,18 +111,18 @@ export function NotaDetail({ id }: NotaDetailProps) {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <main className="nota-screen">
-      <NotaHeader lastEditedAt={note.updatedAt !== note.createdAt ? note.updatedAt : undefined} />
+    <main className="note-screen">
+      <NoteHeader lastEditedAt={note.updatedAt !== note.createdAt ? note.updatedAt : undefined} />
 
-      <div className="nota-body">
+      <div className="note-body">
         {/* ── Left panel: large post-it preview ── */}
-        <section className="nota-preview-panel" aria-label="Anteprima post-it">
+        <section className="note-preview-panel" aria-label="Anteprima post-it">
           <div
-            className="nota-postit-preview"
+            className="note-postit-preview"
             style={{ backgroundColor: bg, transform: `rotate(${note.rotation}deg)` }}
           >
             <textarea
-              className="nota-postit-content-area"
+              className="note-postit-content-area"
               value={note.content}
               onChange={handleContentChange}
               placeholder="Scrivi qui..."
@@ -143,7 +143,7 @@ export function NotaDetail({ id }: NotaDetailProps) {
               </div>
             )}
             {note.dueDate && (
-              <div className="nota-postit-date">
+              <div className="note-postit-date">
                 {new Date(note.dueDate).toLocaleDateString(LOCALE, { day: 'numeric', month: 'long' })}
               </div>
             )}
@@ -151,13 +151,13 @@ export function NotaDetail({ id }: NotaDetailProps) {
         </section>
 
         {/* ── Right panel: controls ── */}
-        <section className="nota-tools-panel" aria-label="Strumenti nota">
+        <section className="note-tools-panel" aria-label="Strumenti nota">
 
           {/* Pinned notice */}
           {note.pinned && (
-            <div className="nota-pinned-notice" role="status">
-              <div className="nota-pinned-title">Nota fissata</div>
-              <div className="nota-pinned-desc">
+            <div className="note-pinned-notice" role="status">
+              <div className="note-pinned-title">Nota fissata</div>
+              <div className="note-pinned-desc">
                 Non verrà archiviata automaticamente. Resta qui finché non la archivi tu.
               </div>
             </div>
@@ -165,8 +165,8 @@ export function NotaDetail({ id }: NotaDetailProps) {
 
           {/* Tool grid */}
           <div>
-            <div className="nota-section-label">Azioni</div>
-            <div className="nota-tools-grid" style={{ marginTop: '10px' }}>
+            <div className="note-section-label">Azioni</div>
+            <div className="note-tools-grid" style={{ marginTop: '10px' }}>
               {/* Unimplemented tools: disabled, no onClick, title explains why */}
               {[
                 { label: 'Promemoria',          icon: '⏰' },
@@ -178,24 +178,24 @@ export function NotaDetail({ id }: NotaDetailProps) {
               ].map(({ label, icon }) => (
                 <button
                   key={label}
-                  className="nota-tool-btn"
+                  className="note-tool-btn"
                   disabled
                   aria-disabled="true"
                   title="Non ancora disponibile"
                   style={{ opacity: 0.45, cursor: 'not-allowed' }}
                 >
-                  <span className="nota-tool-icon" aria-hidden="true">{icon}</span>
+                  <span className="note-tool-icon" aria-hidden="true">{icon}</span>
                   <span>{label}</span>
                 </button>
               ))}
 
               {/* Duplica — implemented */}
               <button
-                className="nota-tool-btn"
+                className="note-tool-btn"
                 onClick={handleDuplicate}
                 aria-label="Duplica nota"
               >
-                <span className="nota-tool-icon" aria-hidden="true">📋</span>
+                <span className="note-tool-icon" aria-hidden="true">📋</span>
                 <span>Duplica</span>
               </button>
 
@@ -219,14 +219,14 @@ export function NotaDetail({ id }: NotaDetailProps) {
                   </p>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button
-                      className="nota-tool-btn nota-tool-btn--destructive"
+                      className="note-tool-btn note-tool-btn--destructive"
                       onClick={handleDeleteConfirm}
                       style={{ flex: 1 }}
                     >
                       Sì, elimina
                     </button>
                     <button
-                      className="nota-tool-btn"
+                      className="note-tool-btn"
                       onClick={handleDeleteCancel}
                       style={{ flex: 1 }}
                     >
@@ -236,11 +236,11 @@ export function NotaDetail({ id }: NotaDetailProps) {
                 </div>
               ) : (
                 <button
-                  className="nota-tool-btn nota-tool-btn--destructive"
+                  className="note-tool-btn note-tool-btn--destructive"
                   onClick={handleDeleteRequest}
                   aria-label="Elimina nota"
                 >
-                  <span className="nota-tool-icon" aria-hidden="true">🗑️</span>
+                  <span className="note-tool-icon" aria-hidden="true">🗑️</span>
                   <span>Elimina</span>
                 </button>
               )}
@@ -249,12 +249,12 @@ export function NotaDetail({ id }: NotaDetailProps) {
 
           {/* Color swatches */}
           <div>
-            <div className="nota-section-label">Colore</div>
-            <div className="nota-colors" style={{ marginTop: '10px' }}>
+            <div className="note-section-label">Colore</div>
+            <div className="note-colors" style={{ marginTop: '10px' }}>
               {COLOR_ORDER.map(color => (
                 <button
                   key={color}
-                  className="nota-color-swatch"
+                  className="note-color-swatch"
                   style={{ backgroundColor: POST_IT_COLORS[color] }}
                   aria-pressed={note.color === color}
                   aria-label={color}
@@ -266,12 +266,12 @@ export function NotaDetail({ id }: NotaDetailProps) {
 
           {/* Sticker picker */}
           <div>
-            <div className="nota-section-label">Adesivi</div>
-            <div className="nota-stickers" style={{ marginTop: '10px' }}>
+            <div className="note-section-label">Adesivi</div>
+            <div className="note-stickers" style={{ marginTop: '10px' }}>
               {STICKER_ORDER.map(key => (
                 <button
                   key={key}
-                  className="nota-sticker-btn"
+                  className="note-sticker-btn"
                   style={{ background: STICKER_CONFIG[key].bg }}
                   aria-label={`Aggiungi adesivo ${key}`}
                   onClick={() => handleAddSticker(key)}
@@ -282,7 +282,7 @@ export function NotaDetail({ id }: NotaDetailProps) {
             </div>
             {note.stickers.length > 0 && (
               <button
-                className="nota-remove-sticker"
+                className="note-remove-sticker"
                 onClick={handleRemoveLastSticker}
                 style={{ marginTop: '8px' }}
               >
@@ -294,18 +294,18 @@ export function NotaDetail({ id }: NotaDetailProps) {
           {/* Pin toggle */}
           <div>
             <button
-              className="nota-tool-btn"
+              className="note-tool-btn"
               onClick={handleTogglePin}
               aria-pressed={note.pinned}
               style={{ width: '100%' }}
             >
-              <span className="nota-tool-icon">{note.pinned ? '📌' : '📍'}</span>
+              <span className="note-tool-icon">{note.pinned ? '📌' : '📍'}</span>
               <span>{note.pinned ? 'Rimuovi da fissate' : 'Fissa nota'}</span>
             </button>
           </div>
 
           {/* Metadata */}
-          <div className="nota-metadata">
+          <div className="note-metadata">
             <div>Creata {formatNoteDate(note.createdAt)}</div>
             {note.updatedAt !== note.createdAt && (
               <div>Ultima modifica {formatNoteDate(note.updatedAt)}</div>

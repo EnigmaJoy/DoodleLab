@@ -1,5 +1,5 @@
-import { PostItProvider } from '@/lib/postit-context'
+import { NoteProvider } from '@/lib/note-context'
 
 export default function LavagnaLayout({ children }: { children: React.ReactNode }) {
-  return <PostItProvider>{children}</PostItProvider>
+  return <NoteProvider>{children}</NoteProvider>
 }

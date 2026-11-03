@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import {
   pctToPx, pxToPct, clampPosition, generateRotation,
   generateId, formatNoteDate, POST_IT_COLORS, STICKER_CONFIG,
-} from '@/lib/postit-utils'
-import type { PostItColor, StickerKey } from '@/lib/postit-types'
+} from '@/lib/note-utils'
+import type { NoteColor, StickerKey } from '@/lib/note-types'
 
 describe('pctToPx', () => {
   it('converts fraction to pixels', () => {
@@ -79,8 +79,8 @@ describe('formatNoteDate', () => {
 })
 
 describe('POST_IT_COLORS', () => {
-  it('has an entry for every PostItColor', () => {
-    const keys: PostItColor[] = ['yellow', 'pink', 'mint', 'blue', 'peach']
+  it('has an entry for every NoteColor', () => {
+    const keys: NoteColor[] = ['yellow', 'pink', 'mint', 'blue', 'peach']
     keys.forEach(k => {
       expect(POST_IT_COLORS[k]).toMatch(/^#[0-9A-Fa-f]{6}$/)
     })

@@ -1,5 +1,5 @@
 import { LOCALE } from './constants'
-import type { PostIt, PostItColor, PostItPosition, StickerKey } from './postit-types'
+import type { NoteColor, NotePosition, StickerKey } from './note-types'
 
 // ── Coordinate math ──────────────────────────────────────────────────────────
 
@@ -22,7 +22,7 @@ export function clampPosition(
   boardH: number,
   noteW: number,
   noteH: number,
-): PostItPosition {
+): NotePosition {
   const maxXpx = Math.max(0, boardW - noteW)
   const maxYpx = Math.max(0, boardH - noteH)
   const clampedXpx = Math.max(0, Math.min(pctToPx(xPct, boardW), maxXpx))
@@ -69,7 +69,7 @@ export function formatNoteDate(iso: string): string {
 
 // ── Design constants ─────────────────────────────────────────────────────────
 
-export const POST_IT_COLORS: Record<PostItColor, string> = {
+export const POST_IT_COLORS: Record<NoteColor, string> = {
   yellow: '#FFF9B0',
   pink:   '#FFD6E4',
   mint:   '#C8F0D8',

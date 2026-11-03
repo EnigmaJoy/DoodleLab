@@ -1,6 +1,6 @@
 // __tests__/drag-math.test.ts
 import { describe, it, expect } from 'vitest'
-import { clampPosition, pctToPx, pxToPct } from '@/lib/postit-utils'
+import { clampPosition, pctToPx, pxToPct } from '@/lib/note-utils'
 
 // Tests for the coordinate math used by useDrag.
 // These run in jsdom with no DOM setup required.

@@ -3,12 +3,12 @@
 import { useRef, useState, useCallback, useLayoutEffect, type RefObject } from 'react'
 import { useRouter } from 'next/navigation'
 import { LOCALE } from '@/lib/constants'
-import type { PostIt, ViewMode } from '@/lib/postit-types'
-import { POST_IT_COLORS, STICKER_CONFIG, pctToPx, pxToPct } from '@/lib/postit-utils'
+import type { Note, ViewMode } from '@/lib/note-types'
+import { POST_IT_COLORS, STICKER_CONFIG, pctToPx, pxToPct } from '@/lib/note-utils'
 import { useDrag } from './useDrag'
 
-interface PostItNoteProps {
-  note:         PostIt
+interface StickyNoteProps {
+  note:         Note
   boardRef:     RefObject<HTMLDivElement | null>
   boardSize:    { w: number; h: number }
   mode:         ViewMode
@@ -18,7 +18,7 @@ interface PostItNoteProps {
 const KEYBOARD_STEP    = 10   // px per arrow key press
 const KEYBOARD_STEP_LG = 50   // px per Shift+arrow key press
 
-export function PostItNote({ note, boardRef, boardSize, mode, onMoveCommit }: PostItNoteProps) {
+export function StickyNote({ note, boardRef, boardSize, mode, onMoveCommit }: StickyNoteProps) {
   const router  = useRouter()
   const noteRef = useRef<HTMLDivElement>(null)
   const bg      = POST_IT_COLORS[note.color]

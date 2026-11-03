@@ -2,7 +2,7 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
-import { pxToPct } from '@/lib/postit-utils'
+import { pxToPct } from '@/lib/note-utils'
 import type { RefObject } from 'react'
 
 const DRAG_THRESHOLD_PX = 4
@@ -81,7 +81,7 @@ export function useDrag({
      *   There is no guarantee a render will follow (no state change on cancel).
      *
      * WHY this works:
-     *   We compute the same clamped pct that PostItNote would render, and set it
+     *   We compute the same clamped pct that StickyNote would render, and set it
      *   as an explicit inline style. React's next render will write the same value —
      *   no visual change, no jump.
      */

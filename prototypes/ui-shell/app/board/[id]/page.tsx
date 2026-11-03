@@ -1,6 +1,6 @@
 // app/board/[id]/page.tsx
 import type { Metadata } from 'next'
-import { NotaDetail } from '@/components/board/NotaDetail'
+import { NoteDetail } from '@/components/board/NoteDetail'
 
 export const metadata: Metadata = { title: 'Nota' }
 
@@ -10,5 +10,5 @@ export default async function NotaPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  return <NotaDetail id={id} />
+  return <NoteDetail id={id} />
 }

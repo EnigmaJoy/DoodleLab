@@ -2824,7 +2824,7 @@ body {
    NOTA DETAIL
    ============================================================ */
 
-.nota-screen {
+.note-screen {
   height:         100dvh;
   display:        flex;
   flex-direction: column;
@@ -2843,7 +2843,7 @@ body {
 
 /* ── Nota header ── */
 
-.nota-header {
+.note-header {
   display:         flex;
   align-items:     center;
   justify-content: space-between;
@@ -2853,7 +2853,7 @@ body {
   flex-shrink:     0;
 }
 
-.nota-back-btn {
+.note-back-btn {
   display:         flex;
   align-items:     center;
   gap:             0.25rem;
@@ -2869,34 +2869,34 @@ body {
   transition:      background 150ms ease;
 }
 
-.nota-back-btn:hover        { background: rgba(255, 255, 255, 0.16); }
-.nota-back-btn:focus-visible {
+.note-back-btn:hover        { background: rgba(255, 255, 255, 0.16); }
+.note-back-btn:focus-visible {
   outline:        3px solid var(--focus-ring);
   outline-offset: 3px;
   box-shadow:     0 0 0 1px var(--focus-ring-bg);
 }
 
-.nota-title {
+.note-title {
   font-size:   1rem;
   font-weight: 600;
   color:       var(--text-primary);
 }
 
-.nota-status {
+.note-status {
   font-size:  0.75rem;
   color:      rgba(255, 255, 255, 0.65);
 }
 
 /* ── Nota body: two columns ── */
 
-.nota-body {
+.note-body {
   flex:           1;
   min-height:     0;
   display:        flex;
   overflow:       hidden;
 }
 
-.nota-preview-panel {
+.note-preview-panel {
   flex:            0 0 60%;
   display:         flex;
   align-items:     center;
@@ -2906,7 +2906,7 @@ body {
   border-right:    1px solid rgba(255, 255, 255, 0.12);
 }
 
-.nota-tools-panel {
+.note-tools-panel {
   flex:       1;
   overflow-y: auto;
   padding:    24px;
@@ -2916,7 +2916,7 @@ body {
 }
 
 /* Large post-it preview in Nota */
-.nota-postit-preview {
+.note-postit-preview {
   width:         280px;
   height:        280px;
   border-radius: 4px;
@@ -2934,7 +2934,7 @@ body {
   flex-direction: column;
 }
 
-.nota-postit-content-area {
+.note-postit-content-area {
   flex:           1;
   background:     transparent;
   border:         none;
@@ -2949,12 +2949,12 @@ body {
   width:          100%;
 }
 
-.nota-postit-content-area::placeholder {
+.note-postit-content-area::placeholder {
   color:      rgba(45, 36, 21, 0.32);
   font-style: italic;
 }
 
-.nota-postit-date {
+.note-postit-date {
   font-size:   0.7rem;
   color:       rgba(0, 0, 0, 0.45);
   margin-top:  auto;
@@ -2964,21 +2964,21 @@ body {
 
 /* ── Pinned notice ── */
 
-.nota-pinned-notice {
+.note-pinned-notice {
   background:   #FFF3CD;
   border-left:  4px solid #F59E0B;
   border-radius: 8px;
   padding:      12px 14px;
 }
 
-.nota-pinned-title {
+.note-pinned-title {
   font-size:   0.875rem;
   font-weight: 700;
   color:       #92400E;
   margin-bottom: 4px;
 }
 
-.nota-pinned-desc {
+.note-pinned-desc {
   font-size:  0.8125rem;
   color:      #78350F;
   line-height: 1.45;
@@ -2986,13 +2986,13 @@ body {
 
 /* ── Tools grid ── */
 
-.nota-tools-grid {
+.note-tools-grid {
   display:               grid;
   grid-template-columns: 1fr 1fr;
   gap:                   10px;
 }
 
-.nota-tool-btn {
+.note-tool-btn {
   display:         flex;
   flex-direction:  column;
   align-items:     center;
@@ -3009,25 +3009,25 @@ body {
   transition:      background 120ms ease;
 }
 
-.nota-tool-btn:hover        { background: rgba(255, 255, 255, 1); }
-.nota-tool-btn:focus-visible {
+.note-tool-btn:hover        { background: rgba(255, 255, 255, 1); }
+.note-tool-btn:focus-visible {
   outline:        3px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
-.nota-tool-btn--destructive {
+.note-tool-btn--destructive {
   color:            #DC2626;
   border-color:     rgba(220, 38, 38, 0.25);
   background:       rgba(255, 220, 220, 0.85);
 }
 
-.nota-tool-btn--destructive:hover { background: rgba(255, 220, 220, 1); }
+.note-tool-btn--destructive:hover { background: rgba(255, 220, 220, 1); }
 
-.nota-tool-icon { font-size: 1.25rem; }
+.note-tool-icon { font-size: 1.25rem; }
 
 /* ── Color swatches ── */
 
-.nota-section-label {
+.note-section-label {
   font-size:    0.75rem;
   font-weight:  600;
   color:        rgba(255, 255, 255, 0.70);
@@ -3036,12 +3036,12 @@ body {
   margin-bottom: -8px;
 }
 
-.nota-colors {
+.note-colors {
   display: flex;
   gap:     10px;
 }
 
-.nota-color-swatch {
+.note-color-swatch {
   width:         28px;
   height:        28px;
   border-radius: 50%;
@@ -3050,25 +3050,25 @@ body {
   transition:    transform 120ms ease;
 }
 
-.nota-color-swatch:hover          { transform: scale(1.15); }
-.nota-color-swatch[aria-pressed="true"] {
+.note-color-swatch:hover          { transform: scale(1.15); }
+.note-color-swatch[aria-pressed="true"] {
   box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px rgba(0,0,0,0.35);
 }
 
-.nota-color-swatch:focus-visible {
+.note-color-swatch:focus-visible {
   outline:        3px solid var(--focus-ring);
   outline-offset: 3px;
 }
 
 /* ── Stickers ── */
 
-.nota-stickers {
+.note-stickers {
   display:   flex;
   flex-wrap: wrap;
   gap:       8px;
 }
 
-.nota-sticker-btn {
+.note-sticker-btn {
   display:       flex;
   align-items:   center;
   gap:           4px;
@@ -3080,13 +3080,13 @@ body {
   transition:    transform 120ms ease;
 }
 
-.nota-sticker-btn:hover        { transform: scale(1.1); }
-.nota-sticker-btn:focus-visible {
+.note-sticker-btn:hover        { transform: scale(1.1); }
+.note-sticker-btn:focus-visible {
   outline:        3px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
-.nota-remove-sticker {
+.note-remove-sticker {
   font-size:   0.75rem;
   color:       rgba(255, 255, 255, 0.65);
   background:  none;
@@ -3097,14 +3097,14 @@ body {
   text-decoration: underline;
 }
 
-.nota-remove-sticker:focus-visible {
+.note-remove-sticker:focus-visible {
   outline:        2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
 /* ── Metadata ── */
 
-.nota-metadata {
+.note-metadata {
   font-size:   0.75rem;
   color:       rgba(255, 255, 255, 0.50);
   line-height: 1.6;
@@ -3114,7 +3114,7 @@ body {
 
 /* ── Not-found ── */
 
-.nota-notfound {
+.note-notfound {
   flex:            1;
   display:         flex;
   flex-direction:  column;
@@ -3125,19 +3125,19 @@ body {
   text-align:      center;
 }
 
-.nota-notfound-msg {
+.note-notfound-msg {
   font-size:   1.125rem;
   font-weight: 500;
   color:       var(--text-primary);
 }
 
-.nota-notfound-sub {
+.note-notfound-sub {
   font-size:  0.875rem;
   color:      rgba(255, 255, 255, 0.65);
   max-width:  30ch;
 }
 
-.nota-notfound-btn {
+.note-notfound-btn {
   min-height:     44px;
   padding:        0 1.5rem;
   border-radius:  9999px;
@@ -3153,8 +3153,8 @@ body {
   align-items:    center;
 }
 
-.nota-notfound-btn:hover        { background: rgba(255, 255, 255, 0.22); }
-.nota-notfound-btn:focus-visible {
+.note-notfound-btn:hover        { background: rgba(255, 255, 255, 0.22); }
+.note-notfound-btn:focus-visible {
   outline:        3px solid var(--focus-ring);
   outline-offset: 3px;
 }
@@ -3169,17 +3169,17 @@ body {
   .board-add-label   { display: none; }  /* icon-only on narrow screens */
 
   /* Nota: single column */
-  .nota-body           { flex-direction: column; overflow-y: auto; }
-  .nota-preview-panel  {
+  .note-body           { flex-direction: column; overflow-y: auto; }
+  .note-preview-panel  {
     flex:         none;
     border-right: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     padding:      24px 24px 20px;
   }
-  .nota-tools-panel    { flex: none; overflow-y: visible; }
+  .note-tools-panel    { flex: none; overflow-y: visible; }
 }
 
 @media (max-width: 480px) {
   .board-count       { display: none; }
-  .nota-postit-preview { width: 240px; height: 240px; }
+  .note-postit-preview { width: 240px; height: 240px; }
 }

@@ -1,22 +1,22 @@
-// lib/postit-types.ts
+// lib/note-types.ts
 
-export type PostItColor = 'yellow' | 'pink' | 'mint' | 'blue' | 'peach'
+export type NoteColor = 'yellow' | 'pink' | 'mint' | 'blue' | 'peach'
 
 export type StickerKey =
   | 'star' | 'heart' | 'check' | 'exclaim' | 'bulb' | 'home'
   | 'cart' | 'sun' | 'lightning' | 'clock' | 'phone' | 'money'
 
-export interface PostItPosition {
+export interface NotePosition {
   xPct: number   // 0–1 fraction of usable board width
   yPct: number   // 0–1 fraction of usable board height
 }
 
-export interface PostIt {
+export interface Note {
   id:        string
   content:   string
-  color:     PostItColor
+  color:     NoteColor
   rotation:  number          // degrees, range −3…+3, fixed at creation
-  position:  PostItPosition
+  position:  NotePosition
   stickers:  StickerKey[]
   pinned:    boolean
   createdAt: string          // ISO-8601
@@ -26,14 +26,14 @@ export interface PostIt {
 
 export type ViewMode = 'free' | 'grid'
 
-export interface PostItState {
-  notes: PostIt[]
+export interface NoteState {
+  notes: Note[]
   mode:  ViewMode
 }
 
-export type PostItAction =
-  | { type: 'ADD_NOTE';    payload: Partial<Omit<PostIt, 'id'>> }
-  | { type: 'UPDATE_NOTE'; payload: { id: string } & Partial<Omit<PostIt, 'id' | 'position'>> }
+export type NoteAction =
+  | { type: 'ADD_NOTE';    payload: Partial<Omit<Note, 'id'>> }
+  | { type: 'UPDATE_NOTE'; payload: { id: string } & Partial<Omit<Note, 'id' | 'position'>> }
   | { type: 'MOVE_NOTE';   payload: { id: string; xPct: number; yPct: number } }
   | { type: 'DELETE_NOTE'; payload: { id: string } }
   | { type: 'TOGGLE_PIN';  payload: { id: string } }

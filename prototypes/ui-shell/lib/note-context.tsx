@@ -9,25 +9,25 @@ import {
   type Dispatch,
   type ReactNode,
 } from 'react'
-import type { PostIt, PostItAction, PostItState } from './postit-types'
-import { generateRotation } from './postit-utils'
+import type { Note, NoteAction, NoteState } from './note-types'
+import { generateRotation } from './note-utils'
 
 const STORAGE_KEY = 'doodlelab:board:v2'
 
-function loadFromStorage(): PostItState | null {
+function loadFromStorage(): NoteState | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw) as { notes?: unknown; mode?: unknown }
     if (!Array.isArray(parsed.notes)) return null
     const mode = parsed.mode === 'grid' ? 'grid' : 'free'
-    return { notes: parsed.notes as PostIt[], mode }
+    return { notes: parsed.notes as Note[], mode }
   } catch {
     return null
   }
 }
 
-function saveToStorage(state: PostItState): void {
+function saveToStorage(state: NoteState): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
   } catch {
@@ -37,11 +37,11 @@ function saveToStorage(state: PostItState): void {
 
 // ── Reducer ──────────────────────────────────────────────────────────────────
 
-export function postItReducer(state: PostItState, action: PostItAction): PostItState {
+export function noteReducer(state: NoteState, action: NoteAction): NoteState {
   switch (action.type) {
     case 'ADD_NOTE': {
       const now: string = new Date().toISOString()
-      const note: PostIt = {
+      const note: Note = {
         id:        crypto.randomUUID(),
         content:   '',
         color:     'yellow',
@@ -105,23 +105,23 @@ export function postItReducer(state: PostItState, action: PostItAction): PostItS
 
 // ── Context ──────────────────────────────────────────────────────────────────
 
-export interface PostItContextValue {
-  state:    PostItState
-  dispatch: Dispatch<PostItAction>
+export interface NoteContextValue {
+  state:    NoteState
+  dispatch: Dispatch<NoteAction>
 }
 
-const PostItContext = createContext<PostItContextValue | null>(null)
+const NoteContext = createContext<NoteContextValue | null>(null)
 
-export function PostItProvider({
+export function NoteProvider({
   children,
   initialNotes = [],
 }: {
   children:      ReactNode
-  initialNotes?: PostIt[]
+  initialNotes?: Note[]
 }) {
-  const seed: PostItState = { notes: initialNotes, mode: 'free' }
+  const seed: NoteState = { notes: initialNotes, mode: 'free' }
   const [state, dispatch] = useReducer(
-    postItReducer,
+    noteReducer,
     seed,
     (s) => loadFromStorage() ?? s,
   )
@@ -133,20 +133,20 @@ export function PostItProvider({
 
   const value = useMemo(() => ({ state, dispatch }), [state, dispatch])
   return (
-    <PostItContext.Provider value={value}>
+    <NoteContext.Provider value={value}>
       {children}
-    </PostItContext.Provider>
+    </NoteContext.Provider>
   )
 }
 
-export function usePostItContext(): PostItContextValue {
-  const ctx = useContext(PostItContext)
-  if (!ctx) throw new Error('usePostItContext must be used inside PostItProvider')
+export function useNoteContext(): NoteContextValue {
+  const ctx = useContext(NoteContext)
+  if (!ctx) throw new Error('useNoteContext must be used inside NoteProvider')
   return ctx
 }
 
 /** Returns a single note by id, or undefined (e.g. after refresh). */
-export function usePostIt(id: string): PostIt | undefined {
-  const { state } = usePostItContext()
+export function useNoteBoard(id: string): Note | undefined {
+  const { state } = useNoteContext()
   return state.notes.find(n => n.id === id)
 }
