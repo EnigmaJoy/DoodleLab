@@ -13,7 +13,7 @@ import {
 import { IDLE, LONG_PRESS_MS, pressStep, type PressEvent, type PressState } from '@/lib/oggi/press-gesture'
 import { formatTime, minutesOfDay, toDayKey, type DayKey } from '@/lib/day'
 import { GroupItemCard } from '@/components/CalendarView'
-import { useAnnounce, useModal, useRepository } from './shared'
+import { ConfirmAction, useAnnounce, useModal, useRepository } from './shared'
 import { BlockActionsDialog, NewBlockDialog, describeBlockError } from './TimeBlockDialogs'
 import { BellIcon, CalendarIcon, CloseIcon, GripIcon, MoreIcon, NoteIcon, PlusIcon } from './icons'
 
@@ -551,6 +551,15 @@ function EntryDialog({ entry, onClose }: { entry: TimelineEntry; onClose: () => 
       </div>
       <div className="today-dialog-body">
         <GroupItemCard item={entry.source} />
+        <ConfirmAction
+          label="Elimina"
+          question="Eliminare questo evento?"
+          confirmLabel="Elimina"
+          onConfirm={() => {
+            getCalendarRepository().deleteItem(entry.source.id)
+            onClose()
+          }}
+        />
         <Link href="/calendar" className="today-text-btn">Apri il Calendario</Link>
       </div>
     </dialog>

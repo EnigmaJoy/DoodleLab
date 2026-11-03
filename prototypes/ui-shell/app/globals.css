@@ -1142,6 +1142,12 @@ body {
   padding: 0 0.75rem 0.625rem;
 }
 
+.cal-group-item-actions {
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  margin-top: 0.5rem;
+}
+
 /* ── Responsive ── */
 
 /* Narrow: stack panels vertically */

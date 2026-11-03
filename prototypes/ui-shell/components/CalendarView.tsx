@@ -4,7 +4,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { getCalendarRepository, type CalendarItem } from '@/lib/calendar-repository'
-import { useRepository } from '@/components/today/shared'
+import { ConfirmAction, useRepository } from '@/components/today/shared'
 import {
   getDaysInMonth,
   getFirstDayOffset,
@@ -96,9 +96,10 @@ function GroupChip({ groupId, count, onClick, chipRef }: GroupChipProps) {
 // ─── GroupItemCard ──────────────────────────────────────────────────────────
 
 interface GroupItemCardProps {
-  item: CalendarItem
+  item:      CalendarItem
+  onDelete?: () => void
 }
-export function GroupItemCard({ item }: GroupItemCardProps) {
+export function GroupItemCard({ item, onDelete }: GroupItemCardProps) {
   const isPostit   = item.kind === 'note'
   const isEvent    = item.kind === 'event'
   const isReminder = item.kind === 'reminder'
@@ -185,6 +186,17 @@ export function GroupItemCard({ item }: GroupItemCardProps) {
           </div>
         )}
       </div>
+
+      {onDelete && (
+        <div className="cal-group-item-actions">
+          <ConfirmAction
+            label="Elimina"
+            question="Eliminare questo evento?"
+            confirmLabel="Elimina"
+            onConfirm={onDelete}
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -192,14 +204,19 @@ export function GroupItemCard({ item }: GroupItemCardProps) {
 // ─── GroupDetailPanel ───────────────────────────────────────────────────────
 
 interface GroupDetailPanelProps {
-  date:         string
-  groupId:      string
-  items:        CalendarItem[]
-  onClose:      () => void
-  panelRef?:    React.RefObject<HTMLDivElement | null>
-  closeRef?:    React.RefObject<HTMLButtonElement | null>
+  date:          string
+  groupId:       string
+  items:         CalendarItem[]
+  onClose:       () => void
+  onDeleteItem:  (id: string) => void
+  panelRef?:     React.RefObject<HTMLDivElement | null>
+  closeRef?:     React.RefObject<HTMLButtonElement | null>
 }
-function GroupDetailPanel({ date, items, onClose, panelRef, closeRef }: GroupDetailPanelProps) {
+function GroupDetailPanel({ date, items, onClose, onDeleteItem, panelRef, closeRef }: GroupDetailPanelProps) {
+  useEffect(() => {
+    if (items.length === 0) onClose()
+  }, [items.length, onClose])
+
   const times  = items.map(i => i.time).filter(Boolean) as string[]
   const minT   = times.length ? times.reduce((a, b) => a < b ? a : b) : ''
   const maxT   = times.length ? times.reduce((a, b) => a > b ? a : b) : ''
@@ -227,7 +244,7 @@ function GroupDetailPanel({ date, items, onClose, panelRef, closeRef }: GroupDet
       </div>
       <div className="cal-group-detail-list">
         {items.map(item => (
-          <GroupItemCard key={item.id} item={item} />
+          <GroupItemCard key={item.id} item={item} onDelete={() => onDeleteItem(item.id)} />
         ))}
       </div>
     </div>
@@ -694,6 +711,7 @@ export function CalendarView() {
                 groupId={openGroupId}
                 items={openGroupItems}
                 onClose={handleGroupClose}
+                onDeleteItem={(id) => calRepo.deleteItem(id)}
                 panelRef={groupPanelRef}
                 closeRef={groupCloseRef}
               />
