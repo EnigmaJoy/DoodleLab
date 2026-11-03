@@ -39,8 +39,8 @@ function ensureNodeWasmLoader(): void {
           imports: WebAssembly.Imports,
           successCallback: (instance: WebAssembly.Instance) => void,
         ) {
-          const bytes: Buffer = fs.readFileSync(wasmPath)
-          WebAssembly.instantiate(bytes, imports).then(output => {
+          const bytesBuffer = new Uint8Array(fs.readFileSync(wasmPath)).buffer as ArrayBuffer
+          WebAssembly.instantiate(bytesBuffer, imports).then((output: WebAssembly.WebAssemblyInstantiatedSource) => {
             successCallback(output.instance)
           })
           return {}
@@ -71,9 +71,10 @@ export async function deriveKey(
     parallelism: p.parallelism,
     hashLen:     p.hashLength,
   })
+  const hashBuf = new Uint8Array(result.hash).buffer as ArrayBuffer
   return crypto.subtle.importKey(
     'raw',
-    result.hash,
+    hashBuf,
     { name: 'AES-GCM' },
     false,
     ['encrypt', 'decrypt'],

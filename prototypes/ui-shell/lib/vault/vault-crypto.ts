@@ -15,12 +15,17 @@ function toBase64url(buf: ArrayBuffer): string {
     .replace(/=/g, '')
 }
 
-function fromBase64url(str: string): Uint8Array {
+function fromBase64url(str: string): Uint8Array<ArrayBuffer> {
   const padded = str
     .replace(/-/g, '+')
     .replace(/_/g, '/')
     .padEnd(Math.ceil(str.length / 4) * 4, '=')
-  return Uint8Array.from(atob(padded), c => c.charCodeAt(0))
+  const binary = atob(padded)
+  const arr = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) {
+    arr[i] = binary.charCodeAt(i)
+  }
+  return arr
 }
 
 export async function encrypt(
