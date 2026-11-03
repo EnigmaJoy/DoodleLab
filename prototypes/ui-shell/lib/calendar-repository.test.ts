@@ -156,4 +156,18 @@ describe('LocalCalendarRepository', () => {
 
     unsubscribe()
   })
+
+  it('10. calls notify on addItem', () => {
+    const repo = new LocalCalendarRepository(new LocalStorageAdapter())
+    const versionBefore = repo.getVersion()
+    repo.addItem({ date: '2026-11-03', kind: 'note', title: 'New item' })
+    expect(repo.getVersion()).toBeGreaterThan(versionBefore)
+  })
+
+  it('11. calls notify on updateItem', () => {
+    const repo = new LocalCalendarRepository(new LocalStorageAdapter())
+    const versionBefore = repo.getVersion()
+    repo.updateItem('g1a', { title: 'Updated' })
+    expect(repo.getVersion()).toBeGreaterThan(versionBefore)
+  })
 })
