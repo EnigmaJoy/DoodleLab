@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Caveat, Sacramento, Kalam } from 'next/font/google'
 import { PaletteSwitcher } from '@/dev/PaletteSwitcher'
 import { PALETTE_COUNT } from '@/lib/palettes'
+import { VaultProvider, AppGate } from '@/lib/vault/vault-context'
 import './globals.css'
 
 // Sacramento loaded via next/font: self-hosted at build time, no runtime requests.
@@ -45,7 +46,11 @@ export default function RootLayout({
   return (
     <html lang="it" data-palette={paletteId} className={`${sacramento.variable} ${kalam.variable} ${caveat.variable}`}>
       <body>
-        {children}
+        <VaultProvider>
+          <AppGate>
+            {children}
+          </AppGate>
+        </VaultProvider>
         {process.env.NEXT_PUBLIC_SHOW_PALETTE_SWITCHER === 'true' && (
           <PaletteSwitcher />
         )}

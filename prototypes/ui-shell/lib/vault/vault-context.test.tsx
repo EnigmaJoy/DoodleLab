@@ -75,8 +75,13 @@ vi.mock('@/lib/vault/argon2-adapter', () => ({
   },
 }))
 
+vi.mock('next/navigation', () => ({
+  useRouter: vi.fn(),
+}))
+
 // Import after mocks are set up
-import { VaultProvider, useVaultContext } from './vault-context'
+import { VaultProvider, useVaultContext, AppGate } from './vault-context'
+import { useRouter } from 'next/navigation'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -195,5 +200,67 @@ describe('useVaultContext', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     expect(() => renderHook(() => useVaultContext())).toThrow()
     spy.mockRestore()
+  })
+})
+
+describe('AppGate', () => {
+  let mockReplace: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    mockReplace = vi.fn()
+    vi.mocked(useRouter).mockReturnValue({ replace: mockReplace } as ReturnType<typeof useRouter>)
+  })
+
+  it('renders children when vault state is unlocked', async () => {
+    fakeService.setState({
+      status: 'unlocked',
+      adapter: {} as import('./vault-storage-adapter').VaultStorageAdapter,
+    })
+
+    await act(async () => {
+      render(
+        <VaultProvider>
+          <AppGate>
+            <span>protected content</span>
+          </AppGate>
+        </VaultProvider>,
+      )
+    })
+
+    expect(screen.getByText('protected content')).toBeDefined()
+    expect(mockReplace).not.toHaveBeenCalled()
+  })
+
+  it('returns null and redirects to /setup when state is uninitialized', async () => {
+    // fakeService default state is uninitialized
+    await act(async () => {
+      render(
+        <VaultProvider>
+          <AppGate>
+            <span>protected content</span>
+          </AppGate>
+        </VaultProvider>,
+      )
+    })
+
+    expect(screen.queryByText('protected content')).toBeNull()
+    expect(mockReplace).toHaveBeenCalledWith('/setup')
+  })
+
+  it('returns null and redirects to /unlock when state is locked', async () => {
+    fakeService.setState({ status: 'locked' })
+
+    await act(async () => {
+      render(
+        <VaultProvider>
+          <AppGate>
+            <span>protected content</span>
+          </AppGate>
+        </VaultProvider>,
+      )
+    })
+
+    expect(screen.queryByText('protected content')).toBeNull()
+    expect(mockReplace).toHaveBeenCalledWith('/unlock')
   })
 })

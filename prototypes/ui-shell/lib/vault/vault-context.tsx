@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import { useRouter } from 'next/navigation'
 import { getVaultService, type VaultState } from '@/lib/vault/vault-service'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -61,4 +62,19 @@ export function useVaultContext(): VaultContextValue {
   const ctx = useContext(VaultContext)
   if (!ctx) throw new Error('useVaultContext must be used inside VaultProvider')
   return ctx
+}
+
+// ── AppGate ───────────────────────────────────────────────────────────────────
+
+export function AppGate({ children }: { children: ReactNode }): ReactNode {
+  const { state } = useVaultContext()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (state.status === 'uninitialized') router.replace('/setup')
+    else if (state.status === 'locked') router.replace('/unlock')
+  }, [state.status, router])
+
+  if (state.status === 'unlocked') return <>{children}</>
+  return null
 }
