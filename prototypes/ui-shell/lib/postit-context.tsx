@@ -12,7 +12,7 @@ import {
 import type { PostIt, PostItAction, PostItState } from './postit-types'
 import { generateRotation } from './postit-utils'
 
-const STORAGE_KEY = 'doodlelab:lavagna:v1'
+const STORAGE_KEY = 'doodlelab:board:v2'
 
 function loadFromStorage(): PostItState | null {
   try {

@@ -1,7 +1,7 @@
 // __tests__/drag-hook.test.ts
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { useDrag } from '@/components/lavagna/useDrag'
+import { useDrag } from '@/components/board/useDrag'
 
 function makeSetup(overrides: Record<string, unknown> = {}) {
   const boardEl = document.createElement('div')
