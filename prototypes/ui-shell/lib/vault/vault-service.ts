@@ -89,10 +89,6 @@ export class VaultService extends ChangeNotifier {
   private inactivityTimer: ReturnType<typeof setTimeout> | null = null
   private readonly INACTIVITY_MS = 30 * 60 * 1000
 
-  private readonly onVisibilityChange = (): void => {
-    if (typeof document !== 'undefined' && document.hidden) this.lock()
-  }
-
   private readonly onActivity = (): void => {
     this.resetInactivityTimer()
   }
@@ -228,16 +224,14 @@ export class VaultService extends ChangeNotifier {
   }
 
   private startAutoLock(): void {
-    if (typeof document === 'undefined') return
-    document.addEventListener('visibilitychange', this.onVisibilityChange)
+    if (typeof window === 'undefined') return
     window.addEventListener('pointermove', this.onActivity)
     window.addEventListener('keydown', this.onActivity)
     this.resetInactivityTimer()
   }
 
   private removeAutoLockListeners(): void {
-    if (typeof document === 'undefined') return
-    document.removeEventListener('visibilitychange', this.onVisibilityChange)
+    if (typeof window === 'undefined') return
     window.removeEventListener('pointermove', this.onActivity)
     window.removeEventListener('keydown', this.onActivity)
     if (this.inactivityTimer !== null) {
