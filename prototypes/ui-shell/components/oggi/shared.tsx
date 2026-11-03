@@ -28,7 +28,7 @@ export const useAnnounce = () => useContext(AnnounceContext)
 
 // Panel open/closed state is a UI preference (not private content), so it
 // may live in sessionStorage. Unavailable storage falls back to defaults.
-const PANEL_STORAGE_KEY = 'oggi.panels'
+const PANEL_STORAGE_KEY = 'today.panels'
 
 function readPanelState(): Record<string, boolean> {
   try {
@@ -46,7 +46,7 @@ function writePanelState(id: string, open: boolean) {
   }
 }
 
-const OPEN_PANEL_EVENT = 'oggi:open-panel'
+const OPEN_PANEL_EVENT = 'today:open-panel'
 
 /** Expands a panel from elsewhere in Oggi (e.g. the timer after "Avvia timer") */
 export function openPanel(id: string) {

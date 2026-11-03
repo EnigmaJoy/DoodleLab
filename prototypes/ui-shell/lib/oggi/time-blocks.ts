@@ -17,7 +17,7 @@ export const SNAP_MINUTES          = 15
 export const DEFAULT_BLOCK_MINUTES = 60
 export const MIN_BLOCK_MINUTES     = 15
 export const DAY_MINUTES           = 24 * 60
-export const DEFAULT_BLOCK_TITLE   = 'Blocco di concentrazione'
+export const DEFAULT_BLOCK_TITLE   = 'Focus block'
 /**
  * Protected footprint of an appointment without an explicit end. Matches the
  * height the timeline draws for it, so what the user sees is what is blocked.

@@ -6,9 +6,9 @@ import { InMemoryDailyRepository } from './daily-repository'
 describe('timer store (block integration)', () => {
   it('startFor loads the block duration and starts counting down', () => {
     const store = new TimerStore()
-    store.startFor(90, 'Blocco di concentrazione', 0)
+    store.startFor(90, 'Focus block', 0)
     expect(store.state.status).toBe('running')
-    expect(store.label).toBe('Blocco di concentrazione')
+    expect(store.label).toBe('Focus block')
     expect(remainingMs(store.state, 30 * 60_000)).toBe(60 * 60_000)
   })
 

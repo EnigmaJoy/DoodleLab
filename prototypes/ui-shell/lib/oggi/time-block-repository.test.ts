@@ -123,7 +123,7 @@ describe('deleting time blocks', () => {
     const done = repo.addTask(DAY, { title: 'Prenotare la visita' })
     if (!open.ok || !done.ok) throw new Error('setup')
     repo.setTaskDone(done.task.id, true)
-    const linked = repo.createTimeBlock(DAY, { start: 630, duration: 90, title: 'Blocco di concentrazione', taskId: open.task.id })
+    const linked = repo.createTimeBlock(DAY, { start: 630, duration: 90, title: 'Focus block', taskId: open.task.id })
     const other  = repo.createTimeBlock(DAY, { start: 900, duration: 60, title: 'Studio' })
     const doneLinked = repo.createTimeBlock(DAY, { start: 1000, duration: 30, taskId: done.task.id })
     if (!linked.ok || !other.ok || !doneLinked.ok) throw new Error('setup')
