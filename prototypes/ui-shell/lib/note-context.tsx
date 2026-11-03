@@ -105,7 +105,7 @@ export function noteReducer(state: NoteState, action: NoteAction): NoteState {
 
 // ── Context ──────────────────────────────────────────────────────────────────
 
-export interface NoteContextValue {
+interface NoteContextValue {
   state:    NoteState
   dispatch: Dispatch<NoteAction>
 }
