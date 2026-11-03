@@ -134,8 +134,8 @@ export function AppGate({ children }: { children: ReactNode }): ReactNode {
     }
   }, [authStatus, session, vaultState.status, router, isVaultPage, isAuthPage])
 
-  // Show nothing while session is loading.
-  if (authStatus === 'loading') return null
+  // Show a gradient screen while loading (avoids white flash between transitions).
+  if (authStatus === 'loading') return <GateScreen />
 
   // Always render auth pages and vault pages.
   if (isAuthPage || isVaultPage) return <>{children}</>
@@ -143,5 +143,20 @@ export function AppGate({ children }: { children: ReactNode }): ReactNode {
   // Render app only when fully authenticated + vault unlocked.
   if (session && vaultState.status === 'unlocked') return <>{children}</>
 
-  return null
+  // Waiting for redirect (e.g. session loaded but vault still uninitialized/locked).
+  return <GateScreen />
+}
+
+// ── GateScreen ────────────────────────────────────────────────────────────────
+// Blank screen with the app gradient — shown during session/vault loading and
+// while redirects are in flight, to avoid a white flash.
+
+function GateScreen() {
+  return (
+    <div style={{
+      position:   'fixed',
+      inset:      0,
+      background: 'linear-gradient(135deg, var(--gradient-start, #581c87), var(--gradient-end, #be123c))',
+    }} />
+  )
 }
