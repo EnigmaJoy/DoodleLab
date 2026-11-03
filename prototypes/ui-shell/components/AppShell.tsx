@@ -3,9 +3,10 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import type { AppView } from '@/lib/types'
 import { WelcomeScreen } from './WelcomeScreen'
 import { RadialMenu } from './RadialMenu'
+
+export type AppView = 'WELCOME' | 'MENU_OPEN' | 'MENU_CLOSED'
 
 interface AppShellProps {
   initialView: AppView

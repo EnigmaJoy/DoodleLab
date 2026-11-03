@@ -1,6 +1,6 @@
 // app/page.tsx
 import { AppShell } from '@/components/AppShell'
-import type { AppView } from '@/lib/types'
+import type { AppView } from '@/components/AppShell'
 
 interface Props {
   searchParams: Promise<{ view?: string }>
