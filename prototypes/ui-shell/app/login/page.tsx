@@ -1,39 +1,17 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-
-// Durata totale animazione in ms (ultimo elemento finisce a 3.5s)
-const ANIM_TOTAL_MS = 3500
 
 export default function LoginPage() {
   const { status } = useSession()
   const router     = useRouter()
 
-  const [animKey,     setAnimKey]     = useState(0)
-  const [replayReady, setReplayReady] = useState(false)
-
   // Se già autenticati, redirect a /
   useEffect(() => {
     if (status === 'authenticated') router.replace('/')
   }, [status, router])
-
-  // Abilita il pulsante replay solo dopo che l'animazione è finita
-  useEffect(() => {
-    setReplayReady(false)
-    const prefersReduced =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReduced) {
-      setReplayReady(true)
-      return
-    }
-    const t = window.setTimeout(() => setReplayReady(true), ANIM_TOTAL_MS)
-    return () => window.clearTimeout(t)
-  }, [animKey])
-
-  const handleReplay = useCallback(() => setAnimKey(k => k + 1), [])
 
   if (status === 'loading') return null
 
@@ -43,38 +21,18 @@ export default function LoginPage() {
       <div className="login-glow-top"    aria-hidden="true" />
       <div className="login-glow-bottom" aria-hidden="true" />
 
-      {/* Pulsante replay — top right */}
-      <button
-        className="login-replay-btn"
-        type="button"
-        onClick={handleReplay}
-        disabled={!replayReady}
-        aria-label="Rivedi animazione"
-      >
-        <svg
-          width="14" height="14" viewBox="0 0 24 24"
-          fill="none" stroke="currentColor" strokeWidth="2.5"
-          strokeLinecap="round" strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <polyline points="1 4 1 10 7 10" />
-          <path d="M3.51 15a9 9 0 1 0 .49-4.95" />
-        </svg>
-        Rivedi animazione
-      </button>
-
       <main className="login-main">
         {/* Heading accessibile */}
         <h1 className="sr-only">Welcome in Agenda</h1>
 
         {/* Animazione Welcome */}
         <div className="welcome-text-wrapper" aria-hidden="true">
-          <span key={`stroke-${animKey}`} className="welcome-stroke">Welcome</span>
-          <span key={`fill-${animKey}`}   className="welcome-fill">Welcome</span>
+          <span className="welcome-stroke">Welcome</span>
+          <span className="welcome-fill">Welcome</span>
         </div>
 
-        {/* Card Google — key forza rimount ad ogni replay */}
-        <div key={`card-${animKey}`} className="login-card">
+        {/* Card Google */}
+        <div className="login-card">
           <p className="login-card-title">
             Il tuo spazio per giorni, pensieri e idee.
           </p>
@@ -98,7 +56,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer privacy */}
-        <p key={`footer-${animKey}`} className="login-privacy">
+        <p className="login-privacy">
           Continuando accetti l&apos;
           <a href="#" className="login-privacy-link" onClick={e => e.preventDefault()}>
             informativa sulla privacy

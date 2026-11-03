@@ -203,37 +203,6 @@ body {
   pointer-events: none;
 }
 
-.login-replay-btn {
-  position:        absolute;
-  top:             1.25rem;
-  right:           1.25rem;
-  z-index:         10;
-  display:         flex;
-  align-items:     center;
-  gap:             0.4rem;
-  padding:         0.4rem 0.9rem;
-  border-radius:   2rem;
-  border:          1px solid rgba(255, 255, 255, 0.30);
-  background:      rgba(255, 255, 255, 0.12);
-  color:           rgba(255, 255, 255, 0.85);
-  font-size:       0.8rem;
-  font-weight:     600;
-  cursor:          pointer;
-  transition:      opacity 150ms ease;
-  backdrop-filter: blur(4px);
-}
-
-.login-replay-btn:disabled {
-  opacity: 0.4;
-  cursor:  default;
-}
-
-.login-replay-btn:focus-visible {
-  outline:        3px solid var(--focus-ring);
-  outline-offset: 4px;
-  box-shadow:     0 0 0 1px var(--focus-ring-bg);
-}
-
 .login-main {
   position:        relative;
   z-index:         1;
