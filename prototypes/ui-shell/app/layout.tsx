@@ -1,13 +1,13 @@
 // app/layout.tsx
 import type { Metadata } from 'next'
-import { Figtree, Sacramento } from 'next/font/google'
+import { Caveat, Sacramento, Kalam } from 'next/font/google'
 import { PaletteSwitcher } from '@/dev/PaletteSwitcher'
-import { DEFAULT_PALETTE_ID } from '@/lib/palettes'
-import './palettes.css'
+import { PALETTE_COUNT } from '@/lib/palettes'
+import { Providers } from './providers'
 import './globals.css'
 
-// Fonts loaded via next/font: self-hosted at build time, no runtime requests.
-// Build fails if a font cannot be downloaded.
+// Sacramento loaded via next/font: self-hosted at build time, no runtime requests.
+// Build fails if the font cannot be downloaded.
 const sacramento = Sacramento({
   subsets:  ['latin'],
   weight:   ['400'],
@@ -15,10 +15,18 @@ const sacramento = Sacramento({
   display:  'swap',
 })
 
-const figtree = Figtree({
+// Kalam: natural handwriting font for post-it content — readable but human.
+const kalam = Kalam({
   subsets:  ['latin'],
-  weight:   ['400', '500', '600', '700'],
-  variable: '--font-ui',
+  weight:   ['400', '700'],
+  variable: '--font-postit',
+  display:  'swap',
+})
+
+const caveat = Caveat({
+  subsets:  ['latin'],
+  weight:   ['400', '700'],
+  variable: '--font-caveat',
   display:  'swap',
 })
 
@@ -31,22 +39,16 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // Pick a random palette per request. Runs server-side so the value is
+  // embedded in the HTML before hydration - no client/server mismatch.
+  const paletteId = String(Math.floor(Math.random() * PALETTE_COUNT) + 1)
+
   return (
-    <html
-      lang="it"
-      data-palette={DEFAULT_PALETTE_ID}
-      suppressHydrationWarning
-      className={`${sacramento.variable} ${figtree.variable}`}
-    >
-      <head>
-        {/* Same-origin synchronous script: restores the stored palette before first paint. */}
-        <script src="/palette-init.js" />
-        {/* Same-origin synchronous script: enables the Welcome intro before first paint
-            (skipped under reduced motion or in a background tab). */}
-        <script src="/welcome-intro.js" />
-      </head>
+    <html lang="it" data-palette={paletteId} className={`${sacramento.variable} ${kalam.variable} ${caveat.variable}`}>
       <body>
-        {children}
+        <Providers>
+          {children}
+        </Providers>
         {process.env.NEXT_PUBLIC_SHOW_PALETTE_SWITCHER === 'true' && (
           <PaletteSwitcher />
         )}

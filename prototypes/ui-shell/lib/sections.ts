@@ -1,14 +1,14 @@
 // lib/sections.ts
 export const SECTIONS = [
-  { id: 'oggi',       label: 'Oggi',       title: 'Oggi'       },
-  { id: 'calendario', label: 'Calendario', title: 'Calendario' },
-  { id: 'lavagna',    label: 'Lavagna',    title: 'Lavagna'    },
-  { id: 'inbox',      label: 'Inbox',      title: 'Inbox'      },
-  { id: 'quaderno',   label: 'Quaderno',   title: 'Quaderno'   },
-  { id: 'esercizi',   label: 'Esercizi',   title: 'Esercizi'   },
+  { id: 'today',     label: 'Oggi',       title: 'Oggi'       },
+  { id: 'calendar',  label: 'Calendario', title: 'Calendario' },
+  { id: 'board',     label: 'Lavagna',    title: 'Lavagna'    },
+  { id: 'inbox',     label: 'Inbox',      title: 'Inbox'      },
+  { id: 'notebook',  label: 'Quaderno',   title: 'Quaderno'   },
+  { id: 'exercises', label: 'Esercizi',   title: 'Esercizi'   },
 ] as const
 
-// Derived literal union: 'oggi' | 'calendario' | 'lavagna' | 'inbox' | 'quaderno' | 'esercizi'
+// Derived literal union: 'today' | 'calendar' | 'board' | 'inbox' | 'notebook' | 'exercises'
 export type SectionId = (typeof SECTIONS)[number]['id']
 
 export interface SectionConfig {

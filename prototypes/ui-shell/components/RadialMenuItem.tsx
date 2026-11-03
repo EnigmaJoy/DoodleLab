@@ -42,7 +42,7 @@ export const RadialMenuItem = forwardRef<HTMLAnchorElement, RadialMenuItemProps>
 // Provisional icon shapes - to be replaced with final SVGs during visual review.
 function ItemIcon({ id }: { id: string }) {
   switch (id) {
-    case 'oggi':
+    case 'today':
       return (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"
              aria-hidden="true" focusable="false">
@@ -57,7 +57,7 @@ function ItemIcon({ id }: { id: string }) {
           <line x1="16.95" y1="7.05"  x2="19.07" y2="4.93"  stroke="currentColor" strokeWidth="2" />
         </svg>
       )
-    case 'calendario':
+    case 'calendar':
       return (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" strokeWidth="1.5" aria-hidden="true" focusable="false">
@@ -68,7 +68,7 @@ function ItemIcon({ id }: { id: string }) {
           <rect x="7" y="13" width="3" height="3" fill="currentColor" />
         </svg>
       )
-    case 'lavagna':
+    case 'board':
       return (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" strokeWidth="1.5" aria-hidden="true" focusable="false">
@@ -88,7 +88,7 @@ function ItemIcon({ id }: { id: string }) {
           <polyline points="9,6 12,9 15,6" />
         </svg>
       )
-    case 'quaderno':
+    case 'notebook':
       return (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" strokeWidth="1.5" aria-hidden="true" focusable="false">
@@ -97,7 +97,7 @@ function ItemIcon({ id }: { id: string }) {
           <line x1="12" y1="6" x2="12" y2="18" />
         </svg>
       )
-    case 'esercizi':
+    case 'exercises':
       return (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" strokeWidth="1.5" aria-hidden="true" focusable="false">

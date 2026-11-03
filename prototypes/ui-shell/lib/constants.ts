@@ -4,6 +4,9 @@ import type { SectionId } from './sections'
 
 export const APP_NAME = 'agenda'
 
+/** BCP-47 locale tag used for all date/time formatting in the app. */
+export const LOCALE = 'it-IT'
+
 /** Per-item stagger delay in ms. Applied as inline --stagger per RadialMenuItem. Provisional. */
 export const ITEM_STAGGER_MS = 55
 
@@ -20,12 +23,12 @@ interface MenuItem {
 }
 
 const MENU_ITEM_ANGLES: Array<{ id: SectionId; angle: number }> = [
-  { id: 'oggi',       angle:   0 },   // 12h
-  { id: 'calendario', angle:  60 },   // 2h
-  { id: 'lavagna',    angle: 120 },   // 4h
-  { id: 'inbox',      angle: 180 },   // 6h
-  { id: 'quaderno',   angle: 240 },   // 8h
-  { id: 'esercizi',   angle: 300 },   // 10h
+  { id: 'today',     angle:   0 },   // 12h
+  { id: 'calendar',  angle:  60 },   // 2h
+  { id: 'board',     angle: 120 },   // 4h
+  { id: 'inbox',     angle: 180 },   // 6h
+  { id: 'notebook',  angle: 240 },   // 8h
+  { id: 'exercises', angle: 300 },   // 10h
 ]
 
 // Unit-circle offsets (radius = 1.0). CSS --radial-radius multiplies these.

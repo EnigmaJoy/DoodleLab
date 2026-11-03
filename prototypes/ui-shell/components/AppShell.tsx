@@ -2,22 +2,21 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import type { AppView } from '@/lib/types'
+import { useRouter } from 'next/navigation'
+import { useVaultContext } from '@/lib/vault/vault-context'
 import { WelcomeScreen } from './WelcomeScreen'
 import { RadialMenu } from './RadialMenu'
-import { useCurrentUser } from '@/hooks/useCurrentUser'
-import type { AuthErrorCode } from '@/lib/welcome-state'
+
+export type AppView = 'WELCOME' | 'MENU_OPEN' | 'MENU_CLOSED'
 
 interface AppShellProps {
   initialView: AppView
-  authError:   AuthErrorCode | null
 }
 
-export function AppShell({ initialView, authError }: AppShellProps) {
+export function AppShell({ initialView }: AppShellProps) {
   const [view, setView] = useState<AppView>(initialView)
-
-  const currentUser = useCurrentUser()
-  void currentUser  // prevent unused-variable warning
+  const router          = useRouter()
+  const { logout }      = useVaultContext()
 
   // prevViewRef distinguishes mount from genuine in-app transitions.
   // - On initial mount: prevView is null -> skip focus assignment.
@@ -28,18 +27,16 @@ export function AppShell({ initialView, authError }: AppShellProps) {
   const firstFallbackItemRef = useRef<HTMLAnchorElement | null>(null)
   const centerButtonRef      = useRef<HTMLButtonElement | null>(null)
 
-  // Increment B: redirect to NestJS /api/auth/login which initiates the Keycloak OIDC flow.
-  // On successful authentication, Keycloak redirects back to /api/auth/callback, NestJS
-  // creates a session, and the browser is redirected to /?view=menu.
-  function handleLogin() {
-    const loginUrl = process.env['NEXT_PUBLIC_AUTH_LOGIN_URL']
-    if (loginUrl) {
-      window.location.href = loginUrl
-    }
-    // AUTH_CONFIGURED=false: WelcomeScreen shows the unavailable state before calling this.
-    // This handler is only reached when AUTH_CONFIGURED=true.
+  // handleStart: the only transition that writes to the URL.
+  // router.replace (not push) ensures Browser Back from a section lands at
+  // /?view=menu rather than replaying the Welcome screen.
+  function handleStart() {
+    setView('MENU_OPEN')
+    router.replace('/?view=menu')
   }
 
+  // Returns the ref for the first visible menu item based on the active layout.
+  // window.matchMedia detects the layout without duplicating React state.
   function getFirstMenuItemRef(): HTMLAnchorElement | null {
     if (typeof window === 'undefined') return firstItemRef.current
     const isFallback = window.matchMedia('(max-width: 500px)').matches
@@ -50,8 +47,8 @@ export function AppShell({ initialView, authError }: AppShellProps) {
     const prevView      = prevViewRef.current
     prevViewRef.current = view
 
-    if (prevView === null) return
-    if (prevView === view) return
+    if (prevView === null) return   // initial mount - no focus
+    if (prevView === view) return   // Strict Mode double-invoke - no focus
 
     if (view === 'MENU_OPEN') {
       getFirstMenuItemRef()?.focus()
@@ -64,8 +61,7 @@ export function AppShell({ initialView, authError }: AppShellProps) {
     <>
       <WelcomeScreen
         visible={view === 'WELCOME'}
-        authError={authError}
-        onLogin={handleLogin}
+        onStart={handleStart}
       />
       <RadialMenu
         visible={view !== 'WELCOME'}
@@ -76,6 +72,26 @@ export function AppShell({ initialView, authError }: AppShellProps) {
         firstFallbackItemRef={firstFallbackItemRef}
         centerButtonRef={centerButtonRef}
       />
+      {view !== 'WELCOME' && (
+        <button
+          onClick={logout}
+          style={{
+            position:     'fixed',
+            bottom:       '1.5rem',
+            right:        '1.5rem',
+            background:   'rgba(255,255,255,0.12)',
+            border:       '1px solid rgba(255,255,255,0.25)',
+            borderRadius: '0.5rem',
+            color:        'rgba(255,255,255,0.75)',
+            fontSize:     '0.8rem',
+            padding:      '0.4rem 0.75rem',
+            cursor:       'pointer',
+          }}
+          aria-label="Esci"
+        >
+          Esci
+        </button>
+      )}
     </>
   )
 }

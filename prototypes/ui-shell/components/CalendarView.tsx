@@ -3,12 +3,8 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import {
-  getItemsForDate,
-  getDatesWithItems,
-  getGroupsForDate,
-  type CalendarItem,
-} from '@/lib/calendar-mock'
+import { getCalendarRepository, type CalendarItem } from '@/lib/calendar-repository'
+import { ConfirmAction, useRepository } from '@/components/today/shared'
 import {
   getDaysInMonth,
   getFirstDayOffset,
@@ -19,9 +15,10 @@ import {
   getDayNameFull,
   formatDayShort,
 } from '@/lib/calendar-utils'
+import { useFocusReturn } from '@/lib/hooks/use-focus-return'
 
 const DAY_HEADERS = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
-const TIMELINE_HOURS = [8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+const TIMELINE_HOURS = [8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
 
 function todayString(): string {
   const t = new Date()
@@ -99,10 +96,11 @@ function GroupChip({ groupId, count, onClick, chipRef }: GroupChipProps) {
 // ─── GroupItemCard ──────────────────────────────────────────────────────────
 
 interface GroupItemCardProps {
-  item: CalendarItem
+  item:      CalendarItem
+  onDelete?: () => void
 }
-function GroupItemCard({ item }: GroupItemCardProps) {
-  const isPostit   = item.kind === 'postit'
+export function GroupItemCard({ item, onDelete }: GroupItemCardProps) {
+  const isPostit   = item.kind === 'note'
   const isEvent    = item.kind === 'event'
   const isReminder = item.kind === 'reminder'
 
@@ -110,13 +108,13 @@ function GroupItemCard({ item }: GroupItemCardProps) {
     ? 'cal-group-item-badge--event'
     : isReminder
     ? 'cal-group-item-badge--reminder'
-    : 'cal-group-item-badge--postit'
+    : 'cal-group-item-badge--note'
 
   const badgeLabel = isEvent ? 'EVENTO' : isReminder ? 'PROMEMORIA' : 'NOTA'
 
   const cardClass = [
     'cal-group-item-card',
-    isPostit ? 'cal-group-item-card--postit' : '',
+    isPostit ? 'cal-group-item-card--note' : '',
   ].filter(Boolean).join(' ')
 
   const timeDisplay = item.time
@@ -188,6 +186,23 @@ function GroupItemCard({ item }: GroupItemCardProps) {
           </div>
         )}
       </div>
+
+      {onDelete && (
+        <div className="cal-group-item-actions">
+          <ConfirmAction
+            label="Elimina"
+            question={
+              item.kind === 'reminder'
+                ? 'Eliminare questo promemoria?'
+                : item.kind === 'note'
+                ? 'Eliminare questa nota?'
+                : 'Eliminare questo evento?'
+            }
+            confirmLabel="Elimina"
+            onConfirm={onDelete}
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -195,14 +210,19 @@ function GroupItemCard({ item }: GroupItemCardProps) {
 // ─── GroupDetailPanel ───────────────────────────────────────────────────────
 
 interface GroupDetailPanelProps {
-  date:         string
-  groupId:      string
-  items:        CalendarItem[]
-  onClose:      () => void
-  panelRef?:    React.RefObject<HTMLDivElement | null>
-  closeRef?:    React.RefObject<HTMLButtonElement | null>
+  date:          string
+  groupId:       string
+  items:         CalendarItem[]
+  onClose:       () => void
+  onDeleteItem:  (id: string) => void
+  panelRef?:     React.RefObject<HTMLDivElement | null>
+  closeRef?:     React.RefObject<HTMLButtonElement | null>
 }
-function GroupDetailPanel({ date, items, onClose, panelRef, closeRef }: GroupDetailPanelProps) {
+function GroupDetailPanel({ date, items, onClose, onDeleteItem, panelRef, closeRef }: GroupDetailPanelProps) {
+  useEffect(() => {
+    if (items.length === 0) onClose()
+  }, [items.length, onClose])
+
   const times  = items.map(i => i.time).filter(Boolean) as string[]
   const minT   = times.length ? times.reduce((a, b) => a < b ? a : b) : ''
   const maxT   = times.length ? times.reduce((a, b) => a > b ? a : b) : ''
@@ -230,7 +250,7 @@ function GroupDetailPanel({ date, items, onClose, panelRef, closeRef }: GroupDet
       </div>
       <div className="cal-group-detail-list">
         {items.map(item => (
-          <GroupItemCard key={item.id} item={item} />
+          <GroupItemCard key={item.id} item={item} onDelete={() => onDeleteItem(item.id)} />
         ))}
       </div>
     </div>
@@ -243,7 +263,6 @@ interface TimelinePanelProps {
   date:         string
   items:        CalendarItem[]
   groups:       Map<string, CalendarItem[]>
-  openGroupId:  string | null
   onGroupOpen:  (gid: string) => void
   onClose:      () => void
   panelRef?:    React.RefObject<HTMLDivElement | null>
@@ -251,7 +270,7 @@ interface TimelinePanelProps {
   chipRefs:     React.MutableRefObject<Map<string, HTMLButtonElement>>
 }
 function TimelinePanel({
-  date, items, groups, openGroupId, onGroupOpen, onClose,
+  date, items, groups, onGroupOpen, onClose,
   panelRef, closeRef, chipRefs,
 }: TimelinePanelProps) {
   const dayName = getDayNameFull(date)
@@ -349,8 +368,6 @@ function TimelinePanel({
         })}
       </div>
 
-      {/* Suppress unused variable warning */}
-      {openGroupId === '__never__' && null}
     </div>
   )
 }
@@ -358,7 +375,8 @@ function TimelinePanel({
 // ─── CalendarView ───────────────────────────────────────────────────────────
 
 export function CalendarView() {
-  const today = todayString()
+  const today   = todayString()
+  const calRepo = useRepository(getCalendarRepository())
 
   const [year,         setYear]         = useState(() => new Date().getFullYear())
   const [month,        setMonth]        = useState(() => new Date().getMonth())
@@ -373,7 +391,9 @@ export function CalendarView() {
   const timelinePanelRef = useRef<HTMLDivElement | null>(null)
   const groupPanelRef    = useRef<HTMLDivElement | null>(null)
 
-  const datesWithItems = getDatesWithItems()
+  const returnFocus = useFocusReturn()
+
+  const datesWithItems = calRepo.getDatesWithItems()
 
   // Focus the grid cell when focusedDate changes (only when overlay is closed)
   useEffect(() => {
@@ -404,7 +424,7 @@ export function CalendarView() {
       const chip = chipRefs.current.get(openGroupId)
       setOpenGroupId(null)
       // chip focus happens after re-render; we need a tiny defer
-      setTimeout(() => chip?.focus(), 0)
+      returnFocus(chip)
     } else {
       setSelectedDate(null)
       setOpenGroupId(null)
@@ -456,7 +476,7 @@ export function CalendarView() {
     setSelectedDate(null)
     setOpenGroupId(null)
     if (last) {
-      setTimeout(() => dayRefs.current.get(last)?.focus(), 0)
+      returnFocus(dayRefs.current.get(last))
     }
   }
 
@@ -474,7 +494,7 @@ export function CalendarView() {
   function handleGroupClose() {
     const chip = chipRefs.current.get(openGroupId ?? '')
     setOpenGroupId(null)
-    setTimeout(() => chip?.focus(), 0)
+    returnFocus(chip)
   }
 
   function handleGridKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
@@ -552,8 +572,8 @@ export function CalendarView() {
   }
 
   // Items for the selected day (used by overlay)
-  const overlayItems  = selectedDate ? getItemsForDate(selectedDate) : []
-  const overlayGroups = selectedDate ? getGroupsForDate(selectedDate) : new Map<string, CalendarItem[]>()
+  const overlayItems  = selectedDate ? calRepo.getItemsForDate(selectedDate) : []
+  const overlayGroups = selectedDate ? calRepo.getGroupsForDate(selectedDate) : new Map<string, CalendarItem[]>()
   const openGroupItems = openGroupId ? (overlayGroups.get(openGroupId) ?? []) : []
 
   return (
@@ -624,7 +644,7 @@ export function CalendarView() {
               const isSelected = ds === selectedDate
               const isFocusTab = focusedDate ? ds === focusedDate : isToday
 
-              const dayItems = getItemsForDate(ds)
+              const dayItems = calRepo.getItemsForDate(ds)
               const visibleItems = dayItems.slice(0, 2)
               const moreCount    = dayItems.length - visibleItems.length
 
@@ -685,7 +705,6 @@ export function CalendarView() {
               date={selectedDate}
               items={overlayItems}
               groups={overlayGroups}
-              openGroupId={openGroupId}
               onGroupOpen={handleGroupOpen}
               onClose={handleCloseOverlay}
               panelRef={timelinePanelRef}
@@ -698,6 +717,7 @@ export function CalendarView() {
                 groupId={openGroupId}
                 items={openGroupItems}
                 onClose={handleGroupClose}
+                onDeleteItem={(id) => calRepo.deleteItem(id)}
                 panelRef={groupPanelRef}
                 closeRef={groupCloseRef}
               />
