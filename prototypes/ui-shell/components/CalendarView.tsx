@@ -191,7 +191,13 @@ export function GroupItemCard({ item, onDelete }: GroupItemCardProps) {
         <div className="cal-group-item-actions">
           <ConfirmAction
             label="Elimina"
-            question="Eliminare questo evento?"
+            question={
+              item.kind === 'reminder'
+                ? 'Eliminare questo promemoria?'
+                : item.kind === 'note'
+                ? 'Eliminare questa nota?'
+                : 'Eliminare questo evento?'
+            }
             confirmLabel="Elimina"
             onConfirm={onDelete}
           />

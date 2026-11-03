@@ -553,7 +553,13 @@ function EntryDialog({ entry, onClose }: { entry: TimelineEntry; onClose: () => 
         <GroupItemCard item={entry.source} />
         <ConfirmAction
           label="Elimina"
-          question="Eliminare questo evento?"
+          question={
+            entry.kind === 'reminder'
+              ? 'Eliminare questo promemoria?'
+              : entry.kind === 'note'
+              ? 'Eliminare questa nota?'
+              : 'Eliminare questo evento?'
+          }
           confirmLabel="Elimina"
           onConfirm={() => {
             getCalendarRepository().deleteItem(entry.source.id)
