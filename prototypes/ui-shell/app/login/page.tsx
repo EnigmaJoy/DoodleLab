@@ -100,7 +100,7 @@ export default function LoginPage() {
         {/* Footer privacy */}
         <p key={`footer-${animKey}`} className="login-privacy">
           Continuando accetti l&apos;
-          <a href="#" className="login-privacy-link">
+          <a href="#" className="login-privacy-link" onClick={e => e.preventDefault()}>
             informativa sulla privacy
           </a>
           {' '}di Agenda.
