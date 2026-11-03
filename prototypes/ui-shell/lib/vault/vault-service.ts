@@ -29,10 +29,11 @@ const PHASE1_MIGRATION_MAP: Record<string, string> = {
 // ── Types ────────────────────────────────────────────────────────────────────
 
 interface VaultMeta {
-  encryptedMasterKey: { iv: string; ciphertext: string }
-  salt:               string   // base64, 16 bytes
-  recoveryHint?:      string
-  createdAt:          string
+  encryptedMasterKey:  { iv: string; ciphertext: string }
+  salt:                string   // base64, 16 bytes
+  recoveryHint?:       string
+  createdAt:           string
+  verifierCiphertext?: { iv: string; ciphertext: string }
 }
 
 export type VaultState =
@@ -114,7 +115,8 @@ export class VaultService extends ChangeNotifier {
     const pinKey    = await deriveKey(pin, salt)
     const masterKey = await importMasterKey(masterKeyHex)
 
-    const encryptedMasterKey = await encrypt(pinKey, masterKeyHex)
+    const encryptedMasterKey  = await encrypt(pinKey, masterKeyHex)
+    const verifierCiphertext  = await encrypt(masterKey, 'vault-ok')
 
     // One-time migration: Phase 1 plaintext → encrypted vault keys
     for (const [phase1Key, vaultKey] of Object.entries(PHASE1_MIGRATION_MAP)) {
@@ -128,9 +130,10 @@ export class VaultService extends ChangeNotifier {
 
     const meta: VaultMeta = {
       encryptedMasterKey,
-      salt:          toBase64(salt),
+      salt:               toBase64(salt),
       recoveryHint,
-      createdAt:     new Date().toISOString(),
+      createdAt:          new Date().toISOString(),
+      verifierCiphertext,
     }
     this.inner.write(META_KEY, JSON.stringify(meta))
 
@@ -164,9 +167,20 @@ export class VaultService extends ChangeNotifier {
    */
   async recover(recoveryCode: string): Promise<boolean> {
     try {
-      if (this.inner.read(META_KEY) === null) return false
+      const metaRaw = this.inner.read(META_KEY)
+      if (metaRaw === null) return false
       if (!/^[0-9a-fA-F]{48}$/.test(recoveryCode)) return false
-      const masterKey = await importMasterKey(recoveryCode)
+      const meta       = JSON.parse(metaRaw) as VaultMeta
+      const masterKey  = await importMasterKey(recoveryCode)
+      if (meta.verifierCiphertext) {
+        let plaintext: string
+        try {
+          plaintext = await decrypt(masterKey, meta.verifierCiphertext)
+        } catch {
+          return false
+        }
+        if (plaintext !== 'vault-ok') return false
+      }
       await this.activateWithMasterKey(masterKey)
       return true
     } catch {

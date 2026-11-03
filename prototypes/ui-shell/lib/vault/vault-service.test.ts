@@ -102,6 +102,17 @@ describe('VaultService', () => {
     expect(svc.getState().status).toBe('locked')
   })
 
+  it('recover() with wrong-but-valid 48-hex code returns false', async () => {
+    const svc = new VaultService()
+    await svc.setup('my-pin-123', makeMasterKeyHex())
+    svc.lock()
+    // A different, syntactically valid 48-hex key — never used to encrypt this vault
+    const wrongKey = makeMasterKeyHex()
+    const ok = await svc.recover(wrongKey)
+    expect(ok).toBe(false)
+    expect(svc.getState().status).toBe('locked')
+  })
+
   it('recover() returns false when vault is uninitialized (no meta)', async () => {
     const svc = new VaultService()
     expect(svc.getState().status).toBe('uninitialized')

@@ -27,7 +27,7 @@ class AsyncQueue {
     this.running = true
     while (this.queue.length > 0) {
       const task = this.queue.shift()!
-      try { await task() } catch { /* swallow individual write errors */ }
+      try { await task() } catch (err) { console.error('[VaultStorageAdapter] async write failed:', err) }
     }
     this.running = false
   }
