@@ -41,10 +41,11 @@ describe('vault-crypto', () => {
   it('decrypt with tampered ciphertext throws', async () => {
     const key = await makeKey()
     const ct = await encrypt(key, 'data')
-    // Flip the last character
-    const last = ct.ciphertext.charCodeAt(ct.ciphertext.length - 1)
-    const flipped = String.fromCharCode(last === 65 ? 66 : 65)  // A↔B
-    const badCt = ct.ciphertext.slice(0, -1) + flipped
+    // Flip a character in the middle (avoids base64url padding bits at the end)
+    const mid = Math.floor(ct.ciphertext.length / 2)
+    const ch = ct.ciphertext.charCodeAt(mid)
+    const flipped = String.fromCharCode(ch === 65 ? 66 : 65)  // A↔B
+    const badCt = ct.ciphertext.slice(0, mid) + flipped + ct.ciphertext.slice(mid + 1)
     await expect(decrypt(key, { ...ct, ciphertext: badCt })).rejects.toThrow()
   })
 })
