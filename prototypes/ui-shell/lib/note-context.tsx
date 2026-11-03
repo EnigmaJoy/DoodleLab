@@ -146,7 +146,7 @@ export function useNoteContext(): NoteContextValue {
 }
 
 /** Returns a single note by id, or undefined (e.g. after refresh). */
-export function useNoteBoard(id: string): Note | undefined {
+export function useNote(id: string): Note | undefined {
   const { state } = useNoteContext()
   return state.notes.find(n => n.id === id)
 }

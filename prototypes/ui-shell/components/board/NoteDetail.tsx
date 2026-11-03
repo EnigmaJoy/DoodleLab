@@ -5,7 +5,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { LOCALE } from '@/lib/constants'
-import { useNoteBoard, useNoteContext } from '@/lib/note-context'
+import { useNote, useNoteContext } from '@/lib/note-context'
 import { NoteHeader } from './NoteHeader'
 import { POST_IT_COLORS, STICKER_CONFIG, formatNoteDate } from '@/lib/note-utils'
 import type { NoteColor, StickerKey } from '@/lib/note-types'
@@ -22,7 +22,7 @@ interface NoteDetailProps {
 
 export function NoteDetail({ id }: NoteDetailProps) {
   const router         = useRouter()
-  const note           = useNoteBoard(id)
+  const note           = useNote(id)
   const { dispatch }   = useNoteContext()
   const [confirmDelete, setConfirmDelete] = useState(false)
 
