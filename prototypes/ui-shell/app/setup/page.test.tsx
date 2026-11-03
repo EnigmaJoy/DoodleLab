@@ -16,7 +16,7 @@ vi.mock('@/lib/vault/vault-context', () => ({
   useVaultContext: () => ({ setup: mockSetup }),
 }))
 
-// Predictable bytes: 24 bytes all 0xab → hex "abababababababababababababababababababababababababab" (48 chars)
+// Predictable bytes: 32 bytes all 0xab → hex "abab...ab" (64 chars)
 vi.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation((arr: ArrayBufferView) => {
   const u8 = arr as Uint8Array
   u8.fill(0xab)
@@ -28,7 +28,7 @@ import VaultSetupPage from './page'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const EXPECTED_RECOVERY_CODE = 'ab'.repeat(24) // 48 chars
+const EXPECTED_RECOVERY_CODE = 'ab'.repeat(32) // 64 chars
 
 function setup() {
   render(<VaultSetupPage />)
@@ -92,11 +92,11 @@ describe('VaultSetupPage — Step 2', () => {
     expect(screen.getByTestId('recovery-code').textContent).toBe(EXPECTED_RECOVERY_CODE)
   })
 
-  it('c. Recovery code is exactly 48 hex characters', async () => {
+  it('c. Recovery code is exactly 64 hex characters', async () => {
     setup()
     await advanceToStep2()
     const code = screen.getByTestId('recovery-code').textContent ?? ''
-    expect(code).toHaveLength(48)
+    expect(code).toHaveLength(64)
     expect(/^[0-9a-f]+$/.test(code)).toBe(true)
   })
 

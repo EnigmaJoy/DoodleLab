@@ -21,7 +21,7 @@ vi.mock('@/lib/vault/argon2-adapter', () => ({
 import { VaultService } from './vault-service'
 
 function makeMasterKeyHex(): string {
-  return Array.from(crypto.getRandomValues(new Uint8Array(24)))
+  return Array.from(crypto.getRandomValues(new Uint8Array(32)))
     .map(b => b.toString(16).padStart(2, '0'))
     .join('')
 }
@@ -83,7 +83,7 @@ describe('VaultService', () => {
     expect(svc.getState().status).toBe('locked')
   })
 
-  it('recover() with valid 48-hex recovery code → "unlocked"', async () => {
+  it('recover() with valid 64-hex recovery code → "unlocked"', async () => {
     const masterKeyHex = makeMasterKeyHex()
     const svc = new VaultService()
     await svc.setup('my-pin-123', masterKeyHex)
@@ -102,11 +102,11 @@ describe('VaultService', () => {
     expect(svc.getState().status).toBe('locked')
   })
 
-  it('recover() with wrong-but-valid 48-hex code returns false', async () => {
+  it('recover() with wrong-but-valid 64-hex code returns false', async () => {
     const svc = new VaultService()
     await svc.setup('my-pin-123', makeMasterKeyHex())
     svc.lock()
-    // A different, syntactically valid 48-hex key — never used to encrypt this vault
+    // A different, syntactically valid 64-hex key — never used to encrypt this vault
     const wrongKey = makeMasterKeyHex()
     const ok = await svc.recover(wrongKey)
     expect(ok).toBe(false)

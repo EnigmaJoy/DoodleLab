@@ -163,13 +163,13 @@ export class VaultService extends ChangeNotifier {
 
   /**
    * Uses the recovery code (= master key hex) directly to unlock.
-   * Returns false if the code is not a valid 48-char hex string.
+   * Returns false if the code is not a valid 64-char hex string.
    */
   async recover(recoveryCode: string): Promise<boolean> {
     try {
       const metaRaw = this.inner.read(META_KEY)
       if (metaRaw === null) return false
-      if (!/^[0-9a-fA-F]{48}$/.test(recoveryCode)) return false
+      if (!/^[0-9a-fA-F]{64}$/.test(recoveryCode)) return false
       const meta       = JSON.parse(metaRaw) as VaultMeta
       const masterKey  = await importMasterKey(recoveryCode)
       if (meta.verifierCiphertext) {
