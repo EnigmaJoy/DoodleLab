@@ -1,6 +1,6 @@
 // app/layout.tsx
 import type { Metadata } from 'next'
-import { Caveat, Sacramento, Kalam } from 'next/font/google'
+import { Caveat, Sacramento, Kalam, Figtree } from 'next/font/google'
 import { PaletteSwitcher } from '@/dev/PaletteSwitcher'
 import { PALETTE_COUNT } from '@/lib/palettes'
 import { Providers } from './providers'
@@ -30,6 +30,13 @@ const caveat = Caveat({
   display:  'swap',
 })
 
+const figtree = Figtree({
+  subsets:  ['latin'],
+  weight:   ['400', '500', '600', '700'],
+  variable: '--font-figtree',
+  display:  'swap',
+})
+
 export const metadata: Metadata = {
   title: 'agenda',
 }
@@ -44,7 +51,7 @@ export default function RootLayout({
   const paletteId = String(Math.floor(Math.random() * PALETTE_COUNT) + 1)
 
   return (
-    <html lang="it" data-palette={paletteId} className={`${sacramento.variable} ${kalam.variable} ${caveat.variable}`}>
+    <html lang="it" data-palette={paletteId} className={`${sacramento.variable} ${kalam.variable} ${caveat.variable} ${figtree.variable}`}>
       <body>
         <Providers>
           {children}
