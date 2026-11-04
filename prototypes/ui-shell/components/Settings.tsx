@@ -123,7 +123,7 @@ export function Settings() {
 
           {/* Account row */}
           <hr className={styles.accountDivider} />
-          <div className={styles.accountRow} aria-disabled="true">
+          <div className={styles.accountRow}>
             <div className={styles.avatar} aria-hidden="true">{initials}</div>
             <span className={styles.accountEmail}>{email}</span>
             <span className={styles.accountChevron} aria-hidden="true">›</span>

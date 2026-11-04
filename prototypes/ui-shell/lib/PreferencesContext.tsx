@@ -2,7 +2,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { PALETTES } from './palettes'
+import { PALETTES, DEFAULT_PALETTE_ID } from './palettes'
 
 export interface Preferences {
   paletteId:       number
@@ -11,7 +11,7 @@ export interface Preferences {
 }
 
 const DEFAULT_PREFERENCES: Preferences = {
-  paletteId:       1,
+  paletteId:       DEFAULT_PALETTE_ID,
   visualEffects:   true,
   autoLockMinutes: 5,
 }
