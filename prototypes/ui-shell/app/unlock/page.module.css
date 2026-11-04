@@ -239,6 +239,12 @@
   outline-offset: 2px;
 }
 
+@supports not (backdrop-filter: blur(1px)) {
+  .keyDigit {
+    background: rgba(255,255,255,0.18);
+  }
+}
+
 .keyDel {
   width: 72px;
   height: 72px;
@@ -251,7 +257,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
   transition: opacity 150ms ease;
 }
 
