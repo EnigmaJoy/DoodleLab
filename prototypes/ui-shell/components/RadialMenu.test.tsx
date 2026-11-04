@@ -106,13 +106,13 @@ describe('RadialMenu', () => {
 
   it('10. satellite row is not present when menu is closed', () => {
     setup(false)
-    expect(screen.queryByText('Impostazioni')).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Impostazioni' })).toBeNull()
   })
 
   it('11. satellite row renders when menu is open', () => {
     setup(true)
-    expect(screen.getByText('Impostazioni')).toBeTruthy()
-    expect(screen.getByText('Esci')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Impostazioni' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Esci' })).toBeTruthy()
   })
 
   it('12. Impostazioni satellite links to /settings', () => {
