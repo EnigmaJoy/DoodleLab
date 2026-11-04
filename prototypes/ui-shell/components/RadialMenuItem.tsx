@@ -47,7 +47,6 @@ export function ItemIcon({ id }: { id: string }) {
     strokeLinecap: 'round' as const,
     strokeLinejoin: 'round' as const,
     'aria-hidden': true,
-    focusable: false,
   }
   switch (id) {
     case 'today':

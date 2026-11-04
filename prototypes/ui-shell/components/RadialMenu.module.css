@@ -184,6 +184,9 @@
   list-style:            none;
 }
 
+/* list item wrapper for fallback pill */
+.fallbackItem {}
+
 /* Each pill: icon (20 px) + label */
 .fallbackItem a {
   display:         flex;
