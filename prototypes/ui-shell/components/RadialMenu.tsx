@@ -86,7 +86,6 @@ export function RadialMenu({
             <li key={item.id} className={styles.fallbackItem}>
               <Link
                 href={`/${item.id}`}
-                aria-label={item.label}
                 ref={index === 0 ? firstFallbackItemRef : undefined}
               >
                 <span aria-hidden="true"><ItemIcon id={item.id} /></span>
