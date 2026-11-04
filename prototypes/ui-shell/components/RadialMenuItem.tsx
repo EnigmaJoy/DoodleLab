@@ -71,7 +71,7 @@ export function ItemIcon({ id }: { id: string }) {
           <line x1="3"  y1="9"  x2="21" y2="9" />
           <line x1="8"  y1="2"  x2="8"  y2="6" />
           <line x1="16" y1="2"  x2="16" y2="6" />
-          <line x1="8.5" y1="13.5" x2="8.5" y2="13.5" strokeWidth={2} />
+          <circle cx="8.5" cy="13.5" r="1" strokeWidth={2} />
         </svg>
       )
     case 'board':
