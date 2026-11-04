@@ -3007,3 +3007,16 @@ body {
   .board-count       { display: none; }
   .note-postit-preview { width: 240px; height: 240px; }
 }
+
+/* ============================================================
+   VISUAL EFFECTS — applied by PreferencesContext
+   ============================================================ */
+
+[data-no-effects] [data-glow] {
+  display: none;
+}
+
+[data-no-effects] * {
+  backdrop-filter:          none !important;
+  -webkit-backdrop-filter:  none !important;
+}

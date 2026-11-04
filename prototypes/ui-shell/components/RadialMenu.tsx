@@ -57,9 +57,9 @@ export function RadialMenu({
       } as CSSProperties}
     >
       {/* Decorative glows */}
-      <div className={`${styles.glow} ${styles.glow1}`} aria-hidden="true" />
-      <div className={`${styles.glow} ${styles.glow2}`} aria-hidden="true" />
-      <div className={`${styles.glow} ${styles.glow3}`} aria-hidden="true" />
+      <div className={`${styles.glow} ${styles.glow1}`} data-glow aria-hidden="true" />
+      <div className={`${styles.glow} ${styles.glow2}`} data-glow aria-hidden="true" />
+      <div className={`${styles.glow} ${styles.glow3}`} data-glow aria-hidden="true" />
 
       {/* Items — inert when closed so Tab only reaches the center button */}
       <div

@@ -96,4 +96,10 @@ describe('RadialMenu', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 
+  it('9. glow divs have data-glow attribute', () => {
+    setup()
+    const glows = document.querySelectorAll('[data-glow]')
+    expect(glows.length).toBe(3)
+  })
+
 })
