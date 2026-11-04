@@ -62,7 +62,7 @@ function Keypad({ onDigit, onDelete, disabled }: KeypadProps) {
     <div className={styles.keypad}>
       {KEYPAD_ROWS.flat().map((key, idx) => {
         if (key === null) {
-          return <div key={idx} aria-hidden="true" />
+          return <div key="spacer" aria-hidden="true" />
         }
         if (key === 'del') {
           return (
