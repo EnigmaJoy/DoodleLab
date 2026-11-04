@@ -29,12 +29,10 @@ interface PeriodStepperConfig {
 
 type ViewControl = SegmentedControlConfig | PeriodStepperConfig
 
-interface ActionItem {
-  kind:    'icon' | 'secondary' | 'primary'
-  label:   string
-  icon?:   React.ReactNode
-  onClick: () => void
-}
+type ActionItem =
+  | { kind: 'icon';      label: string; icon: React.ReactNode; onClick: () => void }
+  | { kind: 'secondary'; label: string; onClick: () => void }
+  | { kind: 'primary';   label: string; onClick: () => void }
 
 export interface AppHeaderProps {
   returnVariant:  ReturnVariant
@@ -162,7 +160,7 @@ export function AppHeader({
                   <IconButton
                     key={action.label}
                     label={action.label}
-                    icon={action.icon!}
+                    icon={action.icon}
                     onClick={action.onClick}
                   />
                 )
