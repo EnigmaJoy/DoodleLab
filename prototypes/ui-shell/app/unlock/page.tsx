@@ -1,280 +1,408 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useVaultContext } from '@/lib/vault/vault-context'
+import styles from './page.module.css'
 
-// ── Eye icon ──────────────────────────────────────────────────────────────────
+// ── PinCells ──────────────────────────────────────────────────────────────
+// Rendered with key={shakeKey} so incrementing shakeKey re-mounts this
+// component and restarts the CSS shake animation on every failed attempt.
 
-function EyeIcon({ visible }: { visible: boolean }) {
-  return visible ? (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-      <circle cx="12" cy="12" r="3"/>
-    </svg>
-  ) : (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
-      <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
-      <line x1="1" y1="1" x2="23" y2="23"/>
-    </svg>
+interface PinCellsProps {
+  digits: string[]
+}
+
+function PinCells({ digits }: PinCellsProps) {
+  return (
+    <div
+      role="img"
+      aria-label={`PIN, ${digits.length} cifre su 6 inserite`}
+      className={styles.pinRow}
+    >
+      {Array.from({ length: 6 }, (_, i) => {
+        const filled = i < digits.length
+        const active = !filled && i === digits.length
+        return (
+          <div
+            key={i}
+            className={[
+              styles.pinCell,
+              filled ? styles.pinCellFilled : '',
+              active ? styles.pinCellActive : '',
+            ].filter(Boolean).join(' ')}
+          >
+            {filled && <div className={styles.pinDot} />}
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
-// ── VaultUnlockScreen ─────────────────────────────────────────────────────────
+// ── Keypad ────────────────────────────────────────────────────────────────
 
-export default function VaultUnlockPage() {
-  const { unlock, recover } = useVaultContext()
-  const router              = useRouter()
+type KeypadKey = string | null
 
-  const [pin,          setPin]          = useState('')
-  const [error,        setError]        = useState<string | null>(null)
-  const [loading,      setLoading]      = useState(false)
-  const [showRecovery, setShowRecovery] = useState(false)
-  const [recoveryCode, setRecoveryCode] = useState('')
-  const [showPin,      setShowPin]      = useState(false)
+const KEYPAD_ROWS: KeypadKey[][] = [
+  ['1', '2', '3'],
+  ['4', '5', '6'],
+  ['7', '8', '9'],
+  [null, '0', 'del'],
+]
 
-  // ── Unlock handler ────────────────────────────────────────────────────────────
+interface KeypadProps {
+  onDigit: (d: string) => void
+  onDelete: () => void
+  disabled: boolean
+}
 
-  async function handleSblocca() {
-    if (loading) return
-    setLoading(true)
-    setError(null)
-    const ok = await unlock(pin)
-    if (ok) {
-      router.replace('/?view=menu')
+function Keypad({ onDigit, onDelete, disabled }: KeypadProps) {
+  return (
+    <div className={styles.keypad}>
+      {KEYPAD_ROWS.flat().map((key, idx) => {
+        if (key === null) {
+          return <div key={idx} aria-hidden="true" />
+        }
+        if (key === 'del') {
+          return (
+            <button
+              key="del"
+              type="button"
+              className={styles.keyDel}
+              onClick={onDelete}
+              disabled={disabled}
+              aria-label="Cancella una cifra"
+            >
+              Cancella
+            </button>
+          )
+        }
+        return (
+          <button
+            key={key}
+            type="button"
+            className={styles.keyDigit}
+            onClick={() => onDigit(key)}
+            disabled={disabled}
+            aria-label={`Cifra ${key}`}
+          >
+            {key}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── RecoveryModal ─────────────────────────────────────────────────────────
+
+type RecoveryStep = 'explain' | 'input'
+
+interface RecoveryModalProps {
+  onClose: () => void
+  recover: (code: string) => Promise<boolean>
+  onSuccess: () => void
+}
+
+function RecoveryModal({ onClose, recover, onSuccess }: RecoveryModalProps) {
+  const [step,        setStep]        = useState<RecoveryStep>('explain')
+  const [code,        setCode]        = useState('')
+  const [formatError, setFormatError] = useState<string | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [recovering,  setRecovering]  = useState(false)
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const closeBtnRef = useRef<HTMLButtonElement>(null)
+
+  const isValidHex = /^[0-9a-f]{64}$/.test(code)
+
+  // Focus the close button on open
+  useEffect(() => {
+    closeBtnRef.current?.focus()
+  }, [])
+
+  // Focus textarea when entering step 2
+  useEffect(() => {
+    if (step === 'input') {
+      textareaRef.current?.focus()
+    }
+  }, [step])
+
+  // Escape closes the modal
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [onClose])
+
+  function handleCodeInput(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const raw = e.target.value.replace(/[\s\n]/g, '').toLowerCase()
+    setCode(raw)
+    setSubmitError(null)
+    if (raw.length > 0 && /[^0-9a-f]/.test(raw)) {
+      setFormatError(
+        'La chiave contiene caratteri non validi: usa solo cifre e lettere da a a f.'
+      )
     } else {
-      setError('PIN non corretto')
-      setLoading(false)
+      setFormatError(null)
     }
   }
 
-  // ── Recovery handler ──────────────────────────────────────────────────────────
-
-  async function handleRecupera() {
-    if (loading) return
-    setLoading(true)
-    setError(null)
-    const ok = await recover(recoveryCode)
+  async function handleRecover() {
+    if (!isValidHex || recovering) return
+    setRecovering(true)
+    setSubmitError(null)
+    const snapshot = code
+    const ok = await recover(snapshot)
     if (ok) {
-      router.replace('/?view=menu')
+      onSuccess()
     } else {
-      setError('Codice non valido')
-      setLoading(false)
+      setRecovering(false)
+      setSubmitError(
+        'Questa chiave non corrisponde. Controlla di aver copiato tutto il codice.'
+      )
+      textareaRef.current?.focus()
     }
   }
-
-  // ── Shared styles ─────────────────────────────────────────────────────────────
-
-  const containerStyle: React.CSSProperties = {
-    minHeight:      '100vh',
-    display:        'flex',
-    flexDirection:  'column',
-    alignItems:     'center',
-    justifyContent: 'center',
-    padding:        '2rem',
-    background:     'linear-gradient(135deg, var(--gradient-start, #581c87), var(--gradient-end, #be123c))',
-    color:          'var(--text-primary, #ffffff)',
-    fontFamily:     'system-ui, sans-serif',
-  }
-
-  const cardStyle: React.CSSProperties = {
-    background:     'rgba(255,255,255,0.10)',
-    backdropFilter: 'blur(8px)',
-    borderRadius:   '1rem',
-    border:         '1px solid rgba(255,255,255,0.20)',
-    padding:        '2rem',
-    width:          '100%',
-    maxWidth:       '420px',
-    display:        'flex',
-    flexDirection:  'column',
-    gap:            '1.25rem',
-  }
-
-  const labelStyle: React.CSSProperties = {
-    display:       'flex',
-    flexDirection: 'column',
-    gap:           '0.375rem',
-    fontSize:      '0.875rem',
-    fontWeight:    600,
-    color:         'rgba(255,255,255,0.85)',
-  }
-
-  const inputStyle: React.CSSProperties = {
-    flex:         1,
-    padding:      '0.625rem 2.75rem 0.625rem 0.75rem',
-    borderRadius: '0.5rem',
-    border:       '1px solid rgba(255,255,255,0.30)',
-    background:   'rgba(255,255,255,0.12)',
-    color:        '#ffffff',
-    fontSize:     '1rem',
-    outline:      'none',
-    width:        '100%',
-    boxSizing:    'border-box',
-  }
-
-  const inputWrapStyle: React.CSSProperties = {
-    position: 'relative',
-    display:  'flex',
-  }
-
-  const eyeBtnStyle: React.CSSProperties = {
-    position:   'absolute',
-    right:      '0.625rem',
-    top:        '50%',
-    transform:  'translateY(-50%)',
-    background: 'none',
-    border:     'none',
-    color:      'rgba(255,255,255,0.60)',
-    cursor:     'pointer',
-    padding:    '0.25rem',
-    display:    'flex',
-    alignItems: 'center',
-    lineHeight: 1,
-  }
-
-  const hintStyle: React.CSSProperties = {
-    fontSize:   '0.75rem',
-    color:      'rgba(255,255,255,0.55)',
-    lineHeight: 1.4,
-  }
-
-  const btnPrimaryStyle: React.CSSProperties = {
-    padding:      '0.75rem 1.5rem',
-    borderRadius: '0.5rem',
-    border:       'none',
-    background:   'var(--btn-surface, rgba(255,255,255,0.90))',
-    color:        'var(--btn-label, #1a1a1a)',
-    fontWeight:   700,
-    fontSize:     '1rem',
-    cursor:       'pointer',
-    transition:   'opacity 150ms ease',
-  }
-
-  const btnDisabledStyle: React.CSSProperties = {
-    ...btnPrimaryStyle,
-    opacity: 0.45,
-    cursor:  'not-allowed',
-  }
-
-  const btnSecondaryStyle: React.CSSProperties = {
-    ...btnPrimaryStyle,
-    background: 'rgba(255,255,255,0.18)',
-    color:      '#ffffff',
-    border:     '1px solid rgba(255,255,255,0.35)',
-    fontWeight: 600,
-    fontSize:   '0.875rem',
-    padding:    '0.5rem 1rem',
-  }
-
-  const toggleLinkStyle: React.CSSProperties = {
-    background:  'none',
-    border:      'none',
-    color:       'rgba(255,255,255,0.70)',
-    fontSize:    '0.85rem',
-    cursor:      'pointer',
-    padding:     0,
-    textDecoration: 'underline',
-    textUnderlineOffset: '3px',
-    alignSelf:   'flex-start',
-  }
-
-  const errorStyle: React.CSSProperties = {
-    fontSize: '0.85rem',
-    color:    '#fca5a5',
-  }
-
-  const dividerStyle: React.CSSProperties = {
-    borderTop: '1px solid rgba(255,255,255,0.15)',
-    marginTop: '0.25rem',
-  }
-
-  // ── Render ────────────────────────────────────────────────────────────────────
 
   return (
-    <div style={containerStyle}>
-      <div style={cardStyle}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
-          Sblocca il vault
-        </h1>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-          <label htmlFor="pin-input" style={labelStyle}>PIN</label>
-          <div style={inputWrapStyle}>
-            <input
-              id="pin-input"
-              type={showPin ? 'text' : 'password'}
-              value={pin}
-              onChange={e => setPin(e.target.value)}
-              placeholder="PIN"
-              style={inputStyle}
-              autoComplete="current-password"
-              data-testid="pin-input"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPin(v => !v)}
-              style={eyeBtnStyle}
-              tabIndex={-1}
-              aria-label={showPin ? 'Nascondi PIN' : 'Mostra PIN'}
-            >
-              <EyeIcon visible={showPin} />
-            </button>
-          </div>
-          <span style={hintStyle}>
-            Inserisci il PIN scelto durante la configurazione
-          </span>
+    <div
+      className={styles.overlay}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      data-testid="modal-overlay"
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="recovery-modal-title"
+        className={styles.modal}
+      >
+        <div className={styles.modalHeader}>
+          <h2 id="recovery-modal-title" className={styles.modalTitle}>
+            Hai dimenticato il PIN?
+          </h2>
+          <button
+            ref={closeBtnRef}
+            type="button"
+            className={styles.closeBtn}
+            onClick={onClose}
+            aria-label="Chiudi"
+          >
+            ✕
+          </button>
         </div>
 
-        {error && <p style={errorStyle} data-testid="error-msg">{error}</p>}
+        {step === 'explain' && (
+          <div className={styles.modalBody}>
+            <p className={styles.modalExplain}>
+              Le tue note sono protette con il PIN: senza di lui nemmeno Agenda può leggerle.
+              Per questo non esiste un &ldquo;reimposta&rdquo; automatico.
+            </p>
+            <div className={styles.recoveryCta}>
+              <button
+                type="button"
+                className={styles.recoveryPrimaryBtn}
+                onClick={() => setStep('input')}
+              >
+                Usa la chiave di recupero
+              </button>
+              <p className={styles.recoveryHint}>
+                È il codice che hai salvato durante la configurazione.
+              </p>
+            </div>
+          </div>
+        )}
 
-        <button
-          onClick={handleSblocca}
-          disabled={loading}
-          style={loading ? btnDisabledStyle : btnPrimaryStyle}
-          data-testid="sblocca-btn"
-        >
-          {loading ? 'Sblocco...' : 'Sblocca'}
-        </button>
-
-        <button
-          onClick={() => { setShowRecovery(v => !v); setError(null) }}
-          style={toggleLinkStyle}
-          data-testid="recovery-toggle"
-        >
-          Ho dimenticato il PIN ▾
-        </button>
-
-        {showRecovery && (
-          <>
-            <div style={dividerStyle} />
-
-            <label style={labelStyle}>
-              Codice di recupero
-              <input
-                type="text"
-                value={recoveryCode}
-                onChange={e => setRecoveryCode(e.target.value)}
-                placeholder="Incolla il tuo codice di recupero (64 caratteri)"
-                maxLength={64}
-                style={{ ...inputStyle, padding: '0.625rem 0.75rem' }}
-                data-testid="recovery-input"
+        {step === 'input' && (
+          <div className={styles.modalBody}>
+            <label className={styles.recoveryLabel}>
+              Chiave di recupero
+              <textarea
+                ref={textareaRef}
+                className={styles.recoveryTextarea}
+                value={code}
+                onChange={handleCodeInput}
+                disabled={recovering}
+                spellCheck={false}
+                autoComplete="off"
+                data-testid="recovery-code-input"
               />
             </label>
 
-            <button
-              onClick={handleRecupera}
-              disabled={loading}
-              style={loading ? btnDisabledStyle : btnSecondaryStyle}
-              data-testid="recupera-btn"
-            >
-              {loading ? 'Verifica...' : 'Recupera accesso'}
-            </button>
-          </>
+            <p className={styles.recoveryCounter}>{code.length} di 64 caratteri</p>
+
+            {formatError && (
+              <p
+                className={styles.recoveryFieldError}
+                role="alert"
+                data-testid="format-error"
+              >
+                {formatError}
+              </p>
+            )}
+
+            {submitError && (
+              <p
+                className={styles.recoveryFieldError}
+                role="alert"
+                data-testid="submit-error"
+              >
+                {submitError}
+              </p>
+            )}
+
+            <div className={styles.recoveryActions}>
+              <button
+                type="button"
+                className={styles.recoverySubmitBtn}
+                onClick={handleRecover}
+                disabled={!isValidHex || recovering}
+                data-testid="recupera-btn"
+              >
+                {recovering ? 'Sto verificando la chiave...' : 'Recupera'}
+              </button>
+              <button
+                type="button"
+                className={styles.recoveryBackBtn}
+                onClick={() => { setStep('explain'); setSubmitError(null) }}
+                disabled={recovering}
+                data-testid="indietro-btn"
+              >
+                Indietro
+              </button>
+            </div>
+          </div>
         )}
       </div>
+    </div>
+  )
+}
+
+// ── UnlockPage ────────────────────────────────────────────────────────────
+
+export default function UnlockPage() {
+  const { unlock, recover } = useVaultContext()
+  const router              = useRouter()
+
+  const [digits,    setDigits]    = useState<string[]>([])
+  const [loading,   setLoading]   = useState(false)
+  const [error,     setError]     = useState<string | null>(null)
+  const [shakeKey,  setShakeKey]  = useState(0)
+  const [showModal, setShowModal] = useState(false)
+  const [success,   setSuccess]   = useState(false)
+
+  const ghostRef = useRef<HTMLButtonElement>(null)
+
+  // ── Auto-submit on 6th digit ─────────────────────────────────────────────
+  // TODO: add attempt throttling if vaultService.unlock() ever adds it.
+  useEffect(() => {
+    if (digits.length !== 6) return
+    const pin = digits.join('')
+    setDigits([])
+    setLoading(true)
+    unlock(pin).then(ok => {
+      if (ok) {
+        setSuccess(true)
+        router.replace('/?view=menu')
+      } else {
+        setError('PIN non corretto. Riprova con calma.')
+        setShakeKey(k => k + 1)
+        setLoading(false)
+      }
+    })
+  }, [digits, unlock, router])
+
+  // ── Physical keyboard ────────────────────────────────────────────────────
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (loading || showModal) return
+      if (/^[0-9]$/.test(e.key) && digits.length < 6) {
+        setError(null)
+        setDigits(d => [...d, e.key])
+      } else if (e.key === 'Backspace') {
+        setDigits(d => d.slice(0, -1))
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [loading, showModal, digits.length])
+
+  function handleDigit(d: string) {
+    if (loading || digits.length >= 6) return
+    setError(null)
+    setDigits(prev => [...prev, d])
+  }
+
+  function handleDelete() {
+    if (loading) return
+    setDigits(prev => prev.slice(0, -1))
+  }
+
+  function handleModalClose() {
+    setShowModal(false)
+    ghostRef.current?.focus()
+  }
+
+  return (
+    <div
+      className={styles.root}
+      style={{
+        '--bg-from': 'var(--gradient-start, #581c87)',
+        '--bg-to':   'var(--gradient-end, #be123c)',
+        '--glow-1':  'var(--gradient-start, #581c87)',
+        '--glow-2':  'var(--gradient-end, #be123c)',
+        '--glow-3':  'color-mix(in srgb, var(--gradient-start) 60%, var(--gradient-end))',
+        '--ink':     '#140820',
+      } as React.CSSProperties}
+    >
+      {/* Decorative glows — behind the card, aria-hidden */}
+      <div className={`${styles.glow} ${styles.glow1}`} aria-hidden="true" />
+      <div className={`${styles.glow} ${styles.glow2}`} aria-hidden="true" />
+      <div className={`${styles.glow} ${styles.glow3}`} aria-hidden="true" />
+
+      <h1 className={styles.heading}>Bentornata</h1>
+
+      <section className={styles.card} aria-label="Sblocca Agenda">
+        <div className={styles.cardHeading}>
+          <h2 className={styles.cardTitle}>Sblocca Agenda</h2>
+          <p className={styles.cardSubtitle}>
+            {success
+              ? 'Fatto, sto aprendo le tue note...'
+              : 'Inserisci il tuo PIN di 6 cifre.'}
+          </p>
+        </div>
+
+        <PinCells key={shakeKey} digits={digits} />
+
+        {error && (
+          <p role="alert" className={styles.error} data-testid="pin-error">
+            {error}
+          </p>
+        )}
+
+        <Keypad onDigit={handleDigit} onDelete={handleDelete} disabled={loading} />
+
+        <button
+          ref={ghostRef}
+          type="button"
+          className={styles.ghostBtn}
+          onClick={() => setShowModal(true)}
+          data-testid="forgot-pin-btn"
+        >
+          Ho dimenticato il PIN
+        </button>
+      </section>
+
+      {showModal && (
+        <RecoveryModal
+          onClose={handleModalClose}
+          recover={recover}
+          onSuccess={() => router.replace('/?view=menu')}
+        />
+      )}
     </div>
   )
 }
