@@ -2,7 +2,8 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { AppHeader } from '@/design-system/AppHeader'
 import { clockNow, setClockOffsetMinutes } from '@/lib/oggi/clock'
 import { decideDayChange } from '@/lib/oggi/day-change'
 import { simulateWriteFailure } from '@/lib/oggi/daily-repository'
@@ -16,7 +17,7 @@ import { EnergyActivities } from './EnergyActivities'
 import { CheckIn } from './CheckIn'
 import { VisualTimer } from './VisualTimer'
 import { DiaryPanel } from './DiaryPanel'
-import { BoltIcon, CalendarIcon, FeatherIcon, HourglassIcon, MoonIcon, SmileIcon } from './icons'
+import { BoltIcon, FeatherIcon, HourglassIcon, MoonIcon, SmileIcon } from './icons'
 
 const DAY_CHECK_MS = 30_000
 
@@ -27,6 +28,8 @@ const EDITING_SELECTOR =
 interface DayNotice { from: DayKey; to: DayKey }
 
 export function OggiView() {
+  const router = useRouter()
+
   // Day state is resolved on the client only: the server cannot know the
   // user's local date, and a mismatch would flash the wrong day.
   const [today,        setToday]        = useState<DayKey | null>(null)
@@ -120,31 +123,18 @@ export function OggiView() {
   return (
     <AnnounceContext.Provider value={announce}>
       <div className="today-screen" ref={rootRef}>
-        <header className="cal-header today-header">
-          <div className="today-header-start">
-            <Link href="/?view=menu" replace className="cal-back-btn" aria-label="Torna al menu">
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false">
-                <path d="M11 14L6 9L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span className="cal-back-label">Menu</span>
-            </Link>
-            <div>
-              <h1 className="today-title">
-                Oggi{' '}
-                <span className="today-title-date">{displayedDay ? formatDayHeading(displayedDay) : ''}</span>
-              </h1>
-              <p className="today-subtitle">La tua giornata, a colpo d&apos;occhio</p>
-            </div>
-          </div>
-          <div className="today-header-end">
-            {displayedDay && !isToday && !notice && (
-              <button type="button" className="cal-today-btn" onClick={goToToday}>Vai a oggi</button>
-            )}
-            <Link href="/calendar" className="cal-back-btn">
-              <CalendarIcon /> <span className="cal-back-label">Calendario</span>
-            </Link>
-          </div>
-        </header>
+        <AppHeader
+          returnVariant="menu"
+          onMenuOpen={() => router.replace('/?view=menu')}
+          meta={displayedDay ? formatDayHeading(displayedDay) : undefined}
+          title="Oggi"
+          subtitle="La tua giornata, a colpo d'occhio"
+          actions={[{
+            kind:    'secondary',
+            label:   'Calendario',
+            onClick: () => router.push('/calendar'),
+          }]}
+        />
 
         {notice && (
           <div className="today-day-notice" role="region" aria-label="Nuovo giorno">
