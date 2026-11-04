@@ -1,0 +1,355 @@
+/* components/Settings.module.css */
+
+/* ── Keyframes (duplicated from RadialMenu for isolation) ── */
+
+@keyframes drift-1 {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(28px, -22px); }
+}
+
+@keyframes drift-2 {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(-24px, 30px); }
+}
+
+@keyframes drift-3 {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(20px, 18px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow { animation: none; }
+}
+
+/* ── Root ──────────────────────────────────────────────── */
+
+.root {
+  position:        fixed;
+  inset:           0;
+  display:         flex;
+  flex-direction:  column;
+  background:      linear-gradient(135deg, var(--gradient-start, #581c87), var(--gradient-end, #be123c));
+  color:           #ffffff;
+  overflow-y:      auto;
+}
+
+/* ── Decorative glows ──────────────────────────────────── */
+
+.glow {
+  position:       absolute;
+  border-radius:  50%;
+  pointer-events: none;
+  filter:         blur(14px);
+}
+
+.glow1 {
+  width: 340px; height: 340px;
+  top: 200px; left: 280px;
+  background: var(--glow-1);
+  opacity: 0.70;
+  animation: drift-1 12s ease-in-out infinite alternate;
+}
+
+.glow2 {
+  width: 360px; height: 360px;
+  top: 380px; left: 560px;
+  background: var(--glow-2);
+  opacity: 0.65;
+  animation: drift-2 14s ease-in-out infinite alternate;
+}
+
+.glow3 {
+  width: 200px; height: 200px;
+  top: 160px; left: 470px;
+  background: var(--glow-3);
+  opacity: 0.50;
+  animation: drift-3 16s ease-in-out infinite alternate;
+}
+
+/* ── Header ────────────────────────────────────────────── */
+
+.header {
+  position:        sticky;
+  top:             0;
+  z-index:         1;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  padding:         20px 24px;
+}
+
+.backButton {
+  position:        absolute;
+  left:            24px;
+  display:         flex;
+  align-items:     center;
+  gap:             6px;
+  height:          36px;
+  padding:         0 14px;
+  border-radius:   18px;
+  font-size:       0.8125rem;
+  font-weight:     500;
+  color:           #ffffff;
+  text-decoration: none;
+
+  background: radial-gradient(
+    ellipse at left center,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.05) 70%,
+    transparent 100%
+  );
+  backdrop-filter:          blur(20px) saturate(140%);
+  -webkit-backdrop-filter:  blur(20px) saturate(140%);
+  mask-image:               linear-gradient(to right, black 70%, transparent 100%);
+  -webkit-mask-image:       linear-gradient(to right, black 70%, transparent 100%);
+}
+
+.backButton:focus-visible {
+  outline:        2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.title {
+  font-size:   1.1rem;
+  font-weight: 600;
+}
+
+/* ── Cards row ─────────────────────────────────────────── */
+
+.cardsRow {
+  position:        relative;
+  z-index:         1;
+  display:         flex;
+  gap:             24px;
+  justify-content: center;
+  align-items:     flex-start;
+  padding:         0 24px 40px;
+  flex:            1;
+}
+
+/* ── Glass card ────────────────────────────────────────── */
+
+.card {
+  width:           340px;
+  padding:         28px;
+  border-radius:   24px;
+  display:         flex;
+  flex-direction:  column;
+  gap:             20px;
+
+  background: radial-gradient(
+    ellipse at center top,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.05) 70%,
+    transparent 100%
+  );
+  backdrop-filter:          blur(28px) saturate(160%);
+  -webkit-backdrop-filter:  blur(28px) saturate(160%);
+  mask-image:               radial-gradient(ellipse at center, black 60%, transparent 100%);
+  -webkit-mask-image:       radial-gradient(ellipse at center, black 60%, transparent 100%);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .card {
+    background: rgba(255, 255, 255, 0.14);
+  }
+}
+
+.cardTitle {
+  font-size:   0.9375rem;
+  font-weight: 600;
+  opacity:     0.75;
+  margin:      0;
+}
+
+/* ── Palette grid ──────────────────────────────────────── */
+
+.paletteGrid {
+  display:               grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:                   8px;
+  list-style:            none;
+  padding:               0;
+  margin:                0;
+}
+
+.paletteTile {
+  width:         100%;
+  aspect-ratio:  1;
+  border-radius: 10px;
+  border:        none;
+  cursor:        pointer;
+  padding:       0;
+  transition:    transform 120ms ease, outline-offset 120ms ease;
+}
+
+.paletteTile:focus-visible {
+  outline:        2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.paletteTile[aria-checked="true"] {
+  outline:        2px solid #ffffff;
+  outline-offset: 2px;
+  transform:      scale(1.08);
+}
+
+/* ── Toggle rows ───────────────────────────────────────── */
+
+.toggleRow {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  height:          44px;
+}
+
+.toggleLabel {
+  font-size:   0.9rem;
+  font-weight: 400;
+}
+
+.toggleSubLabel {
+  font-size:   0.7rem;
+  opacity:     0.55;
+  margin-top:  2px;
+}
+
+.toggle {
+  width:         44px;
+  height:        24px;
+  border-radius: 12px;
+  border:        none;
+  cursor:        pointer;
+  padding:       2px;
+  position:      relative;
+  flex-shrink:   0;
+  background:    rgba(255, 255, 255, 0.20);
+  transition:    background 200ms ease;
+}
+
+.toggle[aria-checked="true"] {
+  background: rgba(255, 255, 255, 0.70);
+}
+
+.toggle:disabled {
+  opacity: 0.45;
+  cursor:  not-allowed;
+}
+
+.toggle:focus-visible {
+  outline:        2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.toggleThumb {
+  display:          block;
+  width:            20px;
+  height:           20px;
+  border-radius:    50%;
+  background:       #ffffff;
+  position:         absolute;
+  top:              2px;
+  left:             2px;
+  transition:       transform 200ms ease;
+  pointer-events:   none;
+}
+
+.toggle[aria-checked="true"] .toggleThumb {
+  transform:  translateX(20px);
+  background: #333333;
+}
+
+/* ── Segmented control ─────────────────────────────────── */
+
+.segmentLabel {
+  font-size:   0.9rem;
+  font-weight: 400;
+  margin:      0;
+}
+
+.segmentedControl {
+  display:       flex;
+  border-radius: 20px;
+  overflow:      hidden;
+  background:    rgba(255, 255, 255, 0.10);
+}
+
+.segment {
+  flex:          1;
+  height:        40px;
+  border:        none;
+  cursor:        pointer;
+  font-size:     0.8rem;
+  font-weight:   500;
+  color:         #ffffff;
+  background:    transparent;
+  transition:    background 150ms ease;
+}
+
+.segment[aria-checked="true"] {
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.28) 0%,
+    rgba(255, 255, 255, 0.10) 100%
+  );
+}
+
+.segment:focus-visible {
+  outline:        2px solid #ffffff;
+  outline-offset: -2px;
+}
+
+/* ── Account row ───────────────────────────────────────── */
+
+.accountDivider {
+  border:     none;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  margin:     0;
+}
+
+.accountRow {
+  display:     flex;
+  align-items: center;
+  gap:         12px;
+  cursor:      default;
+}
+
+.avatar {
+  width:           36px;
+  height:          36px;
+  border-radius:   50%;
+  background:      rgba(255, 255, 255, 0.20);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  font-size:       0.75rem;
+  font-weight:     600;
+  flex-shrink:     0;
+}
+
+.accountEmail {
+  flex:      1;
+  font-size: 0.8rem;
+  opacity:   0.85;
+  overflow:  hidden;
+  text-overflow: ellipsis;
+  white-space:   nowrap;
+}
+
+.accountChevron {
+  opacity: 0.45;
+  font-size: 1rem;
+}
+
+/* ── Mobile (<= 499px) ─────────────────────────────────── */
+
+@media (max-width: 499px) {
+  .cardsRow {
+    flex-direction: column;
+    align-items:    stretch;
+    padding:        0 16px 40px;
+  }
+  .card {
+    width: 100%;
+  }
+}
