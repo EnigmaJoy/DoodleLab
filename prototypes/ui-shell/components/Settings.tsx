@@ -2,10 +2,10 @@
 'use client'
 
 import { type CSSProperties } from 'react'
-import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { usePreferences } from '@/lib/PreferencesContext'
 import { PALETTES } from '@/lib/palettes'
+import { AppHeader } from '@/design-system/AppHeader'
 import styles from './Settings.module.css'
 
 export function Settings() {
@@ -34,13 +34,10 @@ export function Settings() {
       <div className={`${styles.glow} ${styles.glow2}`} data-glow aria-hidden="true" />
       <div className={`${styles.glow} ${styles.glow3}`} data-glow aria-hidden="true" />
 
-      {/* Header */}
-      <header className={styles.header}>
-        <Link href="/" className={styles.backButton} aria-label="Indietro">
-          ← Indietro
-        </Link>
-        <h1 className={styles.title}>Impostazioni</h1>
-      </header>
+      <AppHeader
+        returnVariant="back"
+        title="Impostazioni"
+      />
 
       {/* Cards row */}
       <div className={styles.cardsRow}>

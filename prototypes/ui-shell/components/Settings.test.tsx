@@ -8,6 +8,12 @@ vi.mock('next/link', () => ({
     <a href={href} {...props}>{children}</a>,
 }))
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    back: vi.fn(),
+  }),
+}))
+
 vi.mock('next-auth/react', () => ({
   useSession: () => ({ data: { user: { email: 'test@example.com' } } }),
 }))
@@ -40,10 +46,10 @@ describe('Settings', () => {
     expect(screen.getByRole('heading', { name: 'Impostazioni' })).toBeTruthy()
   })
 
-  it('2. back link navigates to /', () => {
+  it('2. back button exists', () => {
     render(<Settings />)
-    const back = screen.getByRole('link', { name: /indietro/i })
-    expect(back.getAttribute('href')).toBe('/')
+    const back = screen.getByRole('button', { name: /indietro/i })
+    expect(back).toBeTruthy()
   })
 
   it('3. renders 8 palette tiles', () => {
