@@ -68,7 +68,7 @@ describe('PreferencesContext', () => {
     await act(async () => {
       screen.getByText('setPalette3').click()
     })
-    const stored = JSON.parse(localStorage.getItem('doodlelab.preferences')!)
+    const stored = JSON.parse(localStorage.getItem('doodlelab:preferences:v1')!)
     expect(stored.paletteId).toBe(3)
   })
 
@@ -86,13 +86,13 @@ describe('PreferencesContext', () => {
     await act(async () => {
       screen.getByText('setLock30').click()
     })
-    const stored = JSON.parse(localStorage.getItem('doodlelab.preferences')!)
+    const stored = JSON.parse(localStorage.getItem('doodlelab:preferences:v1')!)
     expect(stored.autoLockMinutes).toBe(30)
   })
 
   it('6. loads saved preferences from localStorage on mount', () => {
     localStorage.setItem(
-      'doodlelab.preferences',
+      'doodlelab:preferences:v1',
       JSON.stringify({ paletteId: 5, visualEffects: false, autoLockMinutes: 30 }),
     )
     const el = setup()

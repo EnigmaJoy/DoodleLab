@@ -16,7 +16,7 @@ const DEFAULT_PREFERENCES: Preferences = {
   autoLockMinutes: 5,
 }
 
-const STORAGE_KEY = 'doodlelab.preferences'
+const STORAGE_KEY = 'doodlelab:preferences:v1'
 
 interface PreferencesContextValue {
   preferences:        Preferences
@@ -59,12 +59,13 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     }
   }, [preferences.visualEffects])
 
+  // Persist preferences to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences))
+  }, [preferences])
+
   function update(partial: Partial<Preferences>) {
-    setPreferences(prev => {
-      const next = { ...prev, ...partial }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
-      return next
-    })
+    setPreferences(prev => ({ ...prev, ...partial }))
   }
 
   return (
