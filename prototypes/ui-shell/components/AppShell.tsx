@@ -4,6 +4,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useVaultContext } from '@/lib/vault/vault-context'
 import { RadialMenu } from './RadialMenu'
+import { ExitModal } from './ExitModal'
 
 export type AppView = 'MENU_OPEN' | 'MENU_CLOSED'
 
@@ -12,8 +13,9 @@ interface AppShellProps {
 }
 
 export function AppShell({ initialView }: AppShellProps) {
-  const [view, setView] = useState<AppView>(initialView)
-  const { logout }      = useVaultContext()
+  const [view, setView]               = useState<AppView>(initialView)
+  const [exitModalOpen, setExitModal] = useState(false)
+  const { logout }                    = useVaultContext()
 
   const prevViewRef          = useRef<AppView | null>(null)
   const firstItemRef         = useRef<HTMLAnchorElement | null>(null)
@@ -47,29 +49,16 @@ export function AppShell({ initialView }: AppShellProps) {
         isOpen={view === 'MENU_OPEN'}
         onOpen={() => setView('MENU_OPEN')}
         onClose={() => setView('MENU_CLOSED')}
+        onExitRequest={() => setExitModal(true)}
         firstItemRef={firstItemRef}
         firstFallbackItemRef={firstFallbackItemRef}
         centerButtonRef={centerButtonRef}
       />
-      <button
-        onClick={logout}
-        style={{
-          position:     'fixed',
-          bottom:       '1.5rem',
-          right:        '1.5rem',
-          zIndex:       3,
-          background:   'rgba(255,255,255,0.12)',
-          border:       '1px solid rgba(255,255,255,0.25)',
-          borderRadius: '0.5rem',
-          color:        'rgba(255,255,255,0.75)',
-          fontSize:     '0.8rem',
-          padding:      '0.4rem 0.75rem',
-          cursor:       'pointer',
-        }}
-        aria-label="Esci"
-      >
-        Esci
-      </button>
+      <ExitModal
+        isOpen={exitModalOpen}
+        onClose={() => setExitModal(false)}
+        onConfirm={logout}
+      />
     </>
   )
 }

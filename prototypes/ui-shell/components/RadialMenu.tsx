@@ -12,6 +12,7 @@ interface RadialMenuProps {
   isOpen:               boolean
   onOpen:               () => void
   onClose:              () => void
+  onExitRequest:        () => void
   firstItemRef:         RefObject<HTMLAnchorElement | null>
   firstFallbackItemRef: RefObject<HTMLAnchorElement | null>
   centerButtonRef:      RefObject<HTMLButtonElement | null>
@@ -22,13 +23,11 @@ export function RadialMenu({
   isOpen,
   onOpen,
   onClose,
+  onExitRequest,
   firstItemRef,
   firstFallbackItemRef,
   centerButtonRef,
 }: RadialMenuProps) {
-  // Escape closes the menu only when isOpen is true.
-  // If the event originated inside .palette-switcher the PaletteSwitcher
-  // handles it independently — the radial menu must not also close.
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape' && isOpen) {
@@ -106,13 +105,29 @@ export function RadialMenu({
         aria-controls="radial-items"
         aria-label={isOpen ? 'Chiudi menu' : 'Apri menu'}
       >
-        {/* Hamburger bars animate to X via CSS targeting aria-expanded="true" */}
         <span className={styles.bars} aria-hidden="true">
           <span className={`${styles.bar} ${styles.barTop}`}    />
           <span className={`${styles.bar} ${styles.barMid}`}    />
           <span className={`${styles.bar} ${styles.barBottom}`} />
         </span>
       </button>
+
+      {/* Satellite row — visible only when menu is open */}
+      {isOpen && (
+        <div className={styles.satelliteRow}>
+          <Link href="/settings" className={styles.satellite} aria-label="Impostazioni">
+            Impostazioni
+          </Link>
+          <button
+            type="button"
+            className={styles.satellite}
+            onClick={onExitRequest}
+            aria-label="Esci"
+          >
+            Esci
+          </button>
+        </div>
+      )}
     </nav>
   )
 }

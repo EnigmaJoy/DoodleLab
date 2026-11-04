@@ -16,20 +16,22 @@ import { MENU_ITEMS } from '@/lib/constants'
 // ── Helper ────────────────────────────────────────────────────────────────
 
 function setup(isOpen = false) {
-  const onOpen  = vi.fn()
-  const onClose = vi.fn()
+  const onOpen         = vi.fn()
+  const onClose        = vi.fn()
+  const onExitRequest  = vi.fn()
   render(
     <RadialMenu
       visible={true}
       isOpen={isOpen}
       onOpen={onOpen}
       onClose={onClose}
+      onExitRequest={onExitRequest}
       firstItemRef={createRef()}
       firstFallbackItemRef={createRef()}
       centerButtonRef={createRef()}
     />,
   )
-  return { onOpen, onClose }
+  return { onOpen, onClose, onExitRequest }
 }
 
 beforeEach(() => { vi.clearAllMocks() })
@@ -100,6 +102,29 @@ describe('RadialMenu', () => {
     setup()
     const glows = document.querySelectorAll('[data-glow]')
     expect(glows.length).toBe(3)
+  })
+
+  it('10. satellite row is not present when menu is closed', () => {
+    setup(false)
+    expect(screen.queryByText('Impostazioni')).toBeNull()
+  })
+
+  it('11. satellite row renders when menu is open', () => {
+    setup(true)
+    expect(screen.getByText('Impostazioni')).toBeTruthy()
+    expect(screen.getByText('Esci')).toBeTruthy()
+  })
+
+  it('12. Impostazioni satellite links to /settings', () => {
+    setup(true)
+    const link = screen.getByRole('link', { name: 'Impostazioni' })
+    expect(link.getAttribute('href')).toBe('/settings')
+  })
+
+  it('13. Esci satellite calls onExitRequest', () => {
+    const { onExitRequest } = setup(true)
+    fireEvent.click(screen.getByRole('button', { name: 'Esci' }))
+    expect(onExitRequest).toHaveBeenCalledOnce()
   })
 
 })
