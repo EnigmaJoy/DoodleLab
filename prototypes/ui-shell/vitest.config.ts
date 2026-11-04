@@ -3,13 +3,12 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import type { Plugin } from 'vite'
 
-/**
+/*
  * Intercept *.module.css imports during tests and return a Proxy that maps
- * every class name key back to itself.  This avoids running the Tailwind v4
+ * every class name key back to itself. This avoids running the Tailwind v4
  * PostCSS plugin (which crashes in jsdom) while still letting CSS-module
  * imports compile cleanly.
- */
-/**
+ *
  * The virtual ID must NOT end with .css or Vite's css plugin will grab it.
  * We use the \0 convention + a .js extension to stay invisible to css:process.
  */
