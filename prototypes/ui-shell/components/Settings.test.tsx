@@ -3,11 +3,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import React from 'react'
 
-vi.mock('next/link', () => ({
-  default: ({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) =>
-    <a href={href} {...props}>{children}</a>,
-}))
-
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     back: vi.fn(),
