@@ -2,7 +2,8 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { AppHeader } from '@/design-system/AppHeader'
 import { getCalendarRepository, type CalendarItem } from '@/lib/calendar-repository'
 import { ConfirmAction, useRepository } from '@/components/today/shared'
 import {
@@ -375,6 +376,7 @@ function TimelinePanel({
 // ─── CalendarView ───────────────────────────────────────────────────────────
 
 export function CalendarView() {
+  const router  = useRouter()
   const today   = todayString()
   const calRepo = useRepository(getCalendarRepository())
 
@@ -578,37 +580,19 @@ export function CalendarView() {
 
   return (
     <div className="calendar-screen">
-      {/* ── Header ── */}
-      <header className="cal-header">
-        <Link href="/?view=menu" replace className="cal-back-btn" aria-label="Torna al menu">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false">
-            <path d="M11 14L6 9L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <span className="cal-back-label">Menu</span>
-        </Link>
-
-        <nav className="cal-nav" aria-label="Navigazione mesi">
-          <button type="button" className="cal-nav-btn" onClick={handlePrev} aria-label="Mese precedente">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
-              <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-
-          <h1 className="cal-month-title" aria-live="polite" aria-atomic="true">
-            {formatMonthYear(year, month)}
-          </h1>
-
-          <button type="button" className="cal-nav-btn" onClick={handleNext} aria-label="Mese successivo">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
-              <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-
-          <button type="button" className="cal-today-btn" onClick={goToToday}>
-            Oggi
-          </button>
-        </nav>
-      </header>
+      <AppHeader
+        returnVariant="menu"
+        onMenuOpen={() => router.push('/?view=menu')}
+        title={formatMonthYear(year, month)}
+        titleLive={true}
+        viewControl={{
+          kind:    'stepper',
+          label:   formatMonthYear(year, month),
+          onPrev:  handlePrev,
+          onNext:  handleNext,
+          onToday: goToToday,
+        }}
+      />
 
       {/* ── Body: full-height grid ── */}
       <div className="cal-body">
