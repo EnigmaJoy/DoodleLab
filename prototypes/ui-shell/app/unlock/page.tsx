@@ -11,14 +11,15 @@ import styles from './page.module.css'
 
 interface PinCellsProps {
   digits: string[]
+  shaking: boolean
 }
 
-function PinCells({ digits }: PinCellsProps) {
+function PinCells({ digits, shaking }: PinCellsProps) {
   return (
     <div
       role="img"
       aria-label={`PIN, ${digits.length} cifre su 6 inserite`}
-      className={styles.pinRow}
+      className={[styles.pinRow, shaking ? styles.pinRowShaking : ''].filter(Boolean).join(' ')}
     >
       {Array.from({ length: 6 }, (_, i) => {
         const filled = i < digits.length
@@ -375,7 +376,7 @@ export default function UnlockPage() {
           </p>
         </div>
 
-        <PinCells key={shakeKey} digits={digits} />
+        <PinCells key={shakeKey} digits={digits} shaking={shakeKey > 0} />
 
         {error && (
           <p role="alert" className={styles.error} data-testid="pin-error">

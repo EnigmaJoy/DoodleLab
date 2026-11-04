@@ -31,8 +31,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .glow  { animation: none !important; }
-  .pinRow { animation: none !important; }
+  .glow        { animation: none !important; }
+  .pinRowShaking { animation: none !important; }
 }
 
 /* ── Root ───────────────────────────────────────────────────────────────── */
@@ -157,6 +157,9 @@
   display: flex;
   justify-content: center;
   gap: 8px;
+}
+
+.pinRowShaking {
   animation: shake 420ms ease-out;
 }
 
@@ -438,7 +441,7 @@
   box-sizing: border-box;
 }
 
-.recoveryTextarea:focus {
+.recoveryTextarea:focus-visible {
   outline: 2px solid #ffffff;
   outline-offset: 2px;
   border-color: transparent;
