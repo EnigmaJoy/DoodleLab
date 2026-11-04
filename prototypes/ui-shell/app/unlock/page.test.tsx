@@ -2,122 +2,218 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 
-// ── Mocks ─────────────────────────────────────────────────────────────────────
+// ── Mocks ─────────────────────────────────────────────────────────────────
 
-const mockPush    = vi.fn()
 const mockReplace = vi.fn()
-
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush, replace: mockReplace }),
+  useRouter: () => ({ replace: mockReplace }),
 }))
 
 const mockUnlock  = vi.fn()
 const mockRecover = vi.fn()
-
 vi.mock('@/lib/vault/vault-context', () => ({
   useVaultContext: () => ({ unlock: mockUnlock, recover: mockRecover }),
 }))
 
-// Import after mocks
-import VaultUnlockPage from './page'
+import UnlockPage from './page'
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────
 
 function setup() {
-  render(<VaultUnlockPage />)
+  render(<UnlockPage />)
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+/** Click keypad buttons for each digit in the string. */
+function tapDigits(digits: string) {
+  for (const d of digits) {
+    fireEvent.click(screen.getByRole('button', { name: `Cifra ${d}` }))
+  }
+}
+
+/** Fire keydown events on document for each character. */
+function pressKeys(keys: string) {
+  for (const k of keys) {
+    fireEvent.keyDown(document, { key: k })
+  }
+}
 
 beforeEach(() => {
   vi.clearAllMocks()
 })
 
-describe('VaultUnlockPage', () => {
-  it('a. PIN field and Sblocca button render', () => {
+// ── Tests ─────────────────────────────────────────────────────────────────
+
+describe('UnlockPage', () => {
+
+  it('1. renders 6 PIN cells and keypad; no text input, no eye toggle', () => {
     setup()
-    expect(screen.getByTestId('pin-input')).toBeTruthy()
-    expect(screen.getByTestId('sblocca-btn')).toBeTruthy()
-    expect(screen.getByTestId('sblocca-btn').textContent).toBe('Sblocca')
+    expect(screen.getByRole('img', { name: /PIN, 0 cifre su 6 inserite/ })).toBeTruthy()
+    for (const d of ['0','1','2','3','4','5','6','7','8','9']) {
+      expect(screen.getByRole('button', { name: `Cifra ${d}` })).toBeTruthy()
+    }
+    expect(screen.getByRole('button', { name: 'Cancella una cifra' })).toBeTruthy()
+    expect(screen.queryByRole('textbox')).toBeNull()
+    expect(screen.queryByRole('button', { name: /mostra|nascondi/i })).toBeNull()
   })
 
-  it('b. Successful unlock calls unlock(pin) and navigates to "/"', async () => {
-    mockUnlock.mockResolvedValue(true)
+  it('2. keypad digit click fills a cell', () => {
     setup()
+    tapDigits('5')
+    expect(screen.getByRole('img', { name: /PIN, 1 cifre su 6 inserite/ })).toBeTruthy()
+  })
 
-    fireEvent.change(screen.getByTestId('pin-input'), { target: { value: '123456' } })
+  it('3. physical keyboard digit fills a cell', () => {
+    setup()
+    pressKeys('3')
+    expect(screen.getByRole('img', { name: /PIN, 1 cifre su 6 inserite/ })).toBeTruthy()
+  })
 
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('sblocca-btn'))
-    })
+  it('4. Cancella button and Backspace key remove the last digit', () => {
+    setup()
+    tapDigits('123')
+    expect(screen.getByRole('img', { name: /PIN, 3 cifre su 6 inserite/ })).toBeTruthy()
 
+    fireEvent.click(screen.getByRole('button', { name: 'Cancella una cifra' }))
+    expect(screen.getByRole('img', { name: /PIN, 2 cifre su 6 inserite/ })).toBeTruthy()
+
+    fireEvent.keyDown(document, { key: 'Backspace' })
+    expect(screen.getByRole('img', { name: /PIN, 1 cifre su 6 inserite/ })).toBeTruthy()
+  })
+
+  it('5. 6th digit auto-calls unlock(pin) with the correct string', async () => {
+    mockUnlock.mockResolvedValue(false)
+    setup()
+    await act(async () => { tapDigits('123456') })
     expect(mockUnlock).toHaveBeenCalledOnce()
     expect(mockUnlock).toHaveBeenCalledWith('123456')
-    expect(mockReplace).toHaveBeenCalledWith('/?view=menu')
   })
 
-  it('c. Failed unlock shows "PIN non corretto" error', async () => {
+  it('6. failed unlock: cells cleared, error shown, shakeKey incremented on each attempt', async () => {
     mockUnlock.mockResolvedValue(false)
     setup()
 
-    fireEvent.change(screen.getByTestId('pin-input'), { target: { value: 'wrongpin' } })
+    await act(async () => { tapDigits('000000') })
+    expect(screen.getByRole('img', { name: /PIN, 0 cifre su 6 inserite/ })).toBeTruthy()
+    expect(screen.getByTestId('pin-error').textContent).toBe(
+      'PIN non corretto. Riprova con calma.'
+    )
 
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('sblocca-btn'))
-    })
-
-    expect(mockUnlock).toHaveBeenCalledOnce()
-    expect(mockReplace).not.toHaveBeenCalled()
-    expect(screen.getByTestId('error-msg').textContent).toBe('PIN non corretto')
+    // Second attempt also fires unlock and shows error
+    await act(async () => { tapDigits('111111') })
+    expect(mockUnlock).toHaveBeenCalledTimes(2)
+    expect(screen.getByTestId('pin-error')).toBeTruthy()
   })
 
-  it('d. Recovery section is hidden by default', () => {
+  it('7. success: subtitle switches to Fatto, then routes to /?view=menu', async () => {
+    mockUnlock.mockResolvedValue(true)
     setup()
-    expect(screen.queryByTestId('recovery-input')).toBeNull()
-    expect(screen.queryByTestId('recupera-btn')).toBeNull()
-  })
-
-  it('e. Recovery section shows when toggle clicked', () => {
-    setup()
-    fireEvent.click(screen.getByTestId('recovery-toggle'))
-    expect(screen.getByTestId('recovery-input')).toBeTruthy()
-    expect(screen.getByTestId('recupera-btn')).toBeTruthy()
-  })
-
-  it('f. Successful recover calls recover(code) and navigates to "/"', async () => {
-    mockRecover.mockResolvedValue(true)
-    setup()
-
-    // Open recovery section
-    fireEvent.click(screen.getByTestId('recovery-toggle'))
-
-    const testCode = 'ab'.repeat(24) // 48 chars
-    fireEvent.change(screen.getByTestId('recovery-input'), { target: { value: testCode } })
-
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('recupera-btn'))
-    })
-
-    expect(mockRecover).toHaveBeenCalledOnce()
-    expect(mockRecover).toHaveBeenCalledWith(testCode)
+    await act(async () => { tapDigits('123456') })
+    expect(screen.getByText('Fatto, sto aprendo le tue note...')).toBeTruthy()
     expect(mockReplace).toHaveBeenCalledWith('/?view=menu')
   })
 
-  it('g. Failed recover shows "Codice non valido" error', async () => {
+  it('8. typing any digit after an error hides the error line', async () => {
+    mockUnlock.mockResolvedValue(false)
+    setup()
+    await act(async () => { tapDigits('000000') })
+    expect(screen.getByTestId('pin-error')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cifra 1' }))
+    expect(screen.queryByTestId('pin-error')).toBeNull()
+  })
+
+  it('9. modal opens on ghost button; closes on close button, overlay click, and Escape', () => {
+    setup()
+    fireEvent.click(screen.getByTestId('forgot-pin-btn'))
+    expect(screen.getByRole('dialog')).toBeTruthy()
+
+    // Close via close button
+    fireEvent.click(screen.getByRole('button', { name: 'Chiudi' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+
+    // Close via overlay click
+    fireEvent.click(screen.getByTestId('forgot-pin-btn'))
+    fireEvent.click(screen.getByTestId('modal-overlay'))
+    expect(screen.queryByRole('dialog')).toBeNull()
+
+    // Close via Escape
+    fireEvent.click(screen.getByTestId('forgot-pin-btn'))
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('10. step 1 → step 2 on primary button; Indietro returns to step 1 keeping typed value', () => {
+    setup()
+    fireEvent.click(screen.getByTestId('forgot-pin-btn'))
+
+    // Step 1: code input is not visible
+    expect(screen.queryByTestId('recovery-code-input')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Usa la chiave di recupero' }))
+
+    // Step 2: code input is visible
+    const textarea = screen.getByTestId('recovery-code-input') as HTMLTextAreaElement
+    expect(textarea).toBeTruthy()
+    fireEvent.change(textarea, { target: { value: 'abc123' } })
+
+    // Indietro → back to step 1
+    fireEvent.click(screen.getByTestId('indietro-btn'))
+    expect(screen.queryByTestId('recovery-code-input')).toBeNull()
+
+    // Re-enter step 2: value is preserved
+    fireEvent.click(screen.getByRole('button', { name: 'Usa la chiave di recupero' }))
+    expect((screen.getByTestId('recovery-code-input') as HTMLTextAreaElement).value).toBe('abc123')
+  })
+
+  it('11. format error for non-hex; Recupera disabled until exactly 64 valid hex chars', () => {
+    setup()
+    fireEvent.click(screen.getByTestId('forgot-pin-btn'))
+    fireEvent.click(screen.getByRole('button', { name: 'Usa la chiave di recupero' }))
+
+    // Non-hex input → format error, button disabled
+    fireEvent.change(screen.getByTestId('recovery-code-input'), { target: { value: 'xyz' } })
+    expect(screen.getByTestId('format-error')).toBeTruthy()
+    expect(screen.getByTestId('recupera-btn')).toBeDisabled()
+
+    // 63 valid hex chars → still disabled (too short)
+    fireEvent.change(screen.getByTestId('recovery-code-input'), { target: { value: 'a'.repeat(63) } })
+    expect(screen.queryByTestId('format-error')).toBeNull()
+    expect(screen.getByTestId('recupera-btn')).toBeDisabled()
+
+    // 64 valid hex chars → enabled, no format error
+    fireEvent.change(screen.getByTestId('recovery-code-input'), { target: { value: 'a'.repeat(64) } })
+    expect(screen.queryByTestId('format-error')).toBeNull()
+    expect(screen.getByTestId('recupera-btn')).not.toBeDisabled()
+  })
+
+  it('12. recover() success routes to /?view=menu', async () => {
+    mockRecover.mockResolvedValue(true)
+    setup()
+    fireEvent.click(screen.getByTestId('forgot-pin-btn'))
+    fireEvent.click(screen.getByRole('button', { name: 'Usa la chiave di recupero' }))
+
+    const validCode = 'ab'.repeat(32) // 64 hex chars
+    fireEvent.change(screen.getByTestId('recovery-code-input'), { target: { value: validCode } })
+    await act(async () => { fireEvent.click(screen.getByTestId('recupera-btn')) })
+
+    expect(mockRecover).toHaveBeenCalledWith(validCode)
+    expect(mockReplace).toHaveBeenCalledWith('/?view=menu')
+  })
+
+  it('13. recover() failure shows error message; input kept; focus returns to textarea', async () => {
     mockRecover.mockResolvedValue(false)
     setup()
+    fireEvent.click(screen.getByTestId('forgot-pin-btn'))
+    fireEvent.click(screen.getByRole('button', { name: 'Usa la chiave di recupero' }))
 
-    // Open recovery section
-    fireEvent.click(screen.getByTestId('recovery-toggle'))
+    const validCode = 'cd'.repeat(32) // 64 hex chars
+    fireEvent.change(screen.getByTestId('recovery-code-input'), { target: { value: validCode } })
+    await act(async () => { fireEvent.click(screen.getByTestId('recupera-btn')) })
 
-    fireEvent.change(screen.getByTestId('recovery-input'), { target: { value: 'badcode' } })
-
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('recupera-btn'))
-    })
-
-    expect(mockRecover).toHaveBeenCalledOnce()
+    expect(screen.getByTestId('submit-error').textContent).toBe(
+      'Questa chiave non corrisponde. Controlla di aver copiato tutto il codice.'
+    )
+    // Input keeps the typed code after failure (user can inspect/correct)
+    expect((screen.getByTestId('recovery-code-input') as HTMLTextAreaElement).value).toBe(validCode)
     expect(mockReplace).not.toHaveBeenCalled()
-    expect(screen.getByTestId('error-msg').textContent).toBe('Codice non valido')
   })
 })
