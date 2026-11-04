@@ -7,21 +7,16 @@ export const APP_NAME = 'agenda'
 /** BCP-47 locale tag used for all date/time formatting in the app. */
 export const LOCALE = 'it-IT'
 
-/** Per-item stagger delay in ms. Applied as inline --stagger per RadialMenuItem. Provisional. */
-export const ITEM_STAGGER_MS = 55
+/** Ring radius in px: distance from center to each radial item midpoint. */
+export const RING_RADIUS_PX = 172
 
-// Angles are measured from 12 o'clock (top), clockwise.
-// toRad subtracts 90 degrees so 0 deg points up, not right.
-const toRad = (deg: number) => (deg - 90) * (Math.PI / 180)
+/** Per-item stagger delay in ms on open (item 0 opens first). */
+export const OPEN_STAGGER_MS = 40
 
-interface MenuItem {
-  id:     SectionId
-  label:  string
-  angle:  number
-  txUnit: number
-  tyUnit: number
-}
+/** Per-item stagger delay in ms on close (item N-1 closes first). */
+export const CLOSE_STAGGER_MS = 25
 
+// Angles are measured clockwise from 12 o'clock (top).
 const MENU_ITEM_ANGLES: Array<{ id: SectionId; angle: number }> = [
   { id: 'today',     angle:   0 },   // 12h
   { id: 'calendar',  angle:  60 },   // 2h
@@ -31,15 +26,13 @@ const MENU_ITEM_ANGLES: Array<{ id: SectionId; angle: number }> = [
   { id: 'exercises', angle: 300 },   // 10h
 ]
 
-// Unit-circle offsets (radius = 1.0). CSS --radial-radius multiplies these.
-// Computed at module-load time; no runtime Math.cos/sin in JSX.
+interface MenuItem {
+  id:    SectionId
+  label: string
+  angle: number   // degrees, clockwise from top (0 = 12h)
+}
+
 export const MENU_ITEMS: readonly MenuItem[] = MENU_ITEM_ANGLES.map(({ id, angle }) => {
   const section = SECTIONS.find(s => s.id === id)!
-  return {
-    id,
-    label:  section.label,
-    angle,
-    txUnit: parseFloat(Math.cos(toRad(angle)).toFixed(6)),
-    tyUnit: parseFloat(Math.sin(toRad(angle)).toFixed(6)),
-  }
+  return { id, label: section.label, angle }
 })
