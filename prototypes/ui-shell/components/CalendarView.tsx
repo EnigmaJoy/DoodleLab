@@ -582,7 +582,7 @@ export function CalendarView() {
     <div className="calendar-screen">
       <AppHeader
         returnVariant="menu"
-        onMenuOpen={() => router.push('/?view=menu')}
+        onMenuOpen={() => router.replace('/?view=menu')}
         title={formatMonthYear(year, month)}
         titleLive={true}
         viewControl={{
