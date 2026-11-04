@@ -1,14 +1,16 @@
 'use client'
 
 import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRouter }     from 'next/navigation'
 import { useNoteContext } from '@/lib/note-context'
-import { BoardHeader }   from './BoardHeader'
+import { AppHeader }     from '@/design-system/AppHeader'
 import { StickyNote }    from './StickyNote'
 import type { NoteColor } from '@/lib/note-types'
 
 const COLORS: NoteColor[] = ['yellow', 'pink', 'mint', 'blue', 'peach']
 
 export function NoteBoard() {
+  const router = useRouter()
   const { state, dispatch } = useNoteContext()
   const boardRef  = useRef<HTMLDivElement>(null)
   const [boardSize, setBoardSize] = useState({ w: 0, h: 0 })
@@ -46,14 +48,45 @@ export function NoteBoard() {
   }, [dispatch])
 
   return (
-    <main className="board-screen">
-      <BoardHeader
-        noteCount={state.notes.length}
-        mode={state.mode}
-        onModeChange={handleModeChange}
-        onAddNote={handleAddNote}
+    <div className="board-screen">
+      <AppHeader
+        returnVariant="menu"
+        onMenuOpen={() => router.push('/?view=menu')}
+        title="Lavagna"
+        subtitle={`${state.notes.length} post-it`}
+        subtitleLive={true}
+        viewControl={{
+          kind:     'segmented',
+          options:  [
+            { value: 'free',  label: 'Libera' },
+            { value: 'grid',  label: 'Griglia' },
+          ],
+          value:    state.mode,
+          onChange: handleModeChange,
+        }}
+        actions={[{
+          kind:  'icon',
+          label: 'Aggiungi post-it',
+          icon:  (
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5"  y1="12" x2="19" y2="12" />
+            </svg>
+          ),
+          onClick: handleAddNote,
+        }]}
       />
-      <div className="board-board-wrap">
+      <main className="board-board-wrap">
         <div
           ref={boardRef}
           className="board-board"
@@ -86,7 +119,7 @@ export function NoteBoard() {
             </div>
           )}
         </div>
-      </div>
-    </main>
+      </main>
+    </div>
   )
 }
