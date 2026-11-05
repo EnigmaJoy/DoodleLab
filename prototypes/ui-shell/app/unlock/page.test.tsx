@@ -39,6 +39,13 @@ function pressKeys(keys: string) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
+    this.setAttribute('open', '')
+  })
+  HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
+    this.removeAttribute('open')
+    this.dispatchEvent(new Event('close'))
+  })
 })
 
 // ── Tests ─────────────────────────────────────────────────────────────────
@@ -122,27 +129,31 @@ describe('UnlockPage', () => {
     expect(screen.queryByTestId('pin-error')).toBeNull()
   })
 
-  it('9. modal opens on ghost button; closes on close button, overlay click, and Escape', () => {
+  it('9. modal opens on ghost button; closes on close button, Annulla button, and Escape', () => {
     setup()
     fireEvent.click(screen.getByTestId('forgot-pin-btn'))
     expect(screen.getByRole('dialog')).toBeTruthy()
 
-    // Close via close button
+    // Close via close button (X)
     fireEvent.click(screen.getByRole('button', { name: 'Chiudi' }))
     expect(screen.queryByRole('dialog')).toBeNull()
 
-    // Close via overlay click
+    // Close via Annulla button
     fireEvent.click(screen.getByTestId('forgot-pin-btn'))
-    fireEvent.click(screen.getByTestId('modal-overlay'))
+    fireEvent.click(screen.getByRole('button', { name: 'Annulla' }))
     expect(screen.queryByRole('dialog')).toBeNull()
 
-    // Close via Escape
+    // Close via Escape (native dialog fires 'close' event; simulate it)
     fireEvent.click(screen.getByTestId('forgot-pin-btn'))
-    fireEvent.keyDown(document, { key: 'Escape' })
+    const dialog = screen.getByRole('dialog')
+    fireEvent.keyDown(dialog, { key: 'Escape' })
+    // jsdom does not natively handle Escape → close on <dialog>;
+    // simulate the native close event that the browser would fire
+    fireEvent(dialog, new Event('close'))
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
-  it('10. step 1 → step 2 on primary button; Indietro returns to step 1 keeping typed value', () => {
+  it('10. step 1 → step 2 on confirm button; Annulla closes the modal', () => {
     setup()
     fireEvent.click(screen.getByTestId('forgot-pin-btn'))
 
@@ -155,13 +166,9 @@ describe('UnlockPage', () => {
     expect(textarea).toBeTruthy()
     fireEvent.change(textarea, { target: { value: 'abc123' } })
 
-    // Indietro → back to step 1
-    fireEvent.click(screen.getByTestId('indietro-btn'))
-    expect(screen.queryByTestId('recovery-code-input')).toBeNull()
-
-    // Re-enter step 2: value is preserved
-    fireEvent.click(screen.getByRole('button', { name: 'Usa la chiave di recupero' }))
-    expect((screen.getByTestId('recovery-code-input') as HTMLTextAreaElement).value).toBe('abc123')
+    // Annulla → modal closes
+    fireEvent.click(screen.getByRole('button', { name: 'Annulla' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 
   it('11. format error for non-hex; Recupera disabled until exactly 64 valid hex chars', () => {
@@ -169,20 +176,20 @@ describe('UnlockPage', () => {
     fireEvent.click(screen.getByTestId('forgot-pin-btn'))
     fireEvent.click(screen.getByRole('button', { name: 'Usa la chiave di recupero' }))
 
-    // Non-hex input → format error, button disabled
+    // Non-hex input → format error, Recupera button disabled
     fireEvent.change(screen.getByTestId('recovery-code-input'), { target: { value: 'xyz' } })
     expect(screen.getByTestId('format-error')).toBeTruthy()
-    expect(screen.getByTestId('recupera-btn')).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Recupera' })).toBeDisabled()
 
     // 63 valid hex chars → still disabled (too short)
     fireEvent.change(screen.getByTestId('recovery-code-input'), { target: { value: 'a'.repeat(63) } })
     expect(screen.queryByTestId('format-error')).toBeNull()
-    expect(screen.getByTestId('recupera-btn')).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Recupera' })).toBeDisabled()
 
     // 64 valid hex chars → enabled, no format error
     fireEvent.change(screen.getByTestId('recovery-code-input'), { target: { value: 'a'.repeat(64) } })
     expect(screen.queryByTestId('format-error')).toBeNull()
-    expect(screen.getByTestId('recupera-btn')).not.toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Recupera' })).not.toBeDisabled()
   })
 
   it('12. recover() success routes to /?view=menu', async () => {
@@ -193,13 +200,13 @@ describe('UnlockPage', () => {
 
     const validCode = 'ab'.repeat(32) // 64 hex chars
     fireEvent.change(screen.getByTestId('recovery-code-input'), { target: { value: validCode } })
-    await act(async () => { fireEvent.click(screen.getByTestId('recupera-btn')) })
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Recupera' })) })
 
     expect(mockRecover).toHaveBeenCalledWith(validCode)
     expect(mockReplace).toHaveBeenCalledWith('/?view=menu')
   })
 
-  it('13. recover() failure shows error message; input kept; focus returns to textarea', async () => {
+  it('13. recover() failure shows error message; input kept', async () => {
     mockRecover.mockResolvedValue(false)
     setup()
     fireEvent.click(screen.getByTestId('forgot-pin-btn'))
@@ -207,7 +214,7 @@ describe('UnlockPage', () => {
 
     const validCode = 'cd'.repeat(32) // 64 hex chars
     fireEvent.change(screen.getByTestId('recovery-code-input'), { target: { value: validCode } })
-    await act(async () => { fireEvent.click(screen.getByTestId('recupera-btn')) })
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Recupera' })) })
 
     expect(screen.getByTestId('submit-error').textContent).toBe(
       'Questa chiave non corrisponde. Controlla di aver copiato tutto il codice.'

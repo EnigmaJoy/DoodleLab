@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useVaultContext } from '@/lib/vault/vault-context'
+import { FormModal } from '@/design-system/FormModal'
 import styles from './page.module.css'
 
 // ── PinCells ──────────────────────────────────────────────────────────────
@@ -101,8 +102,8 @@ function Keypad({ onDigit, onDelete, disabled }: KeypadProps) {
 type RecoveryStep = 'explain' | 'input'
 
 interface RecoveryModalProps {
-  onClose: () => void
-  recover: (code: string) => Promise<boolean>
+  onClose:   () => void
+  recover:   (code: string) => Promise<boolean>
   onSuccess: () => void
 }
 
@@ -113,40 +114,14 @@ function RecoveryModal({ onClose, recover, onSuccess }: RecoveryModalProps) {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [recovering,  setRecovering]  = useState(false)
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const closeBtnRef = useRef<HTMLButtonElement>(null)
-
   const isValidHex = /^[0-9a-f]{64}$/.test(code)
-
-  // Focus the close button on open
-  useEffect(() => {
-    closeBtnRef.current?.focus()
-  }, [])
-
-  // Focus textarea when entering step 2
-  useEffect(() => {
-    if (step === 'input') {
-      textareaRef.current?.focus()
-    }
-  }, [step])
-
-  // Escape closes the modal
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [onClose])
 
   function handleCodeInput(e: React.ChangeEvent<HTMLTextAreaElement>) {
     const raw = e.target.value.replace(/[\s\n]/g, '').toLowerCase()
     setCode(raw)
     setSubmitError(null)
     if (raw.length > 0 && /[^0-9a-f]/.test(raw)) {
-      setFormatError(
-        'La chiave contiene caratteri non validi: usa solo cifre e lettere da a a f.'
-      )
+      setFormatError('La chiave contiene caratteri non validi: usa solo cifre e lettere da a a f.')
     } else {
       setFormatError(null)
     }
@@ -156,129 +131,68 @@ function RecoveryModal({ onClose, recover, onSuccess }: RecoveryModalProps) {
     if (!isValidHex || recovering) return
     setRecovering(true)
     setSubmitError(null)
-    const snapshot = code
-    const ok = await recover(snapshot)
+    const ok = await recover(code)
     if (ok) {
       onSuccess()
     } else {
       setRecovering(false)
-      setSubmitError(
-        'Questa chiave non corrisponde. Controlla di aver copiato tutto il codice.'
-      )
-      textareaRef.current?.focus()
+      setSubmitError('Questa chiave non corrisponde. Controlla di aver copiato tutto il codice.')
     }
   }
 
   return (
-    <div
-      className={styles.overlay}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-      data-testid="modal-overlay"
+    <FormModal
+      title="Hai dimenticato il PIN?"
+      confirmLabel={step === 'explain' ? 'Usa la chiave di recupero' : (recovering ? 'Sto verificando...' : 'Recupera')}
+      onConfirm={step === 'explain' ? () => setStep('input') : handleRecover}
+      confirmDisabled={step === 'input' && (!isValidHex || recovering)}
+      onClose={onClose}
+      preventScrimClose={step === 'input' && code.length > 0}
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="recovery-modal-title"
-        className={styles.modal}
-      >
-        <div className={styles.modalHeader}>
-          <h2 id="recovery-modal-title" className={styles.modalTitle}>
-            Hai dimenticato il PIN?
-          </h2>
-          <button
-            ref={closeBtnRef}
-            type="button"
-            className={styles.closeBtn}
-            onClick={onClose}
-            aria-label="Chiudi"
-          >
-            ✕
-          </button>
-        </div>
-
-        {step === 'explain' && (
-          <div className={styles.modalBody}>
-            <p className={styles.modalExplain}>
-              Le tue note sono protette con il PIN: senza di lui nemmeno Agenda può leggerle.
-              Per questo non esiste un &ldquo;reimposta&rdquo; automatico.
-            </p>
-            <div className={styles.recoveryCta}>
-              <button
-                type="button"
-                className={styles.recoveryPrimaryBtn}
-                onClick={() => setStep('input')}
-              >
-                Usa la chiave di recupero
-              </button>
-              <p className={styles.recoveryHint}>
-                È il codice che hai salvato durante la configurazione.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {step === 'input' && (
-          <div className={styles.modalBody}>
-            <label className={styles.recoveryLabel}>
-              Chiave di recupero
-              <textarea
-                ref={textareaRef}
-                className={styles.recoveryTextarea}
-                value={code}
-                onChange={handleCodeInput}
-                disabled={recovering}
-                spellCheck={false}
-                autoComplete="off"
-                data-testid="recovery-code-input"
-              />
-            </label>
-
-            <p className={styles.recoveryCounter}>{code.length} di 64 caratteri</p>
-
-            {formatError && (
-              <p
-                className={styles.recoveryFieldError}
-                role="alert"
-                data-testid="format-error"
-              >
-                {formatError}
-              </p>
-            )}
-
-            {submitError && (
-              <p
-                className={styles.recoveryFieldError}
-                role="alert"
-                data-testid="submit-error"
-              >
-                {submitError}
-              </p>
-            )}
-
-            <div className={styles.recoveryActions}>
-              <button
-                type="button"
-                className={styles.recoverySubmitBtn}
-                onClick={handleRecover}
-                disabled={!isValidHex || recovering}
-                data-testid="recupera-btn"
-              >
-                {recovering ? 'Sto verificando la chiave...' : 'Recupera'}
-              </button>
-              <button
-                type="button"
-                className={styles.recoveryBackBtn}
-                onClick={() => { setStep('explain'); setSubmitError(null) }}
-                disabled={recovering}
-                data-testid="indietro-btn"
-              >
-                Indietro
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+      {step === 'explain' && (
+        <p style={{ fontSize: '15px', fontWeight: 500, lineHeight: 1.5, color: 'rgba(255,255,255,0.88)', margin: 0 }}>
+          Le tue note sono protette con il PIN: senza di lui nemmeno Agenda può leggerle.
+          Per questo non esiste un &ldquo;reimposta&rdquo; automatico.
+          Il codice di recupero che hai salvato durante la configurazione ti permette di accedere.
+        </p>
+      )}
+      {step === 'input' && (
+        <>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.82)' }}>
+            Chiave di recupero
+            <textarea
+              value={code}
+              onChange={handleCodeInput}
+              disabled={recovering}
+              spellCheck={false}
+              autoComplete="off"
+              data-autofocus
+              data-testid="recovery-code-input"
+              style={{
+                minHeight: '80px',
+                borderRadius: '16px',
+                padding: '12px 16px',
+                border: 'none',
+                background: 'rgba(255,255,255,0.14)',
+                color: '#ffffff',
+                fontFamily: "ui-monospace, 'Courier New', monospace",
+                fontSize: '14px',
+                resize: 'vertical',
+              }}
+            />
+          </label>
+          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.60)', margin: 0 }}>{code.length} di 64 caratteri</p>
+          {formatError && (
+            <p role="alert" data-testid="format-error"
+               style={{ fontSize: '14px', color: '#FCA5A5', margin: 0 }}>{formatError}</p>
+          )}
+          {submitError && (
+            <p role="alert" data-testid="submit-error"
+               style={{ fontSize: '14px', color: '#FCA5A5', margin: 0 }}>{submitError}</p>
+          )}
+        </>
+      )}
+    </FormModal>
   )
 }
 
