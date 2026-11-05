@@ -1262,8 +1262,6 @@ body {
   font-size:     0.9375rem;
 }
 
-.today-input--time { width: auto; }
-
 .today-field {
   display:        flex;
   flex-direction: column;
