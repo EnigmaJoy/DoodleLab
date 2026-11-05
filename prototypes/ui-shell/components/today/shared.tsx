@@ -154,15 +154,19 @@ export function useModal(onClose: () => void) {
     const dialog = ref.current
     if (!dialog) return
     dialog.showModal()
-    // showModal() focuses the first focusable element (the close button) and
-    // ignores React's autoFocus; an explicit [data-autofocus] field wins
     dialog.querySelector<HTMLElement>('[data-autofocus]')?.focus()
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
     // 'close' is dispatched asynchronously: a stale event from an earlier
     // close() (e.g. Strict Mode effect replay) must not close a reopened dialog
-    const handleClose = () => { if (!dialog.open) onCloseRef.current() }
+    const handleClose = () => {
+      document.body.style.overflow = prev
+      if (!dialog.open) onCloseRef.current()
+    }
     dialog.addEventListener('close', handleClose)
     return () => {
       dialog.removeEventListener('close', handleClose)
+      document.body.style.overflow = prev
       if (dialog.open) dialog.close()
     }
   }, [])
