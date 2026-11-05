@@ -59,7 +59,7 @@ export function ConfirmModal({ title, body, confirmLabel, onConfirm, onClose }: 
             Annulla
           </button>
           <button ref={confirmRef} type="button" className={styles.primaryBtn}
-                  onClick={onConfirm}>
+                  onClick={() => { dialogRef.current?.close(); onConfirm() }}>
             {confirmLabel}
           </button>
         </div>

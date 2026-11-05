@@ -45,6 +45,7 @@ test('confirm button calls onConfirm', async () => {
   render(<ConfirmModal {...defaults} onConfirm={onConfirm} />)
   await userEvent.click(screen.getByRole('button', { name: 'Esci' }))
   expect(onConfirm).toHaveBeenCalled()
+  expect(HTMLDialogElement.prototype.close).toHaveBeenCalled()
 })
 
 test('scrim click (click on dialog element itself) calls close', async () => {
