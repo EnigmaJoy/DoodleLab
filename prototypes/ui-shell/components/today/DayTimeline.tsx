@@ -16,6 +16,8 @@ import { GroupItemCard } from '@/components/CalendarView'
 import { ConfirmAction, useAnnounce, useModal, useRepository } from './shared'
 import { BlockActionsDialog, NewBlockDialog, describeBlockError } from './TimeBlockDialogs'
 import { BellIcon, CalendarIcon, CloseIcon, GripIcon, MoreIcon, NoteIcon, PlusIcon } from './icons'
+import { IconButton } from '@/design-system/IconButton'
+import modalStyles from '@/design-system/Modal.module.css'
 
 /** Single source of the timeline scale: rendering and pointer mapping share it */
 const HOUR_PX   = 56
@@ -539,34 +541,41 @@ function EntryDialog({ entry, onClose }: { entry: TimelineEntry; onClose: () => 
   const ref = useModal(onClose)
   if (entry.kind === 'block') return null
   return (
-    <dialog ref={ref} className="today-dialog" aria-labelledby="today-entry-dialog-title">
-      <div className="today-dialog-header">
-        <div>
-          <p className="today-group-label">{KIND_LABEL[entry.kind]}</p>
-          <h2 id="today-entry-dialog-title" className="today-card-title">{entry.title}</h2>
+    <dialog
+      ref={ref}
+      role="dialog"
+      aria-modal="true"
+      className={`${modalStyles.dialog} ${modalStyles.medium}`}
+      aria-labelledby="today-entry-dialog-title"
+      onClick={e => { if (e.target === e.currentTarget) ref.current?.close() }}
+    >
+      <div className={modalStyles.card} onClick={e => e.stopPropagation()}>
+        <div className={modalStyles.header}>
+          <div className={modalStyles.headerText}>
+            <p className={modalStyles.eyebrow}>{KIND_LABEL[entry.kind]}</p>
+            <h2 id="today-entry-dialog-title" className={modalStyles.title}>{entry.title}</h2>
+          </div>
+          <IconButton label="Chiudi" icon={<CloseIcon />} onClick={() => ref.current?.close()} />
         </div>
-        <button type="button" className="today-icon-btn" onClick={() => ref.current?.close()} aria-label="Chiudi">
-          <CloseIcon />
-        </button>
-      </div>
-      <div className="today-dialog-body">
-        <GroupItemCard item={entry.source} />
-        <ConfirmAction
-          label="Elimina"
-          question={
-            entry.kind === 'reminder'
-              ? 'Eliminare questo promemoria?'
-              : entry.kind === 'note'
-              ? 'Eliminare questa nota?'
-              : 'Eliminare questo evento?'
-          }
-          confirmLabel="Elimina"
-          onConfirm={() => {
-            getCalendarRepository().deleteItem(entry.source.id)
-            onClose()
-          }}
-        />
-        <Link href="/calendar" className="today-text-btn">Apri il Calendario</Link>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <GroupItemCard item={entry.source} />
+          <ConfirmAction
+            label="Elimina"
+            question={
+              entry.kind === 'reminder'
+                ? 'Eliminare questo promemoria?'
+                : entry.kind === 'note'
+                ? 'Eliminare questa nota?'
+                : 'Eliminare questo evento?'
+            }
+            confirmLabel="Elimina"
+            onConfirm={() => {
+              getCalendarRepository().deleteItem(entry.source.id)
+              onClose()
+            }}
+          />
+          <Link href="/calendar" className="today-text-btn">Apri il Calendario</Link>
+        </div>
       </div>
     </dialog>
   )
