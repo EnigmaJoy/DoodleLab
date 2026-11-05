@@ -8,6 +8,7 @@ import { LOCALE } from '@/lib/constants'
 import { useNote, useNoteContext } from '@/lib/note-context'
 import { NoteHeader } from './NoteHeader'
 import { StickerList } from './StickerList'
+import { DeleteConfirmModal } from '@/design-system/DeleteConfirmModal'
 import { POST_IT_COLORS, STICKER_CONFIG, formatNoteDate } from '@/lib/note-utils'
 import type { NoteColor, StickerKey } from '@/lib/note-types'
 
@@ -188,51 +189,25 @@ export function NoteDetail({ id }: NoteDetailProps) {
                 <span>Duplica</span>
               </button>
 
-              {/* Elimina — inline confirm, no window.confirm */}
-              {confirmDelete ? (
-                <div
-                  style={{
-                    gridColumn: '1 / -1',
-                    background: 'rgba(255,220,220,0.95)',
-                    borderRadius: '12px',
-                    padding: '12px 14px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px',
-                  }}
-                  role="alertdialog"
-                  aria-label="Conferma eliminazione"
-                >
-                  <p style={{ fontSize: '0.875rem', color: '#7f1d1d', margin: 0 }}>
-                    Eliminare questa nota? Non è possibile annullare.
-                  </p>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      className="note-tool-btn note-tool-btn--destructive"
-                      onClick={handleDeleteConfirm}
-                      style={{ flex: 1 }}
-                    >
-                      Sì, elimina
-                    </button>
-                    <button
-                      className="note-tool-btn"
-                      onClick={handleDeleteCancel}
-                      style={{ flex: 1 }}
-                    >
-                      Annulla
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  className="note-tool-btn note-tool-btn--destructive"
-                  onClick={handleDeleteRequest}
-                  aria-label="Elimina nota"
-                >
-                  <span className="note-tool-icon" aria-hidden="true">🗑️</span>
-                  <span>Elimina</span>
-                </button>
+              {/* Elimina — full modal confirm */}
+              {confirmDelete && (
+                <DeleteConfirmModal
+                  title="Eliminare questa nota?"
+                  chip={note.title || 'Nota senza titolo'}
+                  body="La nota viene rimossa dalla lavagna. Non è possibile annullare."
+                  confirmLabel="Elimina"
+                  onConfirm={handleDeleteConfirm}
+                  onClose={handleDeleteCancel}
+                />
               )}
+              <button
+                className="note-tool-btn note-tool-btn--destructive"
+                onClick={handleDeleteRequest}
+                aria-label="Elimina nota"
+              >
+                <span className="note-tool-icon" aria-hidden="true">🗑️</span>
+                <span>Elimina</span>
+              </button>
             </div>
           </div>
 
