@@ -10,9 +10,9 @@ interface ExitModalProps {
 }
 
 export function ExitModal({ isOpen, onClose, onConfirm }: ExitModalProps) {
-  if (!isOpen) return null
   return (
     <ConfirmModal
+      isOpen={isOpen}
       title="Uscire da Agenda?"
       body="Agenda si blocca: per rientrare ti servirà di nuovo il PIN."
       confirmLabel="Esci"

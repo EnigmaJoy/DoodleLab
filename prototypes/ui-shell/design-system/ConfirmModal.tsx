@@ -5,6 +5,7 @@ import { useEffect, useId, useRef } from 'react'
 import styles from './Modal.module.css'
 
 interface ConfirmModalProps {
+  isOpen?:      boolean   // defaults true; pass false to pre-mount without opening
   title:        string
   body:         string
   confirmLabel: string
@@ -12,7 +13,7 @@ interface ConfirmModalProps {
   onClose:      () => void
 }
 
-export function ConfirmModal({ title, body, confirmLabel, onConfirm, onClose }: ConfirmModalProps) {
+export function ConfirmModal({ isOpen = true, title, body, confirmLabel, onConfirm, onClose }: ConfirmModalProps) {
   const dialogRef    = useRef<HTMLDialogElement>(null)
   const confirmRef   = useRef<HTMLButtonElement>(null)
   const onCloseRef   = useRef(onClose)
@@ -22,9 +23,11 @@ export function ConfirmModal({ title, body, confirmLabel, onConfirm, onClose }: 
 
   useEffect(() => {
     const dialog = dialogRef.current
-    if (!dialog) return
-    dialog.showModal()
-    confirmRef.current?.focus()
+    if (!dialog || !isOpen) return
+    if (!dialog.open) {
+      dialog.showModal()
+      confirmRef.current?.focus()
+    }
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     const handleClose = () => { document.body.style.overflow = prev; onCloseRef.current() }
@@ -34,7 +37,7 @@ export function ConfirmModal({ title, body, confirmLabel, onConfirm, onClose }: 
       document.body.style.overflow = prev
       if (dialog.open) dialog.close()
     }
-  }, [])
+  }, [isOpen])
 
   function handleScrim(e: React.MouseEvent<HTMLDialogElement>) {
     if (e.target === e.currentTarget) dialogRef.current?.close()
