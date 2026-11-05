@@ -20,6 +20,13 @@
   z-index:     100;
 }
 
+/* Restore the browser default: hide dialog when not open.
+   .dialog { display: flex } alone would override the UA stylesheet's
+   dialog:not([open]) { display: none }, making a closed dialog visible. */
+.dialog:not([open]) {
+  display: none;
+}
+
 .dialog::backdrop {
   background:               rgba(10, 10, 40, 0.45);
   backdrop-filter:          blur(14px);
