@@ -1,7 +1,7 @@
 // components/today/DayTimeline.tsx
 'use client'
 
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import Link from 'next/link'
 import { getCalendarRepository } from '@/lib/calendar-repository'
 import { getDailyRepository } from '@/lib/oggi/daily-repository'
@@ -539,6 +539,7 @@ function EntryContent({ entry }: { entry: Exclude<TimelineEntry, BlockTimelineEn
 /** Read-only detail for calendar items, using Calendario's own card */
 function EntryDialog({ entry, onClose }: { entry: TimelineEntry; onClose: () => void }) {
   const ref = useModal(onClose)
+  const titleId = useId()
   if (entry.kind === 'block') return null
   return (
     <dialog
@@ -546,14 +547,14 @@ function EntryDialog({ entry, onClose }: { entry: TimelineEntry; onClose: () => 
       role="dialog"
       aria-modal="true"
       className={`${modalStyles.dialog} ${modalStyles.medium}`}
-      aria-labelledby="today-entry-dialog-title"
+      aria-labelledby={titleId}
       onClick={e => { if (e.target === e.currentTarget) ref.current?.close() }}
     >
       <div className={modalStyles.card} onClick={e => e.stopPropagation()}>
         <div className={modalStyles.header}>
           <div className={modalStyles.headerText}>
             <p className={modalStyles.eyebrow}>{KIND_LABEL[entry.kind]}</p>
-            <h2 id="today-entry-dialog-title" className={modalStyles.title}>{entry.title}</h2>
+            <h2 id={titleId} className={modalStyles.title}>{entry.title}</h2>
           </div>
           <IconButton label="Chiudi" icon={<CloseIcon />} onClick={() => ref.current?.close()} />
         </div>
