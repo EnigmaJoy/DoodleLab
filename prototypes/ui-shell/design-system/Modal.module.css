@@ -1,0 +1,409 @@
+/* design-system/Modal.module.css */
+
+/* ── Dialog (full-viewport to capture scrim clicks) ─────── */
+
+.dialog {
+  position:    fixed;
+  inset:       0;
+  margin:      0;
+  padding:     0;
+  border:      none;
+  background:  transparent;
+  width:       100%;
+  height:      100%;
+  max-width:   100%;
+  max-height:  100%;
+  display:     flex;
+  align-items:     center;
+  justify-content: center;
+  overflow:    visible;
+  z-index:     100;
+}
+
+.dialog::backdrop {
+  background:               rgba(10, 10, 40, 0.45);
+  backdrop-filter:          blur(14px);
+  -webkit-backdrop-filter:  blur(14px);
+  animation: scrimIn 200ms ease both;
+}
+
+@keyframes scrimIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Card ───────────────────────────────────────────────── */
+
+.card {
+  position:        relative;
+  display:         flex;
+  flex-direction:  column;
+  gap:             14px;
+  padding:         28px;
+  border-radius:   28px;
+  color:           #ffffff;
+
+  background:
+    linear-gradient(160deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.04) 100%),
+    color-mix(in srgb, var(--gradient-start, #581c87) 78%, transparent);
+  backdrop-filter:         blur(40px) saturate(170%);
+  -webkit-backdrop-filter: blur(40px) saturate(170%);
+  box-shadow:
+    inset 0 0 30px rgba(255,255,255,0.10),
+    0 30px 80px rgba(10,10,50,0.40);
+
+  animation: cardIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@supports not (color-mix(in srgb, red 50%, transparent)) {
+  .card { background: rgba(60, 20, 90, 0.85); }
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card             { animation: none; }
+  .dialog::backdrop { animation: none; }
+}
+
+/* ── Sizes ──────────────────────────────────────────────── */
+
+.small  { }
+.medium { }
+
+.small  .card { width: 420px; max-width: calc(100vw - 32px); }
+.medium .card { width: 500px; max-width: calc(100vw - 32px); }
+
+/* ── Header ─────────────────────────────────────────────── */
+
+.header {
+  display:     flex;
+  align-items: flex-start;
+  gap:         8px;
+}
+
+.headerText {
+  flex:      1;
+  min-width: 0;
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+}
+
+.eyebrow {
+  font-size:      11px;
+  font-weight:    700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color:          var(--glow-3, rgba(255, 200, 180, 0.9));
+  margin:         0;
+}
+
+.title {
+  font-size:   22px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin:      0;
+  color:       #ffffff;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  font-size:   14px;
+  font-weight: 500;
+  color:       rgba(255, 255, 255, 0.82);
+  margin:      0;
+  margin-top:  2px;
+}
+
+/* ── Body ───────────────────────────────────────────────── */
+
+.body {
+  font-size:   15px;
+  font-weight: 500;
+  line-height: 1.5;
+  color:       rgba(255, 255, 255, 0.92);
+  margin:      0;
+}
+
+.bodySmall {
+  font-size:   14px;
+  font-weight: 500;
+  color:       rgba(255, 255, 255, 0.88);
+  line-height: 1.5;
+  margin:      0;
+}
+
+.description {
+  font-size:   14px;
+  font-weight: 500;
+  color:       rgba(255, 255, 255, 0.82);
+  line-height: 1.5;
+  margin:      0;
+}
+
+/* ── Footer ─────────────────────────────────────────────── */
+
+.footer {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   10px;
+  margin-top:            4px;
+}
+
+.cancelBtn {
+  height:        48px;
+  border-radius: 24px;
+  border:        none;
+  cursor:        pointer;
+  font-family:   inherit;
+  font-size:     15px;
+  font-weight:   600;
+  color:         #ffffff;
+  background:    rgba(255, 255, 255, 0.16);
+  transition:    background 150ms ease;
+}
+
+.cancelBtn:hover        { background: rgba(255, 255, 255, 0.22); }
+.cancelBtn:focus-visible { outline: 2px solid #ffffff; outline-offset: 3px; }
+
+.primaryBtn {
+  height:        48px;
+  border-radius: 24px;
+  border:        none;
+  cursor:        pointer;
+  font-family:   inherit;
+  font-size:     15px;
+  font-weight:   700;
+  color:         var(--gradient-start, #581c87);
+  background:    #ffffff;
+  box-shadow:    0 8px 22px rgba(10, 10, 50, 0.22);
+  transition:    opacity 150ms ease;
+}
+
+.primaryBtn:hover           { opacity: 0.92; }
+.primaryBtn:focus-visible   { outline: 2px solid #ffffff; outline-offset: 3px; }
+.primaryBtn:disabled        { opacity: 0.5; cursor: not-allowed; }
+
+.dangerBtn {
+  height:        48px;
+  border-radius: 24px;
+  border:        none;
+  cursor:        pointer;
+  font-family:   inherit;
+  font-size:     15px;
+  font-weight:   700;
+  color:         #ffffff;
+  background:    #DC2626;
+  transition:    background 150ms ease;
+}
+
+.dangerBtn:hover        { background: #b91c1c; }
+.dangerBtn:focus-visible { outline: 2px solid #ffffff; outline-offset: 3px; }
+
+/* ── Form field ─────────────────────────────────────────── */
+
+.field {
+  height:        52px;
+  border-radius: 16px;
+  padding:       0 16px;
+  border:        none;
+  background:    rgba(255, 255, 255, 0.14);
+  color:         #ffffff;
+  font-family:   inherit;
+  font-size:     16px;
+  font-weight:   500;
+  width:         100%;
+  box-sizing:    border-box;
+  display:       block;
+}
+
+.field::placeholder  { color: rgba(255, 255, 255, 0.60); }
+.field:focus         { outline: none; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4); }
+.field:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+
+.timeField { width: auto; min-width: 112px; }
+
+/* ── Form row (inline fields: time + switch) ────────────── */
+
+.formRow {
+  display:     flex;
+  align-items: center;
+  flex-wrap:   wrap;
+  gap:         10px 14px;
+}
+
+.fieldLabel {
+  font-size:   14px;
+  font-weight: 500;
+  color:       rgba(255, 255, 255, 0.82);
+  flex-shrink: 0;
+}
+
+.hint {
+  font-size:   14px;
+  font-weight: 500;
+  color:       rgba(255, 255, 255, 0.65);
+  margin:      0;
+}
+
+/* ── Toggle switch ──────────────────────────────────────── */
+
+.switchRow {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+  margin-left: auto;
+}
+
+.switchLabel {
+  font-size:   15px;
+  font-weight: 500;
+  color:       rgba(255, 255, 255, 0.88);
+}
+
+.switchBtn {
+  width:         44px;
+  height:        24px;
+  border-radius: 12px;
+  border:        none;
+  cursor:        pointer;
+  padding:       2px;
+  position:      relative;
+  flex-shrink:   0;
+  background:    rgba(255, 255, 255, 0.20);
+  transition:    background 200ms ease;
+}
+
+.switchBtn[aria-checked="true"]  { background: rgba(255, 255, 255, 0.70); }
+.switchBtn:focus-visible          { outline: 2px solid #ffffff; outline-offset: 2px; }
+
+.switchThumb {
+  display:        block;
+  width:          20px;
+  height:         20px;
+  border-radius:  50%;
+  background:     #ffffff;
+  position:       absolute;
+  top:            2px;
+  left:           2px;
+  transition:     transform 200ms ease;
+  pointer-events: none;
+}
+
+.switchBtn[aria-checked="true"] .switchThumb {
+  transform:  translateX(20px);
+  background: #333333;
+}
+
+/* ── Action list ────────────────────────────────────────── */
+
+.actionList {
+  display:        flex;
+  flex-direction: column;
+  gap:            6px;
+}
+
+.actionItem {
+  display:     flex;
+  align-items: center;
+  gap:         12px;
+  min-height:  52px;
+  padding:     0 16px;
+  border-radius: 16px;
+  border:      none;
+  background:  rgba(255, 255, 255, 0.10);
+  color:       #ffffff;
+  font-family: inherit;
+  font-size:   15px;
+  font-weight: 600;
+  text-align:  left;
+  cursor:      pointer;
+  transition:  background 150ms ease;
+  width:       100%;
+}
+
+.actionItem:hover        { background: rgba(255, 255, 255, 0.16); }
+.actionItem:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+
+.actionItemDanger {
+  background: rgba(255, 255, 255, 0.06);
+  color:      #FCA5A5;
+  margin-top: 8px;
+}
+
+.actionItemDanger:hover { background: rgba(255, 255, 255, 0.10); }
+
+.actionItemDanger .actionIcon { color: #FCA5A5; }
+
+.actionIcon {
+  display:    inline-flex;
+  flex-shrink: 0;
+}
+
+.actionText {
+  display:        flex;
+  flex-direction: column;
+}
+
+.actionNote {
+  font-size:   12px;
+  font-weight: 500;
+  color:       rgba(255, 255, 255, 0.65);
+}
+
+/* ── Delete confirm specifics ──────────────────────────── */
+
+.deleteContent {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            12px;
+  text-align:     center;
+}
+
+.deleteIconWrap {
+  width:           52px;
+  height:          52px;
+  border-radius:   50%;
+  background:      rgba(248, 113, 113, 0.20);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  color:           #FCA5A5;
+  flex-shrink:     0;
+}
+
+.chip {
+  height:        34px;
+  border-radius: 17px;
+  padding:       0 14px;
+  background:    rgba(255, 255, 255, 0.14);
+  color:         rgba(255, 255, 255, 0.88);
+  font-size:     14px;
+  font-weight:   500;
+  display:       inline-flex;
+  align-items:   center;
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  max-width:     100%;
+}
+
+/* ── Feedback / error ───────────────────────────────────── */
+
+.feedback {
+  font-size:   14px;
+  color:       rgba(255, 255, 255, 0.82);
+  min-height:  1.5em;
+  margin:      0;
+}
+
+.error {
+  font-size: 14px;
+  color:     #FCA5A5;
+  margin:    0;
+}
