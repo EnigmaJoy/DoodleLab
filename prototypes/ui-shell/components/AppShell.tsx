@@ -49,7 +49,7 @@ export function AppShell({ initialView }: AppShellProps) {
         isOpen={view === 'MENU_OPEN'}
         onOpen={() => setView('MENU_OPEN')}
         onClose={() => setView('MENU_CLOSED')}
-        onExitRequest={() => { setView('MENU_CLOSED'); setExitModal(true) }}
+        onExitRequest={() => setExitModal(true)}
         firstItemRef={firstItemRef}
         firstFallbackItemRef={firstFallbackItemRef}
         centerButtonRef={centerButtonRef}
