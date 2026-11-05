@@ -5,6 +5,8 @@
 'use client'
 
 import { useEffect, useId, useRef, useState } from 'react'
+import { IconButton } from '@/design-system/IconButton'
+import modalStyles from '@/design-system/Modal.module.css'
 import { getDailyRepository, type BlockError, type BlockResult } from '@/lib/oggi/daily-repository'
 import {
   DEFAULT_BLOCK_MINUTES, DEFAULT_BLOCK_TITLE, describePlacementError, durationLabel, fixedIntervals,
@@ -69,37 +71,40 @@ function ScheduleForm({ day, initial, showTitle, submitLabel, hint, onSubmit, on
   }
 
   return (
-    <form onSubmit={submit} className="today-dialog-body" noValidate>
-      {hint && <p className="today-muted">{hint}</p>}
+    <form onSubmit={submit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      {hint && <p className={modalStyles.hint}>{hint}</p>}
       {showTitle && (
-        <label className="today-field">
+        <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.82)' }}>
           Titolo
-          <input className="today-input" value={title} data-draft
+          <input className={modalStyles.field} value={title} data-draft
                  onChange={e => { setTitle(e.target.value); setSubmitError(null) }}
                  placeholder={DEFAULT_BLOCK_TITLE} />
         </label>
       )}
-      <div className="today-add-form-row">
-        <label className="today-field">
+      <div className={modalStyles.formRow}>
+        <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.82)' }}>
           Inizio
-          <input type="time" className="today-input today-input--time" value={start} step={900} required
-                 aria-invalid={!!message} aria-describedby={errorId} autoFocus={!showTitle}
+          <input type="time" className={`${modalStyles.field} ${modalStyles.timeField}`}
+                 value={start} step={900} required
+                 aria-invalid={!!message} aria-describedby={errorId}
+                 autoFocus={!showTitle}
                  onChange={e => { setStart(e.target.value); setSubmitError(null) }} />
         </label>
-        <label className="today-field">
+        <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.82)' }}>
           Durata
-          <select className="today-input" value={duration} aria-describedby={errorId}
+          <select className={modalStyles.field} style={{ height: '52px', borderRadius: '16px', cursor: 'pointer' }}
+                  value={duration} aria-describedby={errorId}
                   onChange={e => { setDuration(Number(e.target.value)); setSubmitError(null) }}>
             {options.map(d => <option key={d} value={d}>{d} min</option>)}
           </select>
         </label>
       </div>
-      <p id={errorId} className="today-block-feedback" role="status">
+      <p id={errorId} className={modalStyles.feedback} role="status">
         {message ?? (startMinutes !== null ? `Dalle ${slotLabel({ start: startMinutes, duration }).replace(' - ', ' alle ')}` : '')}
       </p>
-      <div className="today-form-actions">
-        <button type="button" className="today-btn today-btn--quiet" onClick={onCancel}>Annulla</button>
-        <button type="submit" className="today-btn" disabled={!!liveError}>{submitLabel}</button>
+      <div className={modalStyles.footer}>
+        <button type="button" className={modalStyles.cancelBtn} onClick={onCancel}>Annulla</button>
+        <button type="submit" className={modalStyles.primaryBtn} disabled={!!liveError}>{submitLabel}</button>
       </div>
     </form>
   )
@@ -107,14 +112,12 @@ function ScheduleForm({ day, initial, showTitle, submitLabel, hint, onSubmit, on
 
 function DialogHeader({ titleId, label, title, onClose }: { titleId: string; label?: string; title: string; onClose: () => void }) {
   return (
-    <div className="today-dialog-header">
-      <div>
-        {label && <p className="today-group-label">{label}</p>}
-        <h2 id={titleId} className="today-card-title">{title}</h2>
+    <div className={modalStyles.header}>
+      <div className={modalStyles.headerText}>
+        {label && <p className={modalStyles.eyebrow}>{label}</p>}
+        <h2 id={titleId} className={modalStyles.title}>{title}</h2>
       </div>
-      <button type="button" className="today-icon-btn" onClick={onClose} aria-label="Chiudi">
-        <CloseIcon />
-      </button>
+      <IconButton label="Chiudi" icon={<CloseIcon />} onClick={onClose} />
     </div>
   )
 }
@@ -137,21 +140,30 @@ export function NewBlockDialog({ day, isToday, now, task, onClose }: NewBlockDia
   const close    = () => ref.current?.close()
 
   return (
-    <dialog ref={ref} className="today-dialog" aria-labelledby={titleId}>
-      <DialogHeader titleId={titleId} label={task ? 'Pianifica un blocco' : undefined}
-                    title={task ? task.title : 'Nuovo blocco flessibile'} onClose={close} />
-      <ScheduleForm
-        day={day}
-        initial={{ start: suggestedStart(day, isToday, now), duration: DEFAULT_BLOCK_MINUTES, title: task?.title ?? '' }}
-        showTitle
-        submitLabel="Crea blocco"
-        hint={task
-          ? "Il blocco resta collegato all'attività: l'attività non cambia e non diventa un appuntamento."
-          : 'Puoi anche tenere premuto su un orario libero della giornata.'}
-        onSubmit={(slot, title) => getDailyRepository().createTimeBlock(day, { ...slot, title, taskId: task?.id })}
-        onDone={({ block }) => { announce(`Blocco creato: ${block.title}, ${slotLabel(block)}`); close() }}
-        onCancel={close}
-      />
+    <dialog
+      ref={ref}
+      role="dialog"
+      aria-modal="true"
+      className={`${modalStyles.dialog} ${modalStyles.medium}`}
+      aria-labelledby={titleId}
+      onClick={e => { if (e.target === e.currentTarget) close() }}
+    >
+      <div className={modalStyles.card} onClick={e => e.stopPropagation()}>
+        <DialogHeader titleId={titleId} label={task ? 'Pianifica un blocco' : undefined}
+                      title={task ? task.title : 'Nuovo blocco flessibile'} onClose={close} />
+        <ScheduleForm
+          day={day}
+          initial={{ start: suggestedStart(day, isToday, now), duration: DEFAULT_BLOCK_MINUTES, title: task?.title ?? '' }}
+          showTitle
+          submitLabel="Crea blocco"
+          hint={task
+            ? "Il blocco resta collegato all'attività: l'attività non cambia e non diventa un appuntamento."
+            : 'Puoi anche tenere premuto su un orario libero della giornata.'}
+          onSubmit={(slot, title) => getDailyRepository().createTimeBlock(day, { ...slot, title, taskId: task?.id })}
+          onDone={({ block }) => { announce(`Blocco creato: ${block.title}, ${slotLabel(block)}`); close() }}
+          onCancel={close}
+        />
+      </div>
     </dialog>
   )
 }
@@ -258,113 +270,131 @@ export function BlockActionsDialog({ blockId, isPast, isToday, now, initialView 
   const running = timer.state.status === 'running'
 
   return (
-    <dialog ref={ref} className="today-dialog today-dialog--task today-dialog--block" data-view={view}
-            aria-labelledby={confirming ? `${titleId}-q` : titleId}
-            aria-describedby={confirming ? `${titleId}-detail` : descId}
-            onKeyDown={e => {
-              // Escape steps back from an editor or the confirmation first
-              if (e.key !== 'Escape' || view === 'menu') return
-              e.preventDefault()
-              back()
-            }}>
-      {!confirming && (
-        <div className="today-dialog-header">
-          <div className="today-dialog-heading">
-            <p className="today-block-kind">Blocco flessibile</p>
-            <h2 id={titleId} className="today-dialog-title">{block.title}</h2>
-            <p id={descId} className="today-block-when">
-              {isToday
-                ? <span className="sr-only">{formatDayHeading(block.day)}, </span>
-                : <>{formatDayHeading(block.day)} · </>}
-              {slotLabel(block)} · {durationLabel(block)}
-              {isPast && <span className="today-muted"> · orario passato</span>}
-            </p>
-          </div>
-          <button type="button" className="today-icon-btn today-dialog-close" onClick={close} aria-label="Chiudi">
-            <CloseIcon />
-          </button>
-        </div>
-      )}
-
-      <div ref={bodyRef}>
-        {view === 'menu' && (
-          <>
-            <p className="today-block-explain">
-              È tuo e flessibile: non è un appuntamento e non viene inviato a nessun calendario esterno.
-            </p>
-            {task && (
-              <p className="today-block-explain">
-                Collegato all&apos;attività &quot;{task.title}&quot;{task.status === 'done' ? ', già segnata come fatta' : ''}.
+    <dialog
+      ref={ref}
+      role={confirming ? 'alertdialog' : 'dialog'}
+      aria-modal="true"
+      className={`${modalStyles.dialog} ${modalStyles.medium}`}
+      aria-labelledby={confirming ? `${titleId}-q` : titleId}
+      aria-describedby={confirming ? `${titleId}-detail` : descId}
+      onClick={e => {
+        if (e.target !== e.currentTarget) return
+        const hasDraft = ref.current?.querySelector('[data-draft]') !== null
+        if (!hasDraft) back()
+      }}
+      onKeyDown={e => {
+        if (e.key !== 'Escape' || view === 'menu') return
+        e.preventDefault()
+        back()
+      }}
+    >
+      <div className={modalStyles.card} onClick={e => e.stopPropagation()}>
+        {!confirming && (
+          <div className={modalStyles.header}>
+            <div className={modalStyles.headerText}>
+              <p className={modalStyles.eyebrow}>Blocco flessibile</p>
+              <h2 id={titleId} className={modalStyles.title}>{block.title}</h2>
+              <p id={descId} className={modalStyles.meta}>
+                {isToday
+                  ? <span className="sr-only">{formatDayHeading(block.day)}, </span>
+                  : <>{formatDayHeading(block.day)} · </>}
+                {slotLabel(block)} · {durationLabel(block)}
+                {isPast && <span style={{ opacity: 0.65 }}> · orario passato</span>}
               </p>
-            )}
-            <div className="today-action-list" role="group" aria-label="Azioni del blocco">
-              {isPast && isToday && (
-                <button type="button" className="today-action-item" data-focus="later" onClick={() => go('later', null)}>
-                  <span className="today-action-icon"><ClockIcon /></span>
-                  Sposta più tardi
-                </button>
-              )}
-              <button type="button" className="today-action-item" data-focus="time" onClick={() => go('time', null)}>
-                <span className="today-action-icon"><ClockIcon /></span>
-                Cambia orario
-              </button>
-              <button type="button" className="today-action-item" data-focus="title" onClick={() => go('title', null)}>
-                <span className="today-action-icon"><PencilIcon /></span>
-                Modifica titolo
-              </button>
-              <button type="button" className="today-action-item" onClick={startTimer}>
-                <span className="today-action-icon"><HourglassIcon /></span>
-                <span className="today-action-text">
-                  Avvia timer da {block.duration} min
-                  {running && <span className="today-action-note">Sostituisce il timer in corso</span>}
-                </span>
-              </button>
-              <button type="button" className="today-action-item today-action-item--danger" data-focus="delete"
-                      onClick={() => go('confirm-delete', 'cancel-delete')}>
-                <span className="today-action-icon"><TrashIcon /></span>
-                Elimina blocco
-              </button>
             </div>
-          </>
-        )}
-
-        {(view === 'time' || view === 'later') && (
-          <ScheduleForm
-            day={block.day}
-            initial={view === 'later'
-              ? { start: suggestedStart(block.day, isToday, now, block.duration), duration: block.duration }
-              : block}
-            showTitle={false}
-            submitLabel="Conferma orario"
-            hint={view === 'later' ? 'Ti propongo il primo orario libero da adesso: puoi cambiarlo.' : undefined}
-            onSubmit={slot => repo.updateTimeBlock(block.id, slot)}
-            onDone={({ block: b }) => done(`${b.title}: ora ${slotLabel(b)}`)}
-            onCancel={back}
-          />
-        )}
-
-        {view === 'title' && <TitleForm block={block} onDone={done} onCancel={back} />}
-
-        {confirming && (
-          <div className="today-block-delete" role="group" aria-labelledby={`${titleId}-q`} aria-describedby={`${titleId}-detail`}>
-            <span className="today-block-delete-icon" aria-hidden="true"><TrashIcon size={22} /></span>
-            <h2 id={`${titleId}-q`} className="today-dialog-title">Eliminare questo blocco?</h2>
-            <p className="today-block-delete-summary">{block.title} · {slotLabel(block)}</p>
-            <p id={`${titleId}-detail`} className="today-block-delete-detail">
-              Il blocco viene tolto dalla tua giornata. Appuntamenti e attività restano come sono.
-            </p>
-            {error && <p className="today-block-delete-error" role="alert">{error}</p>}
-            <div className="today-block-delete-actions">
-              {/* Safe default: focus lands on Annulla */}
-              <button type="button" className="today-btn" data-focus="cancel-delete" onClick={back}>
-                Annulla
-              </button>
-              <button type="button" className="today-btn today-btn--danger" onClick={confirmDelete}>
-                {error ? 'Riprova' : 'Elimina'}
-              </button>
-            </div>
+            <IconButton label="Chiudi" icon={<CloseIcon />} onClick={close} />
           </div>
         )}
+
+        <div ref={bodyRef}>
+          {view === 'menu' && (
+            <>
+              <p className={modalStyles.description}>
+                È tuo e flessibile: non è un appuntamento e non viene inviato a nessun calendario esterno.
+              </p>
+              {task && (
+                <p className={modalStyles.description}>
+                  Collegato all&apos;attività &quot;{task.title}&quot;{task.status === 'done' ? ', già segnata come fatta' : ''}.
+                </p>
+              )}
+              <div className={modalStyles.actionList} role="group" aria-label="Azioni del blocco">
+                {isPast && isToday && (
+                  <button type="button" className={modalStyles.actionItem}
+                          data-focus="later" onClick={() => go('later', null)}>
+                    <span className={modalStyles.actionIcon}><ClockIcon /></span>
+                    Sposta più tardi
+                  </button>
+                )}
+                <button type="button" className={modalStyles.actionItem}
+                        data-focus="time" onClick={() => go('time', null)}>
+                  <span className={modalStyles.actionIcon}><ClockIcon /></span>
+                  Cambia orario
+                </button>
+                <button type="button" className={modalStyles.actionItem}
+                        data-focus="title" onClick={() => go('title', null)}>
+                  <span className={modalStyles.actionIcon}><PencilIcon /></span>
+                  Modifica titolo
+                </button>
+                <button type="button" className={modalStyles.actionItem}
+                        onClick={startTimer}>
+                  <span className={modalStyles.actionIcon}><HourglassIcon /></span>
+                  <span className={modalStyles.actionText}>
+                    Avvia timer da {block.duration} min
+                    {running && <span className={modalStyles.actionNote}>Sostituisce il timer in corso</span>}
+                  </span>
+                </button>
+                <button type="button"
+                        className={`${modalStyles.actionItem} ${modalStyles.actionItemDanger}`}
+                        data-focus="delete"
+                        onClick={() => go('confirm-delete', 'cancel-delete')}>
+                  <span className={modalStyles.actionIcon}><TrashIcon /></span>
+                  Elimina blocco
+                </button>
+              </div>
+            </>
+          )}
+
+          {(view === 'time' || view === 'later') && (
+            <ScheduleForm
+              day={block.day}
+              initial={view === 'later'
+                ? { start: suggestedStart(block.day, isToday, now, block.duration), duration: block.duration }
+                : block}
+              showTitle={false}
+              submitLabel="Conferma orario"
+              hint={view === 'later' ? 'Ti propongo il primo orario libero da adesso: puoi cambiarlo.' : undefined}
+              onSubmit={slot => repo.updateTimeBlock(block.id, slot)}
+              onDone={({ block: b }) => done(`${b.title}: ora ${slotLabel(b)}`)}
+              onCancel={back}
+            />
+          )}
+
+          {view === 'title' && <TitleForm block={block} onDone={done} onCancel={back} />}
+
+          {confirming && (
+            <div className={modalStyles.deleteContent}>
+              <div className={modalStyles.deleteIconWrap} aria-hidden="true">
+                <TrashIcon size={22} />
+              </div>
+              <h2 id={`${titleId}-q`} className={modalStyles.title}>Eliminare questo blocco?</h2>
+              <span className={modalStyles.chip}>{block.title} · {slotLabel(block)}</span>
+              <p id={`${titleId}-detail`} className={modalStyles.body}>
+                Il blocco viene tolto dalla tua giornata. Appuntamenti e attività restano come sono.
+              </p>
+              {error && <p className={modalStyles.error} role="alert">{error}</p>}
+              <div className={modalStyles.footer}>
+                <button type="button" className={modalStyles.cancelBtn}
+                        data-focus="cancel-delete" onClick={back}>
+                  Annulla
+                </button>
+                <button type="button" className={modalStyles.dangerBtn}
+                        onClick={confirmDelete}>
+                  {error ? 'Riprova' : 'Elimina'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </dialog>
   )
@@ -383,16 +413,16 @@ function TitleForm({ block, onDone, onCancel }: { block: TimeBlock; onDone: (m: 
   }
 
   return (
-    <form onSubmit={submit} className="today-dialog-body">
-      <label className="today-field">
+    <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '14px', fontWeight: 500, color: 'rgba(255,255,255,0.82)' }}>
         Titolo
-        <input className="today-input" value={title} autoFocus data-draft
+        <input className={modalStyles.field} value={title} autoFocus data-draft
                onChange={e => { setTitle(e.target.value); setError(null) }} placeholder={DEFAULT_BLOCK_TITLE} />
       </label>
-      <p className="today-block-feedback" role="status">{error ?? ''}</p>
-      <div className="today-form-actions">
-        <button type="button" className="today-btn today-btn--quiet" onClick={onCancel}>Annulla</button>
-        <button type="submit" className="today-btn">Salva titolo</button>
+      <p className={modalStyles.feedback} role="status">{error ?? ''}</p>
+      <div className={modalStyles.footer}>
+        <button type="button" className={modalStyles.cancelBtn} onClick={onCancel}>Annulla</button>
+        <button type="submit" className={modalStyles.primaryBtn}>Salva titolo</button>
       </div>
     </form>
   )
