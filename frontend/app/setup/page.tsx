@@ -52,7 +52,7 @@ export default function VaultSetupPage() {
 
   // ── Step 1 handlers ──────────────────────────────────────────────────────────
 
-  const continueEnabled = pin.length >= 6 && pin === confirmPin
+  const continueEnabled = pin.length >= 6 && pin.length <= 9 && pin === confirmPin
   const pinMismatch     = confirmPin.length > 0 && pin !== confirmPin
 
   function handleContinua() {
@@ -246,8 +246,9 @@ export default function VaultSetupPage() {
                   id="pin-input"
                   type={showPin ? 'text' : 'password'}
                   value={pin}
-                  onChange={e => setPin(e.target.value)}
-                  placeholder="Minimo 6 caratteri"
+                  onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                  placeholder="6–9 cifre"
+                  inputMode="numeric"
                   style={inputStyle}
                   autoComplete="new-password"
                   data-testid="pin-input"
@@ -263,7 +264,7 @@ export default function VaultSetupPage() {
                 </button>
               </div>
               <span style={hintStyle}>
-                Minimo 6 caratteri · numeri, lettere e simboli sono tutti permessi
+                Solo numeri · minimo 6, massimo 9 cifre
               </span>
             </div>
 
@@ -275,8 +276,9 @@ export default function VaultSetupPage() {
                   id="confirm-pin-input"
                   type={showConfirm ? 'text' : 'password'}
                   value={confirmPin}
-                  onChange={e => setConfirmPin(e.target.value)}
+                  onChange={e => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 9))}
                   placeholder="Ripeti il PIN"
+                  inputMode="numeric"
                   style={inputStyle}
                   autoComplete="new-password"
                   data-testid="confirm-pin-input"
