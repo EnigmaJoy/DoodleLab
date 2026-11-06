@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import Link from 'next/link'
 import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
@@ -55,14 +56,14 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* Footer privacy */}
+        {/* Footer privacy
         <p className="login-privacy">
           Continuando accetti l&apos;
-          <a href="#" className="login-privacy-link" onClick={e => e.preventDefault()}>
+          <Link href="/privacy" className="login-privacy-link">
             informativa sulla privacy
-          </a>
+          </Link>
           {' '}di Agenda.
-        </p>
+        </p>*/}
       </main>
     </div>
   )

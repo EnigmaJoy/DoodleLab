@@ -108,7 +108,7 @@ export function useVaultContext(): VaultContextValue {
 // ── AppGate ───────────────────────────────────────────────────────────────────
 
 const VAULT_PATHS = new Set(['/setup', '/unlock'])
-const AUTH_PATHS  = new Set(['/login'])
+const AUTH_PATHS  = new Set(['/login', '/privacy'])
 
 export function AppGate({ children }: { children: ReactNode }): ReactNode {
   const { data: session, status: authStatus } = useSession()

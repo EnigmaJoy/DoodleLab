@@ -2,6 +2,7 @@
 'use client'
 
 import { type CSSProperties } from 'react'
+import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { usePreferences } from '@/lib/PreferencesContext'
 import { PALETTES } from '@/lib/palettes'
@@ -125,6 +126,11 @@ export function Settings() {
             <span className={styles.accountEmail}>{email}</span>
             <span className={styles.accountChevron} aria-hidden="true">›</span>
           </div>
+
+          {/* Privacy link
+          <Link href="/privacy" className={styles.privacyLink}>
+            Informativa sulla privacy
+          </Link>*/}
         </div>
 
       </div>

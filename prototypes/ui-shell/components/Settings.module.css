@@ -293,6 +293,20 @@
   font-size: 1rem;
 }
 
+/* ── Privacy link ──────────────────────────────────────── */
+
+.privacyLink {
+  font-size:             0.8rem;
+  font-weight:           500;
+  color:                 rgba(255, 255, 255, 0.60);
+  text-decoration:       underline;
+  text-underline-offset: 3px;
+  margin-top:            4px;
+}
+
+.privacyLink:hover         { color: rgba(255, 255, 255, 0.85); }
+.privacyLink:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; border-radius: 2px; }
+
 /* ── Mobile (<= 499px) ─────────────────────────────────── */
 
 @media (max-width: 499px) {
