@@ -97,7 +97,7 @@ function TaskForm({ initial, submitLabel, onSubmit, onDone, onCancel }: TaskForm
       <p id={errorId} className={modalStyles.feedback} role="status">{error ?? ''}</p>
       <div className={modalStyles.footer}>
         <button type="button" className={modalStyles.cancelBtn} onClick={onCancel}>Annulla</button>
-        <button type="submit" className={modalStyles.primaryBtn}>{submitLabel}</button>
+        <button type="submit" className={modalStyles.primaryBtn} disabled={draft.title.trim() === ''}>{submitLabel}</button>
       </div>
     </form>
   )

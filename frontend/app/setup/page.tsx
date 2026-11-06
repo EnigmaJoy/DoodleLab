@@ -45,6 +45,7 @@ export default function VaultSetupPage() {
   const [email,        setEmail]        = useState('')
   const [masterKeyHex, setMasterKeyHex] = useState('')
   const [saved,        setSaved]        = useState(false)
+  const [copied,       setCopied]       = useState(false)
   const [loading,      setLoading]      = useState(false)
   const [error,        setError]        = useState<string | null>(null)
   const [showPin,      setShowPin]      = useState(false)
@@ -64,7 +65,7 @@ export default function VaultSetupPage() {
   // ── Step 2 handlers ──────────────────────────────────────────────────────────
 
   function handleCopy() {
-    navigator.clipboard.writeText(masterKeyHex).catch(() => undefined)
+    navigator.clipboard.writeText(masterKeyHex).then(() => setCopied(true)).catch(() => undefined)
   }
 
   async function handleInizia() {
@@ -91,7 +92,7 @@ export default function VaultSetupPage() {
     padding:        '2rem',
     background:     'linear-gradient(135deg, var(--gradient-start, #581c87), var(--gradient-end, #be123c))',
     color:          'var(--text-primary, #ffffff)',
-    fontFamily:     'system-ui, sans-serif',
+    fontFamily:     'var(--font-figtree, system-ui, sans-serif)',
   }
 
   const cardStyle: React.CSSProperties = {
@@ -127,7 +128,7 @@ export default function VaultSetupPage() {
   const inputStyle: React.CSSProperties = {
     flex:         1,
     padding:      '0.625rem 2.75rem 0.625rem 0.75rem',
-    borderRadius: '0.5rem',
+    borderRadius: '16px',
     border:       '1px solid rgba(255,255,255,0.30)',
     background:   'rgba(255,255,255,0.12)',
     color:        '#ffffff',
@@ -178,31 +179,30 @@ export default function VaultSetupPage() {
   }
 
   const btnPrimaryStyle: React.CSSProperties = {
-    padding:      '0.75rem 1.5rem',
-    borderRadius: '0.5rem',
+    height:       '48px',
+    padding:      '0 1.5rem',
+    borderRadius: '24px',
     border:       'none',
     background:   'var(--btn-surface, rgba(255,255,255,0.90))',
     color:        'var(--btn-label, #1a1a1a)',
     fontWeight:   700,
-    fontSize:     '1rem',
+    fontSize:     '15px',
     cursor:       'pointer',
     transition:   'opacity 150ms ease',
   }
 
   const btnDisabledStyle: React.CSSProperties = {
     ...btnPrimaryStyle,
-    opacity: 0.45,
+    opacity: 0.5,
     cursor:  'not-allowed',
   }
 
   const btnSecondaryStyle: React.CSSProperties = {
     ...btnPrimaryStyle,
-    background: 'rgba(255,255,255,0.18)',
+    background: 'rgba(255,255,255,0.16)',
     color:      '#ffffff',
-    border:     '1px solid rgba(255,255,255,0.35)',
+    border:     'none',
     fontWeight: 600,
-    fontSize:   '0.875rem',
-    padding:    '0.5rem 1rem',
   }
 
   const codeBlockStyle: React.CSSProperties = {
@@ -341,10 +341,11 @@ export default function VaultSetupPage() {
 
             <button
               onClick={handleCopy}
-              style={btnSecondaryStyle}
+              disabled={copied}
+              style={copied ? { ...btnSecondaryStyle, opacity: 0.65, cursor: 'not-allowed' } : btnSecondaryStyle}
               data-testid="copy-btn"
             >
-              Copia
+              {copied ? 'Copiato ✓' : 'Copia'}
             </button>
 
             <label style={{ ...labelStyle, flexDirection: 'row', alignItems: 'center', gap: '0.625rem', cursor: 'pointer' }}>

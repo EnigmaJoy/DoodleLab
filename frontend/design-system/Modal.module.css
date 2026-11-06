@@ -8,7 +8,7 @@
   margin:      0;
   padding:     0;
   border:      none;
-  background:  transparent;
+  background:  rgba(10, 10, 40, 0.45);
   width:       100%;
   height:      100%;
   max-width:   100%;
@@ -18,6 +18,8 @@
   justify-content: center;
   overflow:    visible;
   z-index:     100;
+  backdrop-filter:          blur(14px);
+  -webkit-backdrop-filter:  blur(14px);
 }
 
 /* Restore the browser default: hide dialog when not open.
@@ -386,18 +388,19 @@
 
 .chip {
   height:        34px;
+  line-height:   34px;
   border-radius: 17px;
   padding:       0 14px;
   background:    rgba(255, 255, 255, 0.14);
   color:         rgba(255, 255, 255, 0.88);
   font-size:     14px;
   font-weight:   500;
-  display:       inline-flex;
-  align-items:   center;
+  display:       inline-block;
   white-space:   nowrap;
   overflow:      hidden;
   text-overflow: ellipsis;
   max-width:     100%;
+  vertical-align: middle;
 }
 
 /* ── Feedback / error ───────────────────────────────────── */

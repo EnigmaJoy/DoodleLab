@@ -95,7 +95,7 @@ function ScheduleForm({ day, initial, showTitle, submitLabel, hint, onSubmit, on
           <select className={modalStyles.field} style={{ height: '52px', borderRadius: '16px', cursor: 'pointer' }}
                   value={duration} aria-describedby={errorId}
                   onChange={e => { setDuration(Number(e.target.value)); setSubmitError(null) }}>
-            {options.map(d => <option key={d} value={d}>{d} min</option>)}
+            {options.map(d => <option key={d} value={d} style={{ color: '#1a1a1a', background: '#ffffff' }}>{d} min</option>)}
           </select>
         </label>
       </div>
