@@ -90,7 +90,7 @@ export default function VaultSetupPage() {
     alignItems:     'center',
     justifyContent: 'center',
     padding:        '2rem',
-    background:     'linear-gradient(135deg, var(--gradient-start, #581c87), var(--gradient-end, #be123c))',
+    background:     'linear-gradient(135deg, var(--gradient-start, #1E3A8A), var(--gradient-end, #6D28D9))',
     color:          'var(--text-primary, #ffffff)',
     fontFamily:     'var(--font-figtree, system-ui, sans-serif)',
   }

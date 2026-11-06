@@ -1,5 +1,5 @@
 // app/layout.tsx
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Caveat, Sacramento, Kalam, Figtree } from 'next/font/google'
 import { PaletteSwitcher } from '@/dev/PaletteSwitcher'
 import { DEFAULT_PALETTE_ID } from '@/lib/palettes'
@@ -39,6 +39,12 @@ const figtree = Figtree({
 
 export const metadata: Metadata = {
   title: 'agenda',
+}
+
+export const viewport: Viewport = {
+  width:          'device-width',
+  initialScale:   1,
+  viewportFit:    'cover',
 }
 
 export default function RootLayout({

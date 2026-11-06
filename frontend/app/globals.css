@@ -23,6 +23,18 @@
 
   /* Animation tokens */
   --anim-screen-fade: 350ms;
+
+  /* Glow defaults — match DEFAULT_PALETTE_ID = 2 (Notte e lavanda) */
+  --glow-1: #818CF8;
+  --glow-2: #C084FC;
+  --glow-3: #38BDF8;
+
+  /* AppHeader height — referenced by fixed elements that need to clear it */
+  --app-header-h: 76px;
+}
+
+@media (max-width: 499px) {
+  :root { --app-header-h: 64px; }
 }
 
 /* ============================================================
@@ -32,14 +44,39 @@
    ============================================================ */
 
 /* UI-08: values PROVISIONAL - calibrate against reference tavole */
-[data-palette="1"] { --gradient-start: #581c87; --gradient-end: #be123c; } /* Prugna / Corallo - animation reference */
-[data-palette="2"] { --gradient-start: #3b82f6; --gradient-end: #a855f7; } /* Blu / Viola */
-[data-palette="3"] { --gradient-start: #22c55e; --gradient-end: #0d9488; } /* Verde / Teal */
-[data-palette="4"] { --gradient-start: #dc2626; --gradient-end: #f97316; } /* Cremisi / Arancione */
-[data-palette="5"] { --gradient-start: #1e3a5f; --gradient-end: #2563eb; } /* Navy / Blu */
-[data-palette="6"] { --gradient-start: #7c3aed; --gradient-end: #dc2626; } /* Viola / Rosso */
-[data-palette="7"] { --gradient-start: #65a30d; --gradient-end: #92400e; } /* Oliva / Marrone */
-[data-palette="8"] { --gradient-start: #475569; --gradient-end: #0d9488; } /* Ardesia / Teal */
+/* Each palette defines --gradient-start, --gradient-end and ambient glow tokens. */
+[data-palette="1"] {
+  --gradient-start: #581c87; --gradient-end: #be123c;   /* Prugna / Corallo */
+  --glow-1: #a78bfa; --glow-2: #f9a8d4; --glow-3: #e879f9;
+}
+[data-palette="2"] {
+  --gradient-start: #1E3A8A; --gradient-end: #6D28D9;   /* Notte e lavanda — tavola 04b */
+  --glow-1: #818CF8; --glow-2: #C084FC; --glow-3: #38BDF8;
+}
+[data-palette="3"] {
+  --gradient-start: #22c55e; --gradient-end: #0d9488;   /* Verde / Teal */
+  --glow-1: #86efac; --glow-2: #5eead4; --glow-3: #34d399;
+}
+[data-palette="4"] {
+  --gradient-start: #dc2626; --gradient-end: #f97316;   /* Cremisi / Arancione */
+  --glow-1: #fca5a5; --glow-2: #fdba74; --glow-3: #fb923c;
+}
+[data-palette="5"] {
+  --gradient-start: #1e3a5f; --gradient-end: #2563eb;   /* Navy / Blu */
+  --glow-1: #60a5fa; --glow-2: #93c5fd; --glow-3: #7dd3fc;
+}
+[data-palette="6"] {
+  --gradient-start: #7c3aed; --gradient-end: #dc2626;   /* Viola / Rosso */
+  --glow-1: #c4b5fd; --glow-2: #fca5a5; --glow-3: #f0abfc;
+}
+[data-palette="7"] {
+  --gradient-start: #65a30d; --gradient-end: #92400e;   /* Oliva / Marrone */
+  --glow-1: #bef264; --glow-2: #fcd34d; --glow-3: #a3e635;
+}
+[data-palette="8"] {
+  --gradient-start: #475569; --gradient-end: #0d9488;   /* Ardesia / Teal */
+  --glow-1: #94a3b8; --glow-2: #5eead4; --glow-3: #67e8f9;
+}
 
 /* ============================================================
    BASE RESET
@@ -398,8 +435,9 @@ body {
     var(--gradient-end)
   );
   color: var(--text-primary);
+  /* top safe area handled by AppHeader; keep sides and bottom */
   padding:
-    env(safe-area-inset-top,    0px)
+    0
     env(safe-area-inset-right,  0px)
     env(safe-area-inset-bottom, 0px)
     env(safe-area-inset-left,   0px);
@@ -1053,8 +1091,9 @@ body {
   );
   background-attachment: fixed;
   color: var(--text-primary);
+  /* top safe area handled by AppHeader; keep sides and bottom */
   padding:
-    env(safe-area-inset-top,    0px)
+    0
     env(safe-area-inset-right,  0px)
     env(safe-area-inset-bottom, 0px)
     env(safe-area-inset-left,   0px);
@@ -2110,7 +2149,7 @@ body {
 /* -- Midnight notice (Board 3) -- */
 .today-day-notice {
   position:      fixed;
-  top:           calc(env(safe-area-inset-top, 0px) + 0.75rem);
+  top:           calc(var(--app-header-h) + env(safe-area-inset-top, 0px) + 0.75rem);
   left:          50%;
   transform:     translateX(-50%);
   z-index:       40;
@@ -2188,8 +2227,9 @@ body {
     var(--gradient-end)
   );
   color: var(--text-primary);
+  /* top safe area handled by AppHeader; keep sides and bottom */
   padding:
-    env(safe-area-inset-top,    0px)
+    0
     env(safe-area-inset-right,  0px)
     env(safe-area-inset-bottom, 0px)
     env(safe-area-inset-left,   0px);
@@ -2351,8 +2391,9 @@ body {
     var(--gradient-end)
   );
   color: var(--text-primary);
+  /* top safe area handled by AppHeader; keep sides and bottom */
   padding:
-    env(safe-area-inset-top,    0px)
+    0
     env(safe-area-inset-right,  0px)
     env(safe-area-inset-bottom, 0px)
     env(safe-area-inset-left,   0px);

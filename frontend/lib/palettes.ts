@@ -19,8 +19,8 @@ export const PALETTES: readonly PaletteEntry[] = [
     contrastNotes: ['Welcome text at orange midpoint: measure AA large-text (3:1 minimum)'],
   },
   {
-    id: 2, label: 'Blu / Viola', from: '#3b82f6', to: '#a855f7',
-    provisional: true, referenceBoard: 'Tavola 2', contrastNotes: [],
+    id: 2, label: 'Notte e lavanda', from: '#1E3A8A', to: '#6D28D9',
+    provisional: true, referenceBoard: 'Tavola 04b', contrastNotes: [],
   },
   {
     id: 3, label: 'Verde / Teal', from: '#22c55e', to: '#0d9488',
@@ -55,5 +55,5 @@ export const PALETTES: readonly PaletteEntry[] = [
   },
 ] as const
 
-export const DEFAULT_PALETTE_ID = 1
+export const DEFAULT_PALETTE_ID = 2
 export const PALETTE_COUNT      = 8

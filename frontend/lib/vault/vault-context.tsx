@@ -158,7 +158,7 @@ function GateScreen() {
     <div style={{
       position:   'fixed',
       inset:      0,
-      background: 'linear-gradient(135deg, var(--gradient-start, #581c87), var(--gradient-end, #be123c))',
+      background: 'linear-gradient(135deg, var(--gradient-start, #1E3A8A), var(--gradient-end, #6D28D9))',
     }} />
   )
 }

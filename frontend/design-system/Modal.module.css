@@ -52,9 +52,17 @@
   border-radius:   28px;
   color:           #ffffff;
 
+  /* Responsive height: scroll internally rather than overflow the viewport */
+  max-height:          calc(100vh - 32px);
+  max-height:          calc(100dvh - 32px);
+  overflow-y:          auto;
+  overscroll-behavior: contain;
+  scrollbar-width:     thin;
+  scrollbar-color:     rgba(255,255,255,0.25) transparent;
+
   background:
     linear-gradient(160deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.04) 100%),
-    color-mix(in srgb, var(--gradient-start, #581c87) 78%, transparent);
+    color-mix(in srgb, var(--gradient-start, #1E3A8A) 78%, transparent);
   backdrop-filter:         blur(40px) saturate(170%);
   -webkit-backdrop-filter: blur(40px) saturate(170%);
   box-shadow:
@@ -187,7 +195,7 @@
   font-family:   inherit;
   font-size:     15px;
   font-weight:   700;
-  color:         var(--gradient-start, #581c87);
+  color:         var(--gradient-start, #1E3A8A);
   background:    #ffffff;
   box-shadow:    0 8px 22px rgba(10, 10, 50, 0.22);
   transition:    opacity 150ms ease;
@@ -420,4 +428,98 @@
   font-size: 14px;
   color:     #FCA5A5;
   margin:    0;
+}
+
+/* ── Time picker (replaces input[type="time"] for cross-platform consistency) */
+
+.timePickerTrigger {
+  height:        52px;
+  min-width:     112px;
+  padding:       0 16px;
+  border-radius: 16px;
+  border:        none;
+  background:    rgba(255, 255, 255, 0.14);
+  color:         #ffffff;
+  font-family:   inherit;
+  font-size:     16px;
+  font-weight:   500;
+  cursor:        pointer;
+  text-align:    left;
+  transition:    background 150ms ease;
+}
+
+.timePickerTrigger:hover         { background: rgba(255, 255, 255, 0.20); }
+.timePickerTrigger:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+
+.timePickerTriggerActive {
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.40);
+}
+
+.timePickerPanel {
+  display:        flex;
+  flex-direction: column;
+  gap:            12px;
+  padding:        16px;
+  border-radius:  16px;
+  background:     rgba(255, 255, 255, 0.08);
+  border:         1px solid rgba(255, 255, 255, 0.12);
+}
+
+.timePickerSelects {
+  display:     flex;
+  align-items: flex-end;
+  gap:         8px;
+  flex-wrap:   wrap;
+}
+
+.timePickerSelectLabel {
+  display:        flex;
+  flex-direction: column;
+  gap:            4px;
+}
+
+.timePickerUnit {
+  font-size:      11px;
+  font-weight:    700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color:          rgba(255, 255, 255, 0.55);
+  text-align:     center;
+}
+
+.timePickerSelect {
+  height:        52px;
+  width:         auto;
+  min-width:     80px;
+  padding:       0 12px;
+  border-radius: 16px;
+  border:        none;
+  background:    rgba(255, 255, 255, 0.14);
+  color:         #ffffff;
+  font-family:   inherit;
+  font-size:     16px;
+  font-weight:   500;
+  cursor:        pointer;
+  box-sizing:    border-box;
+  -webkit-appearance: none;
+  appearance:    none;
+}
+
+.timePickerSelect:focus         { outline: none; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.40); }
+.timePickerSelect:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+
+.timePickerSep {
+  font-size:      22px;
+  font-weight:    700;
+  color:          rgba(255, 255, 255, 0.45);
+  padding-bottom: 10px;
+  flex-shrink:    0;
+  user-select:    none;
+}
+
+.timePickerActions {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   10px;
 }

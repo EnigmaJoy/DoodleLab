@@ -277,11 +277,8 @@ export default function UnlockPage() {
     <div
       className={styles.root}
       style={{
-        '--bg-from': 'var(--gradient-start, #581c87)',
-        '--bg-to':   'var(--gradient-end, #be123c)',
-        '--glow-1':  'var(--gradient-start, #581c87)',
-        '--glow-2':  'var(--gradient-end, #be123c)',
-        '--glow-3':  'color-mix(in srgb, var(--gradient-start) 60%, var(--gradient-end))',
+        '--bg-from': 'var(--gradient-start, #1E3A8A)',
+        '--bg-to':   'var(--gradient-end, #6D28D9)',
         '--ink':     '#140820',
       } as React.CSSProperties}
     >

@@ -1,7 +1,6 @@
 // components/Settings.tsx
 'use client'
 
-import { type CSSProperties } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { usePreferences } from '@/lib/PreferencesContext'
@@ -18,17 +17,13 @@ export function Settings() {
     setAutoLockMinutes,
   } = usePreferences()
 
-  const email    = session?.user?.email ?? ''
-  const initials = email.slice(0, 2).toUpperCase()
+  const email           = session?.user?.email ?? ''
+  const initials        = email.slice(0, 2).toUpperCase()
+  const selectedPalette = PALETTES.find(p => p.id === preferences.paletteId)
 
   return (
     <div
       className={styles.root}
-      style={{
-        '--glow-1': 'var(--gradient-start, #581c87)',
-        '--glow-2': 'var(--gradient-end,   #be123c)',
-        '--glow-3': 'color-mix(in srgb, var(--gradient-start) 60%, var(--gradient-end))',
-      } as CSSProperties}
     >
       {/* Decorative glows */}
       <div className={`${styles.glow} ${styles.glow1}`} data-glow aria-hidden="true" />
@@ -55,12 +50,16 @@ export function Settings() {
                 role="radio"
                 aria-checked={preferences.paletteId === palette.id}
                 aria-label={palette.label}
+                title={palette.label}
                 className={styles.paletteTile}
                 style={{ background: `linear-gradient(135deg, ${palette.from}, ${palette.to})` }}
                 onClick={() => setPaletteId(palette.id)}
               />
             ))}
           </div>
+          <p className={styles.paletteSelectedName}>
+            Palette selezionata: <strong>{selectedPalette?.label ?? '—'}</strong>
+          </p>
 
           {/* Effetti visivi toggle */}
           <div className={styles.toggleRow}>
