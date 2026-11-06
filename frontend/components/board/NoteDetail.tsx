@@ -193,7 +193,7 @@ export function NoteDetail({ id }: NoteDetailProps) {
               {confirmDelete && (
                 <DeleteConfirmModal
                   title="Eliminare questa nota?"
-                  chip={note.title || 'Nota senza titolo'}
+                  chip={note.content.slice(0, 30) || 'Nota senza testo'}
                   body="La nota viene rimossa dalla lavagna. Non è possibile annullare."
                   confirmLabel="Elimina"
                   onConfirm={handleDeleteConfirm}
