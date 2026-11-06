@@ -59,6 +59,7 @@ function ScheduleForm({ day, initial, showTitle, submitLabel, hint, onSubmit, on
   const liveError = startMinutes === null
     ? "Scrivi un orario valido, per esempio 10:30."
     : (() => { const e = repo.validateTimeBlock(day, { start: startMinutes, duration }); return e ? describePlacementError(e) : null })()
+  const confirmDisabled = !!liveError || (showTitle && title.trim() === '')
   const message = submitError ?? liveError
   const options = DURATION_OPTIONS.includes(duration) ? DURATION_OPTIONS : [...DURATION_OPTIONS, duration].sort((a, b) => a - b)
 
@@ -104,7 +105,7 @@ function ScheduleForm({ day, initial, showTitle, submitLabel, hint, onSubmit, on
       </p>
       <div className={modalStyles.footer}>
         <button type="button" className={modalStyles.cancelBtn} onClick={onCancel}>Annulla</button>
-        <button type="submit" className={modalStyles.primaryBtn} disabled={!!liveError}>{submitLabel}</button>
+        <button type="submit" className={modalStyles.primaryBtn} disabled={confirmDisabled}>{submitLabel}</button>
       </div>
     </form>
   )

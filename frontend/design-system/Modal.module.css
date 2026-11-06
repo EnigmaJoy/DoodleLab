@@ -374,6 +374,10 @@
   text-align:     center;
 }
 
+.deleteContent .footer {
+  width: 100%;
+}
+
 .deleteIconWrap {
   width:           52px;
   height:          52px;

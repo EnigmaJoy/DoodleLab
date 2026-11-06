@@ -290,8 +290,6 @@ export default function UnlockPage() {
       <div className={`${styles.glow} ${styles.glow2}`} aria-hidden="true" />
       <div className={`${styles.glow} ${styles.glow3}`} aria-hidden="true" />
 
-      <h1 className={styles.heading}>Bentornata</h1>
-
       <section className={styles.card} aria-label="Sblocca Agenda">
         <div className={styles.cardHeading}>
           <h2 className={styles.cardTitle}>Sblocca Agenda</h2>
