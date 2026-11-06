@@ -8,7 +8,7 @@ importers:
 
   .: {}
 
-  prototypes/ui-shell:
+  frontend:
     dependencies:
       argon2-browser:
         specifier: ^1.18.0
