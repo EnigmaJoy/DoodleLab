@@ -62,7 +62,7 @@ export function NoteBoard() {
             { value: 'grid',  label: 'Griglia' },
           ],
           value:    state.mode,
-          onChange: handleModeChange,
+          onChange: (v) => handleModeChange(v as 'free' | 'grid'),
         }}
         actions={[{
           kind:  'icon',
