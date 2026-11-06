@@ -2,7 +2,7 @@
 import type { Metadata } from 'next'
 import { Caveat, Sacramento, Kalam, Figtree } from 'next/font/google'
 import { PaletteSwitcher } from '@/dev/PaletteSwitcher'
-import { PALETTE_COUNT } from '@/lib/palettes'
+import { DEFAULT_PALETTE_ID } from '@/lib/palettes'
 import { Providers } from './providers'
 import './globals.css'
 
@@ -46,9 +46,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  // Pick a random palette per request. Runs server-side so the value is
-  // embedded in the HTML before hydration - no client/server mismatch.
-  const paletteId = String(Math.floor(Math.random() * PALETTE_COUNT) + 1)
+  // Default palette used for SSR. PreferencesProvider overrides client-side
+  // with the user's stored preference once localStorage is available.
+  const paletteId = String(DEFAULT_PALETTE_ID)
 
   return (
     <html lang="it" data-palette={paletteId} className={`${sacramento.variable} ${kalam.variable} ${caveat.variable} ${figtree.variable}`}>

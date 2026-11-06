@@ -39,11 +39,12 @@ interface VaultMeta {
   recoveryHint?:       string
   createdAt:           string
   verifierCiphertext?: { iv: string; ciphertext: string }
+  pinLength?:          number   // digits in the PIN (6–9); absent in older vaults
 }
 
 export type VaultState =
   | { status: 'uninitialized' }
-  | { status: 'locked' }
+  | { status: 'locked'; pinLength: number }
   | { status: 'unlocked'; adapter: VaultStorageAdapter }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -96,8 +97,13 @@ export class VaultService extends ChangeNotifier {
   constructor(userId: string) {
     super()
     this.userId = userId
-    const meta  = this.inner.read(metaKey(userId))
-    this._state = meta ? { status: 'locked' } : { status: 'uninitialized' }
+    const metaRaw = this.inner.read(metaKey(userId))
+    if (metaRaw) {
+      const meta = JSON.parse(metaRaw) as VaultMeta
+      this._state = { status: 'locked', pinLength: meta.pinLength ?? 6 }
+    } else {
+      this._state = { status: 'uninitialized' }
+    }
   }
 
   getState(): VaultState {
@@ -137,6 +143,7 @@ export class VaultService extends ChangeNotifier {
       recoveryHint,
       createdAt:          new Date().toISOString(),
       verifierCiphertext,
+      pinLength:          pin.length,
     }
     this.inner.write(metaKey(this.userId), JSON.stringify(meta))
 
@@ -203,7 +210,9 @@ export class VaultService extends ChangeNotifier {
     this.removeAutoLockListeners()
     setStorageAdapter(null)
     resetAllRepositories()
-    this._state = { status: 'locked' }
+    const metaRaw  = this.inner.read(metaKey(this.userId))
+    const pinLength = metaRaw ? (JSON.parse(metaRaw) as VaultMeta).pinLength ?? 6 : 6
+    this._state = { status: 'locked', pinLength }
     this.notify()
   }
 

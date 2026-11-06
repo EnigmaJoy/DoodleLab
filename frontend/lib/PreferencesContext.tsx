@@ -42,12 +42,13 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Apply palette CSS vars whenever paletteId changes
+  // Apply palette CSS vars and data-palette attribute whenever paletteId changes
   useEffect(() => {
     const palette = PALETTES.find(p => p.id === preferences.paletteId)
     if (!palette) return
-    document.documentElement.style.setProperty('--gradient-start', palette.from)
-    document.documentElement.style.setProperty('--gradient-end',   palette.to)
+    document.documentElement.setAttribute('data-palette', String(palette.id))
+    document.documentElement.style.removeProperty('--gradient-start')
+    document.documentElement.style.removeProperty('--gradient-end')
   }, [preferences.paletteId])
 
   // Apply visual effects flag

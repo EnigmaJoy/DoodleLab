@@ -11,18 +11,19 @@ import styles from './page.module.css'
 // component and restarts the CSS shake animation on every failed attempt.
 
 interface PinCellsProps {
-  digits: string[]
-  shaking: boolean
+  digits:    string[]
+  shaking:   boolean
+  pinLength: number
 }
 
-function PinCells({ digits, shaking }: PinCellsProps) {
+function PinCells({ digits, shaking, pinLength }: PinCellsProps) {
   return (
     <div
       role="img"
-      aria-label={`PIN, ${digits.length} cifre inserite`}
+      aria-label={`PIN, ${digits.length} di ${pinLength} cifre inserite`}
       className={[styles.pinRow, shaking ? styles.pinRowShaking : ''].filter(Boolean).join(' ')}
     >
-      {Array.from({ length: 9 }, (_, i) => {
+      {Array.from({ length: pinLength }, (_, i) => {
         const filled = i < digits.length
         const active = !filled && i === digits.length
         return (
@@ -50,21 +51,22 @@ const KEYPAD_ROWS: KeypadKey[][] = [
   ['1', '2', '3'],
   ['4', '5', '6'],
   ['7', '8', '9'],
-  ['del', '0', 'ok'],
+  [null, '0', 'del'],
 ]
 
 interface KeypadProps {
   onDigit:  (d: string) => void
   onDelete: () => void
-  onSubmit: () => void
-  disabled:       boolean
-  submitEnabled:  boolean
+  disabled: boolean
 }
 
-function Keypad({ onDigit, onDelete, onSubmit, disabled, submitEnabled }: KeypadProps) {
+function Keypad({ onDigit, onDelete, disabled }: KeypadProps) {
   return (
     <div className={styles.keypad}>
-      {KEYPAD_ROWS.flat().map((key) => {
+      {KEYPAD_ROWS.flat().map((key, idx) => {
+        if (key === null) {
+          return <div key="spacer" aria-hidden="true" />
+        }
         if (key === 'del') {
           return (
             <button
@@ -79,26 +81,12 @@ function Keypad({ onDigit, onDelete, onSubmit, disabled, submitEnabled }: Keypad
             </button>
           )
         }
-        if (key === 'ok') {
-          return (
-            <button
-              key="ok"
-              type="button"
-              className={styles.keyOk}
-              onClick={onSubmit}
-              disabled={disabled || !submitEnabled}
-              aria-label="Sblocca"
-            >
-              ✓
-            </button>
-          )
-        }
         return (
           <button
             key={key}
             type="button"
             className={styles.keyDigit}
-            onClick={() => onDigit(key!)}
+            onClick={() => onDigit(key)}
             disabled={disabled}
             aria-label={`Cifra ${key}`}
           >
@@ -212,8 +200,10 @@ function RecoveryModal({ onClose, recover, onSuccess }: RecoveryModalProps) {
 // ── UnlockPage ────────────────────────────────────────────────────────────
 
 export default function UnlockPage() {
-  const { unlock, recover } = useVaultContext()
-  const router              = useRouter()
+  const { unlock, recover, state } = useVaultContext()
+  const router                     = useRouter()
+
+  const pinLength = state.status === 'locked' ? state.pinLength : 6
 
   const [digits,    setDigits]    = useState<string[]>([])
   const [loading,   setLoading]   = useState(false)
@@ -224,11 +214,11 @@ export default function UnlockPage() {
 
   const ghostRef = useRef<HTMLButtonElement>(null)
 
-  const submitEnabled = digits.length >= 6
+  const submitEnabled = digits.length >= pinLength
 
-  // ── Auto-submit at max length (9 digits) ────────────────────────────────
+  // ── Auto-submit when PIN is complete ─────────────────────────────────────
   useEffect(() => {
-    if (digits.length === 9) handleSubmit()
+    if (digits.length === pinLength) handleSubmit()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [digits.length])
 
@@ -253,7 +243,7 @@ export default function UnlockPage() {
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (loading || showModal) return
-      if (/^[0-9]$/.test(e.key) && digits.length < 9) {
+      if (/^[0-9]$/.test(e.key) && digits.length < pinLength) {
         setError(null)
         setDigits(d => [...d, e.key])
       } else if (e.key === 'Backspace') {
@@ -268,7 +258,7 @@ export default function UnlockPage() {
   }, [loading, showModal, digits.length, submitEnabled])
 
   function handleDigit(d: string) {
-    if (loading || digits.length >= 9) return
+    if (loading || digits.length >= pinLength) return
     setError(null)
     setDigits(prev => [...prev, d])
   }
@@ -312,7 +302,7 @@ export default function UnlockPage() {
           </p>
         </div>
 
-        <PinCells key={shakeKey} digits={digits} shaking={shakeKey > 0} />
+        <PinCells key={shakeKey} digits={digits} shaking={shakeKey > 0} pinLength={pinLength} />
 
         {error && (
           <p role="alert" className={styles.error} data-testid="pin-error">
@@ -323,9 +313,7 @@ export default function UnlockPage() {
         <Keypad
             onDigit={handleDigit}
             onDelete={handleDelete}
-            onSubmit={handleSubmit}
             disabled={loading}
-            submitEnabled={submitEnabled}
           />
 
         <button
