@@ -2,8 +2,8 @@
   "name": "doodlelab",
   "private": true,
   "scripts": {
-    "dev": "pnpm --filter ui-shell dev",
-    "build": "pnpm --filter ui-shell build",
-    "start": "pnpm --filter ui-shell start"
+    "dev": "pnpm --filter frontend dev",
+    "build": "pnpm --filter frontend build",
+    "start": "pnpm --filter frontend start"
   }
 }

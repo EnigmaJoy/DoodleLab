@@ -1,0 +1,182 @@
+/* design-system/AppHeader.module.css */
+
+/* ── Root ───────────────────────────────────────────────────── */
+
+.root {
+  position:    sticky;
+  /* Stick just below the status-bar / notch safe area */
+  top:         env(safe-area-inset-top, 0px);
+  z-index:     10;
+  display:     grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap:         12px;
+  height:      76px;
+  padding:     0 24px;
+  color:       #ffffff;
+
+  /* Always-on glass — ensures readability regardless of scroll position or
+     device (Safari on iPad shows the header above the gradient content). */
+  background:              rgba(255, 255, 255, 0.07);
+  backdrop-filter:         blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border-bottom:           1px solid rgba(255, 255, 255, 0.07);
+
+  transition:
+    background      200ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color    200ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow      200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Stronger glass on scroll — clearly separates header from scrolled content */
+.root[data-scrolled] {
+  background:              rgba(255, 255, 255, 0.13);
+  backdrop-filter:         blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border-bottom:           1px solid rgba(255, 255, 255, 0.13);
+  box-shadow:
+    0 2px 20px rgba(0, 0, 0, 0.18),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.10);
+}
+
+@media (max-width: 499px) {
+  .root {
+    height:  64px;
+    padding: 0 16px;
+    gap:     8px;
+  }
+}
+
+/* ── Sentinel ───────────────────────────────────────────────── */
+
+.sentinel {
+  height:         1px;
+  pointer-events: none;
+  margin-top:     -1px;
+}
+
+/* ── Slot A — Return button ─────────────────────────────────── */
+
+.returnBtn {
+  display:       flex;
+  align-items:   center;
+  gap:           6px;
+  height:        44px;
+  padding:       0 16px;
+  border-radius: 22px;
+  border:        none;
+  cursor:        pointer;
+  color:         #ffffff;
+  font-family:   inherit;
+  flex-shrink:   0;
+
+  /* No backdrop-filter — parent header already applies blur;
+     a nested backdrop-filter creates a double-blur artefact in Safari. */
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+  transition: background 150ms ease;
+}
+
+.returnBtn:hover        { background: rgba(255, 255, 255, 0.20); }
+.returnBtn:focus-visible {
+  outline:        2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.returnLabel {
+  font-size:   0.9375rem;
+  font-weight: 600;
+}
+
+/* ── Slot B — Title block ───────────────────────────────────── */
+
+.titleBlock {
+  display:        flex;
+  flex-direction: column;
+  min-width:      0;
+}
+
+.meta {
+  margin:        0;
+  font-size:     0.9375rem;
+  font-weight:   600;
+  opacity:       0.75;
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+}
+
+.title {
+  margin:        0;
+  font-size:     1.5rem;
+  font-weight:   700;
+  line-height:   1.2;
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+}
+
+.subtitle {
+  margin:      0;
+  font-size:   0.8125rem;
+  font-weight: 500;
+  opacity:     0.70;
+}
+
+/* ── Slot C — View control ──────────────────────────────────── */
+
+.viewControl {
+  display:     flex;
+  align-items: center;
+}
+
+/* ── Slot D — Actions ───────────────────────────────────────── */
+
+.actions {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+}
+
+.secondaryBtn {
+  height:        44px;
+  padding:       0 18px;
+  border-radius: 22px;
+  border:        none;
+  cursor:        pointer;
+  color:         #ffffff;
+  font-size:     0.9375rem;
+  font-weight:   600;
+  font-family:   inherit;
+
+  /* No backdrop-filter — same reason as returnBtn */
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  transition: background 150ms ease;
+}
+
+.secondaryBtn:hover         { background: rgba(255, 255, 255, 0.18); }
+.secondaryBtn:focus-visible {
+  outline:        2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.primaryBtn {
+  height:        44px;
+  padding:       0 18px;
+  border-radius: 22px;
+  border:        none;
+  cursor:        pointer;
+  color:         var(--gradient-start, #1E3A8A);
+  font-size:     0.9375rem;
+  font-weight:   600;
+  font-family:   inherit;
+  background:    #ffffff;
+  transition:    opacity 150ms ease;
+}
+
+.primaryBtn:hover           { opacity: 0.90; }
+.primaryBtn:focus-visible   {
+  outline:        2px solid #ffffff;
+  outline-offset: 2px;
+}

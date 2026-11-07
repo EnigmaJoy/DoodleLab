@@ -1,0 +1,324 @@
+/* app/unlock/page.module.css */
+
+/* TODO: glass surface styles (background, backdrop-filter, box-shadow) are
+   candidates for a shared CSS module once sign-in, unlock, and radial menu
+   are all on the new design. */
+
+/* ── Keyframes ──────────────────────────────────────────────────────────── */
+
+@keyframes drift-1 {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(20px, 15px); }
+}
+
+@keyframes drift-2 {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(-25px, 20px); }
+}
+
+@keyframes drift-3 {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(15px, -20px); }
+}
+
+@keyframes shake {
+  0%   { transform: translateX(0); }
+  15%  { transform: translateX(-8px); }
+  35%  { transform: translateX(7px); }
+  55%  { transform: translateX(-5px); }
+  75%  { transform: translateX(3px); }
+  100% { transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow        { animation: none !important; }
+  .pinRowShaking { animation: none !important; }
+}
+
+/* ── Root ───────────────────────────────────────────────────────────────── */
+
+.root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 2rem;
+  background: linear-gradient(135deg, var(--bg-from), var(--bg-to));
+  color: #ffffff;
+  font-family: var(--font-figtree, system-ui, sans-serif);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Decorative glows ───────────────────────────────────────────────────── */
+
+.glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(14px);
+}
+
+.glow1 {
+  width: 340px;
+  height: 340px;
+  top: 200px;
+  left: 280px;
+  background: radial-gradient(circle, var(--glow-1), transparent 70%);
+  opacity: 0.7;
+  animation: drift-1 12s ease-in-out infinite alternate;
+}
+
+.glow2 {
+  width: 360px;
+  height: 360px;
+  top: 380px;
+  left: 560px;
+  background: radial-gradient(circle, var(--glow-2), transparent 70%);
+  opacity: 0.65;
+  animation: drift-2 12s ease-in-out infinite alternate;
+}
+
+.glow3 {
+  width: 200px;
+  height: 200px;
+  top: 160px;
+  left: 470px;
+  background: radial-gradient(circle, var(--glow-3), transparent 70%);
+  opacity: 0.5;
+  animation: drift-3 12s ease-in-out infinite alternate;
+}
+
+/* ── h1 Bentornata ──────────────────────────────────────────────────────── */
+
+.heading {
+  font-family: var(--font-welcome);
+  font-size: 64px;
+  font-weight: 400;
+  color: #ffffff;
+  line-height: 1.1;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  margin: 0;
+}
+
+/* ── Glass card ─────────────────────────────────────────────────────────── */
+
+.card {
+  position: relative;
+  z-index: 1;
+  width: 400px;
+  max-width: 92vw;
+  padding: 26px 28px 18px;
+  border-radius: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.24), rgba(255,255,255,0.08));
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
+  backdrop-filter: blur(28px) saturate(170%);
+  box-shadow:
+    inset 0 0 22px rgba(255,255,255,0.18),
+    inset 0 10px 18px -12px rgba(255,255,255,0.6),
+    0 24px 60px rgba(20,8,40,0.32);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .card {
+    background: rgba(255,255,255,0.18);
+  }
+}
+
+/* ── Heading block ──────────────────────────────────────────────────────── */
+
+.cardHeading {
+  text-align: center;
+}
+
+.cardTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 4px;
+}
+
+.cardSubtitle {
+  font-size: 14px;
+  color: rgba(255,255,255,0.88);
+  margin: 0;
+}
+
+/* ── PIN row ────────────────────────────────────────────────────────────── */
+
+.pinRow {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pinRowShaking {
+  animation: shake 420ms ease-out;
+}
+
+.pinCell {
+  width: 30px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.10);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pinCellFilled {
+  background: rgba(255,255,255,0.26);
+  box-shadow: none;
+}
+
+.pinCellActive {
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.9);
+}
+
+.pinDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+/* ── Error line ─────────────────────────────────────────────────────────── */
+
+.error {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+/* ── Keypad ─────────────────────────────────────────────────────────────── */
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 72px);
+  gap: 12px;
+  justify-content: center;
+}
+
+.keyDigit {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, rgba(255,255,255,0.24), rgba(255,255,255,0.08));
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
+  backdrop-filter: blur(28px) saturate(170%);
+  box-shadow:
+    inset 0 0 22px rgba(255,255,255,0.18),
+    inset 0 10px 18px -12px rgba(255,255,255,0.6),
+    0 24px 60px rgba(20,8,40,0.32);
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 150ms ease;
+}
+
+.keyDigit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.keyDigit:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .keyDigit {
+    background: rgba(255,255,255,0.18);
+  }
+}
+
+.keyDel {
+  width: 72px;
+  height: 72px;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 150ms ease;
+}
+
+.keyDel:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.keyDel:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.keyOk {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.90);
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 150ms ease;
+}
+
+.keyOk:disabled {
+  opacity: 0.30;
+  cursor: not-allowed;
+}
+
+.keyOk:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* ── Ghost action ───────────────────────────────────────────────────────── */
+
+.ghostBtn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  padding: 0;
+}
+
+.ghostBtn:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+
