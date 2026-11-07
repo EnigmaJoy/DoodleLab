@@ -1,4 +1,4 @@
-// lib/oggi/time-blocks.ts
+// lib/today/time-blocks.ts
 // Scheduling rules for flexible time blocks. Everything here works on real
 // time values (local wall-clock minutes), never on pixel positions.
 //

@@ -1,4 +1,4 @@
-// lib/oggi/daily-repository.ts
+// lib/today/daily-repository.ts
 // Data access for daily planning entities. The interface is the contract the
 // UI depends on; InMemoryDailyRepository is the only implementation in this
 // increment (see PERSISTENCE_MODE). A durable implementation must go through

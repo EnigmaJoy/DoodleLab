@@ -5,6 +5,6 @@ import { SectionPlaceholder } from '@/components/SectionPlaceholder'
 
 const section = SECTIONS.find(s => s.id === 'notebook')!
 export const metadata: Metadata = { title: section.title }
-export default function QuadernoPage() {
+export default function NotebookPage() {
   return <SectionPlaceholder label={section.label} />
 }

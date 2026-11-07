@@ -1,4 +1,4 @@
-// lib/oggi/timeline.ts
+// lib/today/timeline.ts
 // Projects shared entities onto the daily timeline. Entries keep a reference
 // to their source entity (same id) - nothing is copied or re-created.
 

@@ -28,9 +28,9 @@ describe('journal repository', () => {
 describe('inbox repository', () => {
   it('captures trimmed text without categorising it', () => {
     const repo = new InMemoryInboxRepository()
-    const item = repo.capture('  Comprare lampadina ', 'oggi', 5)!
-    expect(item).toMatchObject({ text: 'Comprare lampadina', source: 'oggi', createdAt: 5 })
-    expect(repo.capture('  ', 'oggi')).toBeNull()
+    const item = repo.capture('  Comprare lampadina ', 'today', 5)!
+    expect(item).toMatchObject({ text: 'Comprare lampadina', source: 'today', createdAt: 5 })
+    expect(repo.capture('  ', 'today')).toBeNull()
     expect(repo.list()).toHaveLength(1)
   })
 })

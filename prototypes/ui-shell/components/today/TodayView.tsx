@@ -1,11 +1,11 @@
-// components/today/OggiView.tsx
+// components/today/TodayView.tsx
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { clockNow, setClockOffsetMinutes } from '@/lib/oggi/clock'
-import { decideDayChange } from '@/lib/oggi/day-change'
-import { simulateWriteFailure } from '@/lib/oggi/daily-repository'
+import { clockNow, setClockOffsetMinutes } from '@/lib/today/clock'
+import { decideDayChange } from '@/lib/today/day-change'
+import { simulateWriteFailure } from '@/lib/today/daily-repository'
 import { formatDayHeading, formatDayMonth, toDayKey, type DayKey } from '@/lib/day'
 import { AnnounceContext, ExpandablePanel } from './shared'
 import { FocusCard } from './FocusCard'
@@ -26,7 +26,7 @@ const EDITING_SELECTOR =
 
 interface DayNotice { from: DayKey; to: DayKey }
 
-export function OggiView() {
+export function TodayView() {
   // Day state is resolved on the client only: the server cannot know the
   // user's local date, and a mismatch would flash the wrong day.
   const [today,        setToday]        = useState<DayKey | null>(null)
@@ -90,7 +90,7 @@ export function OggiView() {
     window.addEventListener('focus', checkDay)
 
     if (process.env.NODE_ENV !== 'production') {
-      ;(window as unknown as Record<string, unknown>).__oggiDev = {
+      ;(window as unknown as Record<string, unknown>).__todayDev = {
         setClockOffsetMinutes: (m: number) => { setClockOffsetMinutes(m); checkDay() },
         simulateWriteFailure,
       }

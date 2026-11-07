@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from 'react'
 import {
   TIMER_PRESETS_MIN, createTimer, formatRemaining, pauseTimer, progress, remainingMs,
   resetTimer, startTimer, tickTimer,
-} from '@/lib/oggi/timer'
-import { getTimerStore } from '@/lib/oggi/timer-store'
+} from '@/lib/today/timer'
+import { getTimerStore } from '@/lib/today/timer-store'
 import { useRepository } from './shared'
 
 export function VisualTimer() {

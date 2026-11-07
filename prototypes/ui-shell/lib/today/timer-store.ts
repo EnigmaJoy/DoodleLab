@@ -1,5 +1,5 @@
-// lib/oggi/timer-store.ts
-// The single visual timer of Oggi. VisualTimer renders it; other features
+// lib/today/timer-store.ts
+// The single visual timer of Today. VisualTimer renders it; other features
 // (e.g. "Avvia timer" on a time block) load it. Session memory only.
 
 import { ChangeNotifier } from '../store'

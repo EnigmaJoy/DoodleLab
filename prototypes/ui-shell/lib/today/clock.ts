@@ -1,7 +1,7 @@
-// lib/oggi/clock.ts
+// lib/today/clock.ts
 // Wall clock for day-boundary checks. In development a manual offset can be
 // set from the browser console to exercise midnight without waiting:
-//   window.__oggiDev.setClockOffsetMinutes(n)
+//   window.__todayDev.setClockOffsetMinutes(n)
 
 let offsetMs = 0
 

@@ -1,4 +1,4 @@
-// lib/oggi/timer.ts
+// lib/today/timer.ts
 // Visual timer state machine. Time is derived from wall-clock timestamps,
 // not from counting ticks, so throttled background tabs stay accurate.
 

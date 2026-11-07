@@ -1,4 +1,4 @@
-// lib/oggi/types.ts
+// lib/today/types.ts
 import type { DayKey } from '../day'
 
 export type TaskStatus = 'open' | 'done'

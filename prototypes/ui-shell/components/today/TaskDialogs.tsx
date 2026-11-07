@@ -5,11 +5,11 @@
 'use client'
 
 import { useEffect, useId, useRef, useState } from 'react'
-import { getDailyRepository, type TaskResult } from '@/lib/oggi/daily-repository'
+import { getDailyRepository, type TaskResult } from '@/lib/today/daily-repository'
 import {
   EMPTY_DRAFT, describeTaskError, draftFromTask, draftToInput, validateDraft, type TaskDraft,
-} from '@/lib/oggi/task-form'
-import type { Task } from '@/lib/oggi/types'
+} from '@/lib/today/task-form'
+import type { Task } from '@/lib/today/types'
 import type { DayKey } from '@/lib/day'
 import { useAnnounce, useModal, useRepository } from './shared'
 import {

@@ -2,8 +2,8 @@
 'use client'
 
 import { useState } from 'react'
-import { getDailyRepository } from '@/lib/oggi/daily-repository'
-import type { EnergyLevel } from '@/lib/oggi/types'
+import { getDailyRepository } from '@/lib/today/daily-repository'
+import type { EnergyLevel } from '@/lib/today/types'
 import type { DayKey } from '@/lib/day'
 import { ConfirmAction, useAnnounce, useRepository } from './shared'
 import { PlusIcon } from './icons'

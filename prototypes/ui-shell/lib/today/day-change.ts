@@ -1,5 +1,5 @@
-// lib/oggi/day-change.ts
-// Midnight behaviour for Oggi (Board 3). The displayed day never changes
+// lib/today/day-change.ts
+// Midnight behaviour for Today (Board 3). The displayed day never changes
 // under an active editor; drafts always stay on the day they were started.
 
 import type { DayKey } from '../day'
@@ -12,7 +12,7 @@ export type DayChangeDecision =
   | { type: 'notify'; from: DayKey; to: DayKey }
 
 export interface DayChangeInput {
-  /** Day currently shown in Oggi */
+  /** Day currently shown in Today */
   displayedDay:  DayKey
   /** Local day observed at the previous check */
   lastSeenToday: DayKey

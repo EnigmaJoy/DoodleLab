@@ -1,4 +1,4 @@
-// lib/oggi/press-gesture.ts
+// lib/today/press-gesture.ts
 // Distinguishes tap, scroll, long press and drag for one pointer. Pure: the
 // UI feeds Pointer Events and a long-press timer, and acts on the outcome.
 

@@ -5,6 +5,6 @@ import { SectionPlaceholder } from '@/components/SectionPlaceholder'
 
 const section = SECTIONS.find(s => s.id === 'exercises')!
 export const metadata: Metadata = { title: section.title }
-export default function EserciziPage() {
+export default function ExercisesPage() {
   return <SectionPlaceholder label={section.label} />
 }

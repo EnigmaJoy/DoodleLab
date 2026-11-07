@@ -19,7 +19,7 @@ export function QuickCapture() {
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
-    const item = inbox.capture(text, 'oggi')
+    const item = inbox.capture(text, 'today')
     if (!item) return
     setText('')
     setStatus("Messo nell'Inbox. Lo sistemi quando vuoi.")

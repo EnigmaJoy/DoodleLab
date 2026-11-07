@@ -4,7 +4,7 @@ import { NoteDetail } from '@/components/board/NoteDetail'
 
 export const metadata: Metadata = { title: 'Nota' }
 
-export default async function NotaPage({
+export default async function NotePage({
   params,
 }: {
   params: Promise<{ id: string }>

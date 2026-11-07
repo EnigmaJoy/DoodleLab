@@ -4,6 +4,6 @@ import { NoteBoard } from '@/components/board/NoteBoard'
 
 export const metadata: Metadata = { title: 'Lavagna' }
 
-export default function LavagnaPage() {
+export default function BoardPage() {
   return <NoteBoard />
 }

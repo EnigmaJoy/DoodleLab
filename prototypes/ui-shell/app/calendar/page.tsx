@@ -4,6 +4,6 @@ import { CalendarView } from '@/components/CalendarView'
 
 export const metadata: Metadata = { title: 'Calendario' }
 
-export default function CalendarioPage() {
+export default function CalendarPage() {
   return <CalendarView />
 }

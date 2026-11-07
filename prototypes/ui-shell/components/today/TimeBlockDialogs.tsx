@@ -5,15 +5,15 @@
 'use client'
 
 import { useEffect, useId, useRef, useState } from 'react'
-import { getDailyRepository, type BlockError, type BlockResult } from '@/lib/oggi/daily-repository'
+import { getDailyRepository, type BlockError, type BlockResult } from '@/lib/today/daily-repository'
 import {
   DEFAULT_BLOCK_MINUTES, DEFAULT_BLOCK_TITLE, describePlacementError, durationLabel, fixedIntervals,
   nextFreeStart, slotLabel, snapUp, type Slot,
-} from '@/lib/oggi/time-blocks'
-import { getTimerStore } from '@/lib/oggi/timer-store'
+} from '@/lib/today/time-blocks'
+import { getTimerStore } from '@/lib/today/timer-store'
 import { getItemsForDate } from '@/lib/calendar-mock'
 import { formatDayHeading, formatTime, minutesOfDay, parseTime, type DayKey } from '@/lib/day'
-import type { TimeBlock } from '@/lib/oggi/types'
+import type { TimeBlock } from '@/lib/today/types'
 import { openPanel, useAnnounce, useModal, useRepository } from './shared'
 import { ClockIcon, CloseIcon, HourglassIcon, PencilIcon, TrashIcon } from './icons'
 

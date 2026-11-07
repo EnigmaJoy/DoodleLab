@@ -1,7 +1,7 @@
 // components/today/CheckIn.tsx
 'use client'
 
-import { getDailyRepository } from '@/lib/oggi/daily-repository'
+import { getDailyRepository } from '@/lib/today/daily-repository'
 import type { DayKey } from '@/lib/day'
 import { useRepository } from './shared'
 

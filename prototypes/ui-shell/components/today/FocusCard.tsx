@@ -2,9 +2,9 @@
 'use client'
 
 import { useState } from 'react'
-import { getDailyRepository } from '@/lib/oggi/daily-repository'
+import { getDailyRepository } from '@/lib/today/daily-repository'
 import type { DayKey } from '@/lib/day'
-import { describeTaskError } from '@/lib/oggi/task-form'
+import { describeTaskError } from '@/lib/today/task-form'
 import { useAnnounce, useRepository } from './shared'
 import { PencilIcon, StarIcon } from './icons'
 

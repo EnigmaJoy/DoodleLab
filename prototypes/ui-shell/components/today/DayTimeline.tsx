@@ -4,13 +4,13 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import Link from 'next/link'
 import { CALENDAR_SOURCE_IS_FIXTURE, getItemsForDate } from '@/lib/calendar-mock'
-import { getDailyRepository } from '@/lib/oggi/daily-repository'
-import { buildTimeline, layoutLanes, type BlockTimelineEntry, type TimelineEntry } from '@/lib/oggi/timeline'
+import { getDailyRepository } from '@/lib/today/daily-repository'
+import { buildTimeline, layoutLanes, type BlockTimelineEntry, type TimelineEntry } from '@/lib/today/timeline'
 import {
   DEFAULT_BLOCK_MINUTES, SNAP_MINUTES, describePlacementError, proposeMove, proposeResizeEnd,
   proposeResizeStart, slotLabel, snapMinutes, type PlacementError, type Slot,
-} from '@/lib/oggi/time-blocks'
-import { IDLE, LONG_PRESS_MS, pressStep, type PressEvent, type PressState } from '@/lib/oggi/press-gesture'
+} from '@/lib/today/time-blocks'
+import { IDLE, LONG_PRESS_MS, pressStep, type PressEvent, type PressState } from '@/lib/today/press-gesture'
 import { formatTime, minutesOfDay, toDayKey, type DayKey } from '@/lib/day'
 import { GroupItemCard } from '@/components/CalendarView'
 import { useAnnounce, useModal, useRepository } from './shared'
