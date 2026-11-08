@@ -8,7 +8,7 @@
   margin:      0;
   padding:     0;
   border:      none;
-  background:  rgba(10, 10, 40, 0.45);
+  background:  rgba(10, 10, 40, 0.55);
   width:       100%;
   height:      100%;
   max-width:   100%;
@@ -18,8 +18,8 @@
   justify-content: center;
   overflow:    visible;
   z-index:     100;
-  backdrop-filter:          blur(14px);
-  -webkit-backdrop-filter:  blur(14px);
+  backdrop-filter:          blur(24px);
+  -webkit-backdrop-filter:  blur(24px);
 }
 
 /* Restore the browser default: hide dialog when not open.
@@ -30,9 +30,9 @@
 }
 
 .dialog::backdrop {
-  background:               rgba(10, 10, 40, 0.45);
-  backdrop-filter:          blur(14px);
-  -webkit-backdrop-filter:  blur(14px);
+  background:               rgba(10, 10, 40, 0.55);
+  backdrop-filter:          blur(24px);
+  -webkit-backdrop-filter:  blur(24px);
   animation: scrimIn 200ms ease both;
 }
 
