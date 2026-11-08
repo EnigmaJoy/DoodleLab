@@ -20,11 +20,12 @@ export function VisualTimer() {
   useEffect(() => {
     if (timer.status !== 'running') return
     setNow(Date.now())
+    const TIMER_TICK_MS = 250
     const id = setInterval(() => {
       const t = Date.now()
       setNow(t)
       store.update(prev => tickTimer(prev, t))
-    }, 250)
+    }, TIMER_TICK_MS)
     return () => clearInterval(id)
   }, [timer.status, timer.endsAt, store])
 

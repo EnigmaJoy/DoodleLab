@@ -11,7 +11,7 @@ import type {
   CheckIn, EnergyActivity, EnergyLevel, NewTask, Task, TaskPatch, TimeBlock,
 } from './types'
 import {
-  DEFAULT_BLOCK_TITLE, currentTimeZone, fixedIntervals, validatePlacement,
+  DEFAULT_BLOCK_TITLE, currentTimeZone, describePlacementError, fixedIntervals, validatePlacement,
   type FixedInterval, type PlacementError, type Slot,
 } from './time-blocks'
 import type { StorageAdapter } from '../storage/storage-adapter'
@@ -37,6 +37,12 @@ export type BlockError =
 export type BlockResult =
   | { ok: true;  block: TimeBlock }
   | { ok: false; error: BlockError }
+
+export function describeBlockError(error: BlockError): string {
+  if (error.type === 'not-found') return 'Questo blocco non esiste più.'
+  if (error.type === 'storage')   return `Non è stato possibile salvare: ${error.message} Il blocco è rimasto com'era.`
+  return describePlacementError(error)
+}
 
 export interface NewTimeBlock extends Slot {
   title?:  string

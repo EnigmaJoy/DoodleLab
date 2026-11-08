@@ -13,9 +13,6 @@ function Svg({ size = 18, children }: IconProps & { children: React.ReactNode })
   )
 }
 
-export const MenuIcon = (p: IconProps) => (
-  <Svg {...p}><path d="M4 7h16M4 12h16M4 17h16" /></Svg>
-)
 export const CalendarIcon = (p: IconProps) => (
   <Svg {...p}><rect x="3.5" y="5" width="17" height="15.5" rx="2" /><path d="M3.5 10h17M8 3v4M16 3v4" /></Svg>
 )

@@ -1,30 +1,27 @@
 // components/today/DayTimeline.tsx
 'use client'
 
-import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
-import Link from 'next/link'
+import { useRef, useState, type CSSProperties } from 'react'
 import { getCalendarRepository } from '@/lib/calendar-repository'
 import { getDailyRepository } from '@/lib/today/daily-repository'
-import { buildTimeline, layoutLanes, type BlockTimelineEntry, type TimelineEntry } from '@/lib/today/timeline'
-import {
-  DEFAULT_BLOCK_MINUTES, SNAP_MINUTES, describePlacementError, proposeMove, proposeResizeEnd,
-  proposeResizeStart, slotLabel, snapMinutes, type PlacementError, type Slot,
-} from '@/lib/today/time-blocks'
-import { IDLE, LONG_PRESS_MS, pressStep, type PressEvent, type PressState } from '@/lib/today/press-gesture'
-import { formatTime, minutesOfDay, toDayKey, type DayKey } from '@/lib/day'
-import { GroupItemCard } from '@/components/CalendarView'
-import { ConfirmAction, useAnnounce, useModal, useRepository } from './shared'
-import { BlockActionsDialog, NewBlockDialog, describeBlockError } from './TimeBlockDialogs'
-import { BellIcon, CalendarIcon, CloseIcon, GripIcon, MoreIcon, NoteIcon, PlusIcon } from './icons'
-import { IconButton } from '@/design-system/IconButton'
-import modalStyles from '@/design-system/Modal.module.css'
+import { buildTimeline, layoutLanes, HOUR_PX, MIN_PX, type BlockTimelineEntry, type TimelineEntry } from '@/lib/today/timeline'
+import { DEFAULT_BLOCK_MINUTES, SNAP_MINUTES, describePlacementError, proposeMove, proposeResizeEnd, slotLabel } from '@/lib/today/time-blocks'
+import { toDayKey, type DayKey } from '@/lib/day'
+import { useAnnounce, useRepository } from './shared'
+import { BlockActionsDialog, NewBlockDialog } from './TimeBlockDialogs'
+import { describeBlockError } from '@/lib/today/daily-repository'
+import { GripIcon, MoreIcon, PlusIcon } from './icons'
+import { useDragInteraction } from '@/lib/hooks/use-drag-interaction'
+import { EntryContent, rangeLabel } from './EntryContent'
+import { EntryDialog } from './EntryDialog'
+import { formatTime, minutesOfDay } from '@/lib/day'
 
-/** Single source of the timeline scale: rendering and pointer mapping share it */
-const HOUR_PX   = 56
-const MIN_PX    = HOUR_PX / 60
-const GUTTER_PX = 52
-const HOURS     = Array.from({ length: 24 }, (_, h) => h)
-const EDGE_SCROLL_PX = 40
+const HOURS        = Array.from({ length: 24 }, (_, h) => h)
+const MIN_ENTRY_PX   = 26  // minimum rendered height for any timeline entry
+const ENTRY_TRIM_PX  = 3   // gap subtracted from raw height so entries don't touch
+const ENTRY_INSET_PX = 1   // top inset so entries don't sit exactly on the hour line
+const LANE_MARGIN_PX = 8   // left margin reserved for the gutter
+const LANE_GAP_PX    = 4   // gap between adjacent lane columns
 
 const KIND_LABEL: Record<TimelineEntry['kind'], string> = {
   event:    'Appuntamento',
@@ -33,36 +30,7 @@ const KIND_LABEL: Record<TimelineEntry['kind'], string> = {
   note:     'PostIt',
 }
 
-type Mode = 'move' | 'resize-start' | 'resize-end'
-
-const PROPOSE: Record<Mode, (origin: Slot, delta: number) => Slot> = {
-  'move':         proposeMove,
-  'resize-start': proposeResizeStart,
-  'resize-end':   proposeResizeEnd,
-}
-
-type PressTarget =
-  | { kind: 'block'; blockId: string; mode: Mode }
-  | { kind: 'empty'; minute: number }
-
-/** Transient interaction state; the stored block is untouched until drop */
-interface Drag {
-  blockId:   string
-  title:     string
-  mode:      Mode
-  origin:    Slot
-  /** Minute under the pointer when the interaction became active */
-  anchor:    number
-  proposal:  Slot
-  error:     PlacementError | null
-  lastValid: Slot
-}
-
-function rangeLabel(entry: TimelineEntry): string {
-  return entry.hasEnd ? `${formatTime(entry.start)} - ${formatTime(entry.end)}` : formatTime(entry.start)
-}
-
-const sameSlot = (a: Slot, b: Slot) => a.start === b.start && a.duration === b.duration
+const GUTTER_PX = 52
 
 type DialogState =
   | { type: 'entry'; entry: TimelineEntry }
@@ -80,31 +48,17 @@ export function DayTimeline({ day, isToday, now }: Props) {
   const repo     = useRepository(getDailyRepository())
   const calRepo  = useRepository(getCalendarRepository())
   const announce = useAnnounce()
+
   const { timed, untimed } = buildTimeline(calRepo.getItemsForDate(day), repo.listTimeBlocks(day))
-  const lanes    = layoutLanes(timed)
-  const nowMin   = minutesOfDay(now)
+  const lanes     = layoutLanes(timed)
+  const nowMin    = minutesOfDay(now)
   const isPastDay = day < toDayKey(now)
 
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const gridRef   = useRef<HTMLDivElement>(null)
-  const [dialog,   setDialog]   = useState<DialogState | null>(null)
-  // Feedback belongs to the repository version it describes: any later
-  // confirmed change (drag, dialog, task) makes it stale and hides it
-  const [feedbackState, setFeedbackState] = useState({ text: '', version: -1 })
-  const setFeedback = (text: string) => setFeedbackState({ text, version: repo.getVersion() })
-  const feedback = feedbackState.version === repo.getVersion() ? feedbackState.text : ''
-  const [ghost,    setGhost]    = useState<number | null>(null)
-  const [drag,     setDragState] = useState<Drag | null>(null)
+  const interaction = useDragInteraction({ day, repo, now, isToday, announce })
 
-  // Gesture bookkeeping lives in refs: pointer handlers need synchronous values
-  const press         = useRef<{ state: PressState; target: PressTarget | null; timer: number | null }>(
-    { state: IDLE, target: null, timer: null })
-  const dragRef       = useRef<Drag | null>(null)
-  const suppressClick = useRef(false)
-  const addBlockRef   = useRef<HTMLButtonElement>(null)
-  // Block order when the actions dialog opened: lets focus land on a
-  // neighbour if the block no longer exists when the dialog closes
-  const orderAtOpen   = useRef<string[]>([])
+  const [dialog,   setDialog]   = useState<DialogState | null>(null)
+  const addBlockRef              = useRef<HTMLButtonElement>(null)
+  const orderAtOpen              = useRef<string[]>([])
 
   function openBlockActions(blockId: string) {
     orderAtOpen.current = repo.listTimeBlocks(day).map(b => b.id)
@@ -113,10 +67,9 @@ export function DayTimeline({ day, isToday, now }: Props) {
 
   function closeBlockActions(blockId: string) {
     setDialog(null)
-    // A surviving block gets focus back from the native dialog (its opener)
     if (repo.getTimeBlock(blockId)) return
     setTimeout(() => {
-      const grid  = gridRef.current
+      const grid  = interaction.gridRef.current
       const order = orderAtOpen.current
       const index = order.indexOf(blockId)
       const survivors = [...order.slice(index + 1), ...order.slice(0, index).reverse()]
@@ -127,212 +80,22 @@ export function DayTimeline({ day, isToday, now }: Props) {
     }, 0)
   }
 
-  function setDrag(next: Drag | null) {
-    dragRef.current = next
-    setDragState(next)
-  }
-
-  // Scroll so the current hour (or 07:00) is near the top, once per day shown
-  useLayoutEffect(() => {
-    const anchor = isToday ? nowMin - 60 : 7 * 60
-    scrollRef.current?.scrollTo({ top: Math.max(0, anchor * MIN_PX) })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [day])
-
-  // Once an interaction is active, stop touch panning (it never starts before)
-  useEffect(() => {
-    const grid = gridRef.current
-    if (!grid) return
-    const blockIfActive = (e: Event) => { if (press.current.state.phase !== 'idle') e.preventDefault() }
-    grid.addEventListener('touchmove', blockIfActive, { passive: false })
-    grid.addEventListener('contextmenu', blockIfActive)
-    return () => {
-      grid.removeEventListener('touchmove', blockIfActive)
-      grid.removeEventListener('contextmenu', blockIfActive)
-      if (press.current.timer !== null) clearTimeout(press.current.timer)
-    }
-  }, [])
-
-  /** Minute of the day under a viewport Y coordinate (scroll-aware) */
-  function minuteAt(clientY: number): number {
-    const rect = gridRef.current!.getBoundingClientRect()
-    return (clientY - rect.top) / MIN_PX
-  }
-
-  // --- Gesture pipeline ------------------------------------------------------
-
-  function feed(event: PressEvent, clientY: number, pointerId: number) {
-    const { state, outcome } = pressStep(press.current.state, event)
-    press.current.state = state
-    switch (outcome) {
-      case 'activate': clearTimer(); activate(clientY, pointerId); break
-      case 'drag':     updateDrag(clientY); break
-      case 'drop':     finish(true); break
-      case 'cancel':   finish(false); break
-      case 'abandon':
-      case 'tap':      clearTimer(); setGhost(null); press.current.target = null; break
-    }
-  }
-
-  function clearTimer() {
-    if (press.current.timer !== null) clearTimeout(press.current.timer)
-    press.current.timer = null
-  }
-
-  function onPointerDown(e: React.PointerEvent) {
-    if (e.pointerType === 'mouse' && e.button !== 0) return
-    if (press.current.state.phase !== 'idle') return
-    suppressClick.current = false
-    const el = e.target as Element
-    if (el.closest('[data-block-more]')) return
-    const blockEl = el.closest<HTMLElement>('[data-block-id]')
-    let target: PressTarget
-    let immediate = false
-    if (blockEl) {
-      const resize = el.closest<HTMLElement>('[data-resize]')
-      const mode: Mode = resize ? (resize.dataset.resize === 'start' ? 'resize-start' : 'resize-end') : 'move'
-      immediate = !!resize || !!el.closest('[data-grip]')
-      target = { kind: 'block', blockId: blockEl.dataset.blockId!, mode }
-    } else if (el.closest('.today-entry')) {
-      return // fixed items: click only, no gestures
-    } else {
-      target = { kind: 'empty', minute: minuteAt(e.clientY) }
-      setGhost(snapMinutes(target.minute))
-    }
-    press.current.target = target
-    const clientY = e.clientY
-    const pointerId = e.pointerId
-    feed({ type: 'down', pointerId, x: e.clientX, y: clientY, t: performance.now(), immediate }, clientY, pointerId)
-    // feed() mutated the state; re-read it without the earlier narrowing
-    const afterDown = press.current.state as PressState
-    if (afterDown.phase === 'pending') {
-      press.current.timer = window.setTimeout(() => {
-        press.current.timer = null
-        feed({ type: 'timer', t: performance.now() }, clientY, pointerId)
-      }, LONG_PRESS_MS)
-    }
-  }
-
-  function onPointerMove(e: React.PointerEvent) {
-    if (press.current.state.phase === 'idle') return
-    feed({ type: 'move', pointerId: e.pointerId, x: e.clientX, y: e.clientY }, e.clientY, e.pointerId)
-  }
-
-  function onPointerUp(e: React.PointerEvent) {
-    feed({ type: 'up', pointerId: e.pointerId, t: performance.now() }, e.clientY, e.pointerId)
-  }
-
-  function onPointerCancel(e: React.PointerEvent) {
-    feed({ type: 'cancel', pointerId: e.pointerId }, e.clientY, e.pointerId)
-  }
-
-  function activate(clientY: number, pointerId: number) {
-    const target = press.current.target
-    setGhost(null)
-    if (!target) return
-    try { gridRef.current?.setPointerCapture(pointerId) } catch { /* pointer already gone */ }
-    suppressClick.current = true
-
-    if (target.kind === 'empty') {
-      const result = repo.createTimeBlock(day, { start: snapMinutes(target.minute), duration: DEFAULT_BLOCK_MINUTES })
-      if (!result.ok) {
-        setFeedback(describeBlockError(result.error))
-        announce(describeBlockError(result.error))
-        return
-      }
-      setFeedback('')
-      announce(`Blocco creato: ${result.block.title}, ${slotLabel(result.block)}. Trascina per spostarlo.`)
-      // Keep holding to move the new block right away
-      press.current.target = { kind: 'block', blockId: result.block.id, mode: 'move' }
-      startDrag(result.block.id, 'move', clientY)
-      return
-    }
-    startDrag(target.blockId, target.mode, clientY)
-  }
-
-  function startDrag(blockId: string, mode: Mode, clientY: number) {
-    const block = repo.getTimeBlock(blockId)
-    if (!block) return
-    const origin = { start: block.start, duration: block.duration }
-    setFeedback('')
-    setDrag({
-      blockId, title: block.title, mode, origin, anchor: minuteAt(clientY),
-      proposal: origin, error: null, lastValid: origin,
-    })
-  }
-
-  function updateDrag(clientY: number) {
-    const current = dragRef.current
-    if (!current) return
-    autoScroll(clientY)
-    const proposal = PROPOSE[current.mode](current.origin, minuteAt(clientY) - current.anchor)
-    if (sameSlot(proposal, current.proposal)) return
-    const error = repo.validateTimeBlock(day, proposal)
-    setDrag({ ...current, proposal, error, lastValid: error ? current.lastValid : proposal })
-  }
-
-  function autoScroll(clientY: number) {
-    const scroller = scrollRef.current
-    if (!scroller) return
-    const rect = scroller.getBoundingClientRect()
-    if (clientY < rect.top + EDGE_SCROLL_PX)    scroller.scrollBy(0, -12)
-    if (clientY > rect.bottom - EDGE_SCROLL_PX) scroller.scrollBy(0, 12)
-  }
-
-  function finish(commit: boolean) {
-    clearTimer()
-    setGhost(null)
-    press.current.target = null
-    // Swallow only the click synthesized right after this pointerup
-    setTimeout(() => { suppressClick.current = false }, 0)
-    const current = dragRef.current
-    setDrag(null)
-    if (!current) return
-    const where = slotLabel(current.origin)
-    if (!commit) {
-      setFeedback(`Spostamento annullato: il blocco è rimasto alle ${where}.`)
-      announce(`Spostamento annullato, ${current.title} resta alle ${where}`)
-      return
-    }
-    const target = current.error ? current.lastValid : current.proposal
-    if (sameSlot(target, current.origin)) {
-      if (current.error) setFeedback(`${describePlacementError(current.error)} Il blocco è rimasto alle ${where}.`)
-      return
-    }
-    const result = repo.updateTimeBlock(current.blockId, target)
-    if (!result.ok) {
-      // The view re-reads the repository, so it already shows the stored slot
-      setFeedback(describeBlockError(result.error))
-      announce(describeBlockError(result.error))
-      return
-    }
-    const label = slotLabel(result.block)
-    setFeedback(current.error ? `Lì l'orario era occupato: il blocco è all'ultimo orario libero, ${label}.` : '')
-    announce(`${result.block.title}: ora ${label}`)
-  }
-
-  // --- Keyboard alternative on the grip ---------------------------------------
-
   function onGripKey(e: React.KeyboardEvent, block: BlockTimelineEntry['source']) {
     if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
     e.preventDefault()
-    const delta = e.key === 'ArrowUp' ? -SNAP_MINUTES : SNAP_MINUTES
+    const delta    = e.key === 'ArrowUp' ? -SNAP_MINUTES : SNAP_MINUTES
     const proposal = e.shiftKey ? proposeResizeEnd(block, delta) : proposeMove(block, delta)
-    const result = repo.updateTimeBlock(block.id, proposal)
+    const result   = repo.updateTimeBlock(block.id, proposal)
     if (result.ok) {
-      setFeedback('')
       announce(`${result.block.title}: ${slotLabel(result.block)}`)
     } else {
-      setFeedback(describeBlockError(result.error))
       announce(describeBlockError(result.error))
     }
   }
 
-  // --- Render ---------------------------------------------------------------
-
-  const liveMessage = drag?.error
-    ? `${describePlacementError(drag.error)} Se lasci qui, il blocco resta all'ultimo orario libero (${slotLabel(drag.lastValid)}).`
-    : feedback
+  const liveMessage = interaction.drag?.error
+    ? `${describePlacementError(interaction.drag.error)} Se lasci qui, il blocco resta all'ultimo orario libero (${slotLabel(interaction.drag.lastValid)}).`
+    : interaction.feedback
 
   return (
     <section className="today-card today-timeline-card" aria-labelledby="today-timeline-title">
@@ -365,21 +128,21 @@ export function DayTimeline({ day, isToday, now }: Props) {
         Tieni premuto su un orario libero per creare un blocco, o su un blocco per spostarlo.
       </p>
 
-      <div ref={scrollRef} className="today-timeline-scroll" tabIndex={0}
+      <div ref={interaction.scrollRef} className="today-timeline-scroll" tabIndex={0}
            role="region" aria-label="Ore della giornata, scorribile">
         <div
-          ref={gridRef}
+          ref={interaction.gridRef}
           className="today-timeline-grid"
           style={{ height: 24 * HOUR_PX }}
-          data-interacting={drag ? true : undefined}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerCancel}
+          data-interacting={interaction.drag ? true : undefined}
+          onPointerDown={interaction.onPointerDown}
+          onPointerMove={interaction.onPointerMove}
+          onPointerUp={interaction.onPointerUp}
+          onPointerCancel={interaction.onPointerCancel}
           onLostPointerCapture={e => {
-            // Taking capture for the grid releases a child's implicit touch
-            // capture; that bubbled event must not cancel the new drag
-            if (e.target === gridRef.current && press.current.state.phase === 'active') onPointerCancel(e)
+            if (e.target === interaction.gridRef.current && interaction.press.current.state.phase === 'active') {
+              interaction.onPointerCancel(e)
+            }
           }}
         >
           {HOURS.map(h => (
@@ -392,10 +155,10 @@ export function DayTimeline({ day, isToday, now }: Props) {
             <div className="today-now-line" style={{ top: nowMin * MIN_PX }} aria-hidden="true" />
           )}
 
-          {ghost !== null && (
+          {interaction.ghost !== null && (
             <div className="today-create-ghost" aria-hidden="true"
-                 style={{ top: ghost * MIN_PX, height: DEFAULT_BLOCK_MINUTES * MIN_PX }}>
-              <span>Tieni premuto: blocco alle {formatTime(ghost)}</span>
+                 style={{ top: interaction.ghost * MIN_PX, height: DEFAULT_BLOCK_MINUTES * MIN_PX }}>
+              <span>Tieni premuto: blocco alle {formatTime(interaction.ghost)}</span>
             </div>
           )}
 
@@ -403,16 +166,16 @@ export function DayTimeline({ day, isToday, now }: Props) {
             {timed.map(entry => {
               const placement = lanes.get(entry.key) ?? { lane: 0, lanes: 1 }
               const horizontal: CSSProperties = {
-                left:  `calc(${GUTTER_PX}px + (100% - ${GUTTER_PX + 8}px) * ${placement.lane / placement.lanes})`,
-                width: `calc((100% - ${GUTTER_PX + 8}px) / ${placement.lanes} - 4px)`,
+                left:  `calc(${GUTTER_PX}px + (100% - ${GUTTER_PX + LANE_MARGIN_PX}px) * ${placement.lane / placement.lanes})`,
+                width: `calc((100% - ${GUTTER_PX + LANE_MARGIN_PX}px) / ${placement.lanes} - ${LANE_GAP_PX}px)`,
               }
 
               if (entry.kind !== 'block') {
                 return (
                   <li key={entry.key} className={`today-entry today-entry--${entry.kind}`} style={{
                     ...horizontal,
-                    top:    entry.start * MIN_PX + 1,
-                    height: Math.max(26, (entry.end - entry.start) * MIN_PX - 3),
+                    top:    entry.start * MIN_PX + ENTRY_INSET_PX,
+                    height: Math.max(MIN_ENTRY_PX, (entry.end - entry.start) * MIN_PX - ENTRY_TRIM_PX),
                   }}>
                     <button type="button" className="today-entry-body"
                             onClick={() => setDialog({ type: 'entry', entry })}
@@ -423,12 +186,13 @@ export function DayTimeline({ day, isToday, now }: Props) {
                 )
               }
 
-              const block    = entry.source
-              const active   = drag?.blockId === block.id ? drag : null
-              const slot     = active ? active.proposal : block
-              const end      = slot.start + slot.duration
-              const isPast   = !active && (isPastDay || (isToday && block.start + block.duration <= nowMin))
-              const linked   = block.taskId ? repo.listTasks(day).find(t => t.id === block.taskId) : undefined
+              const block  = entry.source
+              const active = interaction.drag?.blockId === block.id ? interaction.drag : null
+              const slot   = active ? active.proposal : block
+              const end    = slot.start + slot.duration
+              const isPast = !active && (isPastDay || (isToday && block.start + block.duration <= nowMin))
+              const linked = block.taskId ? repo.listTasks(day).find(t => t.id === block.taskId) : undefined
+
               return (
                 <li key={entry.key}
                     className="today-entry today-entry--block"
@@ -439,7 +203,7 @@ export function DayTimeline({ day, isToday, now }: Props) {
                     style={{
                       ...horizontal,
                       top:    slot.start * MIN_PX + 1,
-                      height: Math.max(26, Math.max(0, end - slot.start) * MIN_PX - 3),
+                      height: Math.max(MIN_ENTRY_PX, Math.max(0, end - slot.start) * MIN_PX - ENTRY_TRIM_PX),
                     }}>
                   <span className="today-resize today-resize--start" data-resize="start" aria-hidden="true" />
                   <button type="button" className="today-entry-handle" data-grip
@@ -449,7 +213,7 @@ export function DayTimeline({ day, isToday, now }: Props) {
                   </button>
                   <button type="button" className="today-entry-body"
                           onClick={() => {
-                            if (suppressClick.current) { suppressClick.current = false; return }
+                            if (interaction.suppressClick.current) { interaction.suppressClick.current = false; return }
                             openBlockActions(block.id)
                           }}
                           aria-label={`Blocco flessibile: ${block.title}, ${slotLabel(block)}${isPast ? ', orario passato' : ''}${linked ? `, collegato a ${linked.title}` : ''}. Apri azioni`}>
@@ -495,89 +259,5 @@ export function DayTimeline({ day, isToday, now }: Props) {
         )
       })()}
     </section>
-  )
-}
-
-function EntryContent({ entry }: { entry: Exclude<TimelineEntry, BlockTimelineEntry> }) {
-  const range = rangeLabel(entry)
-  switch (entry.kind) {
-    case 'event':
-      // Without an end the entry is only 30 minutes tall: keep it on one line
-      if (!entry.hasEnd) {
-        return (
-          <span className="today-entry-title">
-            <CalendarIcon size={13} /> {entry.title} <span className="today-entry-inline-time">{range}</span>
-          </span>
-        )
-      }
-      return (
-        <>
-          <span className="today-entry-title"><CalendarIcon size={13} /> {entry.title}</span>
-          <span className="today-entry-meta">
-            {[range, entry.source.detail?.location].filter(Boolean).join(' · ')}
-          </span>
-        </>
-      )
-    case 'reminder':
-      return (
-        <span className="today-entry-title">
-          <BellIcon size={13} /> Promemoria {range} · {entry.title}
-        </span>
-      )
-    case 'note':
-      return (
-        <>
-          <span className="today-entry-hand">{entry.title}</span>
-          <span className="today-entry-tag">
-            <NoteIcon size={11} /> {range} · PostIt{entry.source.detail?.alsoOn ? ` · anche su ${entry.source.detail.alsoOn}` : ''}
-          </span>
-        </>
-      )
-  }
-}
-
-/** Read-only detail for calendar items, using Calendario's own card */
-function EntryDialog({ entry, onClose }: { entry: TimelineEntry; onClose: () => void }) {
-  const ref = useModal(onClose)
-  const titleId = useId()
-  if (entry.kind === 'block') return null
-  return (
-    <dialog
-      ref={ref}
-      role="dialog"
-      aria-modal="true"
-      className={`${modalStyles.dialog} ${modalStyles.medium}`}
-      aria-labelledby={titleId}
-      onClick={e => { if (e.target === e.currentTarget) ref.current?.close() }}
-    >
-      <div className={modalStyles.card} onClick={e => e.stopPropagation()}>
-        <div className={modalStyles.header}>
-          <div className={modalStyles.headerText}>
-            <p className={modalStyles.eyebrow}>{KIND_LABEL[entry.kind]}</p>
-            <h2 id={titleId} className={modalStyles.title}>{entry.title}</h2>
-          </div>
-          <IconButton label="Chiudi" icon={<CloseIcon />} onClick={() => ref.current?.close()} />
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <GroupItemCard item={entry.source} />
-          <ConfirmAction
-            label="Elimina"
-            question={
-              entry.kind === 'reminder'
-                ? 'Eliminare questo promemoria?'
-                : entry.kind === 'note'
-                ? 'Eliminare questa nota?'
-                : 'Eliminare questo evento?'
-            }
-            confirmLabel="Elimina"
-            onConfirm={() => {
-              getCalendarRepository().deleteItem(entry.source.id)
-              onClose()
-            }}
-          />
-          <Link href="/calendar" className="today-text-btn">Apri il Calendario</Link>
-        </div>
-      </div>
-    </dialog>
   )
 }

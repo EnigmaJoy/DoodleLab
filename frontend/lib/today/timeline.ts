@@ -120,3 +120,8 @@ export function layoutLanes(entries: readonly TimelineEntry[]): Map<string, Lane
   flush()
   return result
 }
+
+/** Pixel height of one hour on the timeline grid */
+export const HOUR_PX = 56
+/** Pixel height of one minute on the timeline grid */
+export const MIN_PX  = HOUR_PX / 60

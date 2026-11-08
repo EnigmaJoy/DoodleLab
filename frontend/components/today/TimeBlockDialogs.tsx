@@ -7,30 +7,26 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { IconButton } from '@/design-system/IconButton'
 import modalStyles from '@/design-system/Modal.module.css'
-import { getDailyRepository, type BlockError, type BlockResult } from '@/lib/oggi/daily-repository'
+import { getDailyRepository, describeBlockError, type BlockResult } from '@/lib/today/daily-repository'
 import {
   DEFAULT_BLOCK_MINUTES, DEFAULT_BLOCK_TITLE, describePlacementError, durationLabel, fixedIntervals,
   nextFreeStart, slotLabel, snapUp, type Slot,
-} from '@/lib/oggi/time-blocks'
-import { getTimerStore } from '@/lib/oggi/timer-store'
+} from '@/lib/today/time-blocks'
+import { getTimerStore } from '@/lib/today/timer-store'
 import { getCalendarRepository } from '@/lib/calendar-repository'
 import { formatDayHeading, formatTime, minutesOfDay, parseTime, type DayKey } from '@/lib/day'
-import type { TimeBlock } from '@/lib/oggi/types'
+import type { TimeBlock } from '@/lib/today/types'
 import { openPanel, useAnnounce, useModal, useRepository } from './shared'
 import { ClockIcon, CloseIcon, HourglassIcon, PencilIcon, TrashIcon } from './icons'
 
 const DURATION_OPTIONS = [15, 30, 45, 60, 75, 90, 120, 150, 180, 240]
 
-export function describeBlockError(error: BlockError): string {
-  if (error.type === 'not-found') return 'Questo blocco non esiste più.'
-  if (error.type === 'storage')   return `Non è stato possibile salvare: ${error.message} Il blocco è rimasto com'era.`
-  return describePlacementError(error)
-}
+const DEFAULT_BLOCK_START_HOUR = 9  // fall-back start hour for new blocks on non-today days
 
 /** Suggested start for a new block: next free quarter hour today, 09:00 otherwise */
 export function suggestedStart(day: DayKey, isToday: boolean, now: Date, duration = DEFAULT_BLOCK_MINUTES): number {
   const fixed = fixedIntervals(getCalendarRepository().getItemsForDate(day))
-  const after = isToday ? snapUp(minutesOfDay(now)) : 9 * 60
+  const after = isToday ? snapUp(minutesOfDay(now)) : DEFAULT_BLOCK_START_HOUR * 60
   return nextFreeStart(day, after, duration, fixed) ?? after
 }
 

@@ -2,13 +2,14 @@
 'use client'
 
 import { useEffect, useId, useRef, useState } from 'react'
-import { getDailyRepository, type TaskResult } from '@/lib/oggi/daily-repository'
+import { getDailyRepository, type TaskResult } from '@/lib/today/daily-repository'
 import {
   EMPTY_DRAFT, describeTaskError, draftFromTask, draftToInput, validateDraft, type TaskDraft,
-} from '@/lib/oggi/task-form'
-import type { Task } from '@/lib/oggi/types'
+} from '@/lib/today/task-form'
+import type { Task } from '@/lib/today/types'
 import type { DayKey } from '@/lib/day'
 import { useAnnounce, useModal, useRepository } from './shared'
+import { TaskTimePicker } from './TaskTimePicker'
 import {
   ArchiveIcon, ClockIcon, CloseIcon, PencilIcon, StarIcon, StarOutlineIcon, TrashIcon,
 } from './icons'
@@ -34,31 +35,9 @@ function TaskForm({ initial, submitLabel, onSubmit, onDone, onCancel }: TaskForm
   const [error, setError] = useState<string | null>(null)
   const busy = useRef(false)
 
-  // ── Inline time picker state ─────────────────────────────
-  const [pickerOpen, setPickerOpen] = useState(false)
-  const [pickerH,    setPickerH]    = useState(9)
-  const [pickerM,    setPickerM]    = useState(0)
-
   function change(patch: Partial<TaskDraft>) {
     setDraft(d => ({ ...d, ...patch }))
     setError(null)
-  }
-
-  function openPicker() {
-    const p = draft.deadline.match(/^(\d{2}):(\d{2})$/)
-    setPickerH(p ? parseInt(p[1], 10) : 9)
-    setPickerM(p ? parseInt(p[2], 10) : 0)
-    setPickerOpen(true)
-  }
-
-  function confirmTime() {
-    change({ deadline: `${String(pickerH).padStart(2, '0')}:${String(pickerM).padStart(2, '0')}` })
-    setPickerOpen(false)
-  }
-
-  function clearTime() {
-    change({ deadline: '' })
-    setPickerOpen(false)
   }
 
   function submit(e: React.FormEvent) {
@@ -90,18 +69,13 @@ function TaskForm({ initial, submitLabel, onSubmit, onDone, onCancel }: TaskForm
       />
       <div className={modalStyles.formRow}>
         <label htmlFor={deadlineId} className={modalStyles.fieldLabel}>Entro le</label>
-        <button
-          type="button"
-          id={deadlineId}
-          className={`${modalStyles.timePickerTrigger}${pickerOpen ? ` ${modalStyles.timePickerTriggerActive}` : ''}`}
-          onClick={pickerOpen ? () => setPickerOpen(false) : openPicker}
-          aria-expanded={pickerOpen}
-          aria-haspopup="dialog"
-          aria-describedby={hintId}
-          data-draft={draft.deadline !== initial.deadline || undefined}
-        >
-          {draft.deadline || 'Nessuno'}
-        </button>
+        <TaskTimePicker
+          value={draft.deadline}
+          deadlineId={deadlineId}
+          hintId={hintId}
+          isDraft={draft.deadline !== initial.deadline}
+          onChange={deadline => change({ deadline })}
+        />
         <div className={modalStyles.switchRow}>
           <span className={modalStyles.switchLabel}>Priorità</span>
           <button
@@ -118,56 +92,6 @@ function TaskForm({ initial, submitLabel, onSubmit, onDone, onCancel }: TaskForm
           Facoltativo. È una scadenza per l&apos;attività, non un appuntamento né un blocco in agenda.
         </span>
       </div>
-
-      {pickerOpen && (
-        <div
-          className={modalStyles.timePickerPanel}
-          role="group"
-          aria-label="Seleziona orario limite"
-        >
-          <div className={modalStyles.timePickerSelects}>
-            <label className={modalStyles.timePickerSelectLabel}>
-              <span className={modalStyles.timePickerUnit}>Ore</span>
-              <select
-                className={modalStyles.timePickerSelect}
-                value={pickerH}
-                // eslint-disable-next-line jsx-a11y/no-autofocus
-                autoFocus
-                onChange={e => setPickerH(Number(e.target.value))}
-              >
-                {Array.from({ length: 24 }, (_, i) => (
-                  <option key={i} value={i} style={{ color: '#1a1a1a', background: '#ffffff' }}>
-                    {String(i).padStart(2, '0')}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <span className={modalStyles.timePickerSep} aria-hidden="true">:</span>
-            <label className={modalStyles.timePickerSelectLabel}>
-              <span className={modalStyles.timePickerUnit}>Min</span>
-              <select
-                className={modalStyles.timePickerSelect}
-                value={pickerM}
-                onChange={e => setPickerM(Number(e.target.value))}
-              >
-                {Array.from({ length: 60 }, (_, i) => (
-                  <option key={i} value={i} style={{ color: '#1a1a1a', background: '#ffffff' }}>
-                    {String(i).padStart(2, '0')}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <div className={modalStyles.timePickerActions}>
-            <button type="button" className={modalStyles.cancelBtn} onClick={clearTime}>
-              Rimuovi
-            </button>
-            <button type="button" className={modalStyles.primaryBtn} onClick={confirmTime}>
-              Conferma
-            </button>
-          </div>
-        </div>
-      )}
 
       <p className={modalStyles.hint}>Orario e priorità sono facoltativi.</p>
       <p id={errorId} className={modalStyles.feedback} role="status">{error ?? ''}</p>

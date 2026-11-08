@@ -2,18 +2,11 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-<<<<<<<< HEAD:frontend/components/today/TodayView.tsx
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { AppHeader } from '@/design-system/AppHeader'
 import { clockNow, setClockOffsetMinutes } from '@/lib/today/clock'
 import { decideDayChange } from '@/lib/today/day-change'
 import { simulateWriteFailure } from '@/lib/today/daily-repository'
-========
-import { useRouter } from 'next/navigation'
-import { AppHeader } from '@/design-system/AppHeader'
-import { clockNow, setClockOffsetMinutes } from '@/lib/oggi/clock'
-import { decideDayChange } from '@/lib/oggi/day-change'
-import { simulateWriteFailure } from '@/lib/oggi/daily-repository'
->>>>>>>> dev:frontend/components/today/OggiView.tsx
 import { formatDayHeading, formatDayMonth, toDayKey, type DayKey } from '@/lib/day'
 import { AnnounceContext, ExpandablePanel } from './shared'
 import { FocusCard } from './FocusCard'
@@ -26,7 +19,8 @@ import { VisualTimer } from './VisualTimer'
 import { DiaryPanel } from './DiaryPanel'
 import { BoltIcon, FeatherIcon, HourglassIcon, MoonIcon, SmileIcon } from './icons'
 
-const DAY_CHECK_MS = 30_000
+const DAY_CHECK_MS     = 30_000
+const ANNOUNCE_DELAY_MS = 50   // brief reset so the same message triggers a new SR announcement
 
 // Text entry counts as "actively writing"; checkboxes and buttons do not
 const EDITING_SELECTOR =
@@ -34,13 +28,9 @@ const EDITING_SELECTOR =
 
 interface DayNotice { from: DayKey; to: DayKey }
 
-<<<<<<<< HEAD:frontend/components/today/TodayView.tsx
 export function TodayView() {
-========
-export function OggiView() {
   const router = useRouter()
 
->>>>>>>> dev:frontend/components/today/OggiView.tsx
   // Day state is resolved on the client only: the server cannot know the
   // user's local date, and a mismatch would flash the wrong day.
   const [today,        setToday]        = useState<DayKey | null>(null)
@@ -58,7 +48,7 @@ export function OggiView() {
   const announce = useCallback((message: string) => {
     // Clear first so repeating the same message is announced again
     setAnnouncement('')
-    setTimeout(() => setAnnouncement(message), 50)
+    setTimeout(() => setAnnouncement(message), ANNOUNCE_DELAY_MS)
   }, [])
 
   const checkDay = useCallback(() => {
