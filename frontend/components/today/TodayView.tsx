@@ -8,19 +8,16 @@ import { clockNow, setClockOffsetMinutes } from '@/lib/today/clock'
 import { decideDayChange } from '@/lib/today/day-change'
 import { simulateWriteFailure } from '@/lib/today/daily-repository'
 import { formatDayHeading, formatDayMonth, toDayKey, type DayKey } from '@/lib/day'
-import { AnnounceContext, ExpandablePanel } from './shared'
-import { FocusCard } from './FocusCard'
-import { DayTimeline } from './DayTimeline'
-import { TaskList } from './TaskList'
-import { QuickCapture } from './QuickCapture'
-import { EnergyActivities } from './EnergyActivities'
-import { CheckIn } from './CheckIn'
-import { VisualTimer } from './VisualTimer'
-import { DiaryPanel } from './DiaryPanel'
-import { BoltIcon, FeatherIcon, HourglassIcon, MoonIcon, SmileIcon } from './icons'
+import { AnnounceContext } from './shared'
+import { TodayFocusCard } from './TodayFocusCard'
+import { TodayNowCard } from './TodayNowCard'
+import { TodayNextTasksCard } from './TodayNextTasksCard'
+import { TodayDayTimeline } from './TodayDayTimeline'
+import { TodayToolsRow } from './TodayToolsRow'
+import { CalendarIcon, MoonIcon } from './icons'
 
-const DAY_CHECK_MS     = 30_000
-const ANNOUNCE_DELAY_MS = 50   // brief reset so the same message triggers a new SR announcement
+const DAY_CHECK_MS      = 30_000
+const ANNOUNCE_DELAY_MS = 50
 
 // Text entry counts as "actively writing"; checkboxes and buttons do not
 const EDITING_SELECTOR =
@@ -46,13 +43,12 @@ export function TodayView() {
   displayedRef.current   = displayedDay
 
   const announce = useCallback((message: string) => {
-    // Clear first so repeating the same message is announced again
     setAnnouncement('')
     setTimeout(() => setAnnouncement(message), ANNOUNCE_DELAY_MS)
   }, [])
 
   const checkDay = useCallback(() => {
-    const current = clockNow()
+    const current  = clockNow()
     const todayKey = toDayKey(current)
     setNow(current)
     const lastSeen = lastSeenTodayRef.current
@@ -62,7 +58,6 @@ export function TodayView() {
     const root      = rootRef.current
     const active    = document.activeElement
     const isFocusedEditor = !!active && !!root?.contains(active) && active.matches(EDITING_SELECTOR)
-    // An unsubmitted draft counts as writing even when its field is not focused
     const hasUnsavedDraft = !!root && [...root.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('[data-draft]')]
       .some(el => el.value.trim() !== '')
     const isEditing = isFocusedEditor || hasUnsavedDraft
@@ -75,7 +70,6 @@ export function TodayView() {
       setDisplayedDay(decision.to)
       announce(`È iniziato un nuovo giorno: ${formatDayHeading(decision.to)}`)
     } else if (decision.type === 'notify') {
-      // Do not move focus: the user keeps typing undisturbed
       returnFocusRef.current = isFocusedEditor ? active as HTMLElement : null
       setNotice({ from: decision.from, to: decision.to })
       announce(`È iniziato un nuovo giorno. La bozza resta nel ${formatDayMonth(decision.from)}.`)
@@ -123,16 +117,21 @@ export function TodayView() {
 
   return (
     <AnnounceContext.Provider value={announce}>
-      <div className="today-screen" ref={rootRef}>
+      <div className="todayb-screen" ref={rootRef}>
+        {/* Background gradient glow blobs */}
+        <div className="todayb-glow todayb-glow--1" aria-hidden="true" />
+        <div className="todayb-glow todayb-glow--2" aria-hidden="true" />
+
         <AppHeader
           returnVariant="menu"
           onMenuOpen={() => router.replace('/?view=menu')}
           meta={displayedDay ? formatDayHeading(displayedDay) : undefined}
           title="Oggi"
-          subtitle="La tua giornata, a colpo d'occhio"
+          subtitle="Una cosa alla volta"
           actions={[{
-            kind:    'secondary',
+            kind:    'icon',
             label:   'Calendario',
+            icon:    <CalendarIcon size={20} />,
             onClick: () => router.push('/calendar'),
           }]}
         />
@@ -156,41 +155,23 @@ export function TodayView() {
         <p className="sr-only" role="status" aria-live="polite">{announcement}</p>
 
         {displayedDay === null ? (
-          <p className="today-loading" role="status">Sto preparando la tua giornata...</p>
+          <p className="todayb-loading" role="status">Sto preparando la tua giornata...</p>
         ) : (
-          // Day-bound components are keyed by day so no draft or edit state
-          // can carry over to another date. The timer is not day-bound.
-          <main className="today-main">
-            <div className="today-col today-col--primary">
-              <FocusCard key={`FocusCard-${displayedDay}`} day={displayedDay} />
-              <DayTimeline key={`DayTimeline-${displayedDay}`} day={displayedDay} isToday={isToday} now={now} />
+          <main className="todayb-content">
+            {/* TODO: data is session-only (in-memory). Decide a calm, non-alarming
+                way to communicate this to the user before persisting to storage. */}
+            <div className="todayb-layout">
+              <div className="todayb-col-left">
+                <TodayFocusCard     key={`focus-${displayedDay}`}    day={displayedDay} />
+                <TodayNowCard                                         day={displayedDay} now={now} />
+                <TodayNextTasksCard key={`tasks-${displayedDay}`}    day={displayedDay} />
+              </div>
+              <div className="todayb-col-right">
+                <TodayDayTimeline   key={`timeline-${displayedDay}`} day={displayedDay} isToday={isToday} now={now} />
+              </div>
             </div>
 
-            <div className="today-col today-col--secondary">
-              <TaskList key={`TaskList-${displayedDay}`} day={displayedDay} />
-              <QuickCapture />
-
-              <section className="today-more" aria-labelledby="today-more-title">
-                <h2 id="today-more-title" className="today-section-label">Altro per oggi</h2>
-                <ExpandablePanel id="energy" title="Attività per energia" icon={<BoltIcon />}>
-                  <EnergyActivities key={`EnergyActivities-${displayedDay}`} day={displayedDay} />
-                </ExpandablePanel>
-                <ExpandablePanel id="checkin" title="Energia e umore" hint="facoltativo" icon={<SmileIcon />}>
-                  <CheckIn day={displayedDay} />
-                </ExpandablePanel>
-                <ExpandablePanel id="timer" title="Timer visivo" icon={<HourglassIcon />}>
-                  <VisualTimer />
-                </ExpandablePanel>
-                <ExpandablePanel id="diary" title="Pensieri del giorno" icon={<FeatherIcon />}>
-                  <DiaryPanel key={`DiaryPanel-${displayedDay}`} day={displayedDay} />
-                </ExpandablePanel>
-              </section>
-
-              <p className="today-session-note">
-                In questa versione quello che scrivi in Oggi resta solo in questa sessione:
-                ricaricando la pagina si perde. Il salvataggio protetto arriverà con il vault cifrato.
-              </p>
-            </div>
+            <TodayToolsRow key={`tools-${displayedDay}`} day={displayedDay} />
           </main>
         )}
       </div>

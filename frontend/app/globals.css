@@ -1333,6 +1333,45 @@ body {
   min-height:  44px;
 }
 
+.today-form-textarea {
+  display:       block;
+  width:         100%;
+  padding:       10px 12px;
+  border:        1.5px solid rgba(42,35,32,0.18);
+  border-radius: 10px;
+  background:    rgba(255,253,245,0.9);
+  font-size:     0.9375rem;
+  line-height:   1.5;
+  color:         var(--ink-base, #2A2320);
+  resize:        vertical;
+  font-family:   inherit;
+  margin:        0 0 4px;
+  box-sizing:    border-box;
+}
+.today-form-textarea:focus {
+  outline:        none;
+  border-color:   var(--gradient-end, #7C3AED);
+  box-shadow:     0 0 0 3px rgba(124,58,237,0.12);
+}
+
+.today-form-time-input {
+  display:       block;
+  width:         100%;
+  padding:       10px 12px;
+  border:        1.5px solid rgba(42,35,32,0.18);
+  border-radius: 10px;
+  background:    rgba(255,253,245,0.9);
+  font-size:     1.125rem;
+  color:         var(--ink-base, #2A2320);
+  font-family:   inherit;
+  box-sizing:    border-box;
+}
+.today-form-time-input:focus {
+  outline:      none;
+  border-color: var(--gradient-end, #7C3AED);
+  box-shadow:   0 0 0 3px rgba(124,58,237,0.12);
+}
+
 .today-form-actions {
   display:         flex;
   justify-content: flex-end;
@@ -2751,4 +2790,849 @@ body {
 [data-no-effects] * {
   backdrop-filter:          none !important;
   -webkit-backdrop-filter:  none !important;
+}
+
+/* ============================================================
+   OGGI SCREEN — PROPOSTA B: UNA COSA ALLA VOLTA
+   DS.01 + DS.02, iPad landscape-first (1180×820 reference)
+   ============================================================ */
+
+/* ── Background ── */
+
+.todayb-screen {
+  position:           relative;
+  min-height:         100dvh;
+  background:         linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+  background-attachment: fixed;
+  color:              var(--text-primary);
+  overflow-x:         hidden;
+  padding:
+    0
+    env(safe-area-inset-right,  0px)
+    env(safe-area-inset-bottom, 0px)
+    env(safe-area-inset-left,   0px);
+}
+
+.todayb-glow {
+  position:       absolute;
+  border-radius:  50%;
+  pointer-events: none;
+  filter:         blur(30px);
+  z-index:        0;
+  will-change:    transform;
+}
+
+.todayb-glow--1 {
+  width:      480px;
+  height:     480px;
+  top:        20%;
+  left:       25%;
+  background: radial-gradient(circle, var(--glow-1) 0%, transparent 70%);
+  opacity:    0.35;
+  animation:  todayb-drift-1 16s ease-in-out infinite alternate;
+}
+
+.todayb-glow--2 {
+  width:      400px;
+  height:     400px;
+  bottom:     20%;
+  right:      25%;
+  background: radial-gradient(circle, var(--glow-2) 0%, transparent 70%);
+  opacity:    0.32;
+  animation:  todayb-drift-2 19s ease-in-out infinite alternate;
+}
+
+@keyframes todayb-drift-1 {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(40px, 30px); }
+}
+
+@keyframes todayb-drift-2 {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(-30px, 40px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .todayb-glow--1, .todayb-glow--2 { animation: none; }
+}
+
+/* In-app "Riduci animazioni" toggle — set [data-reduce-motion] on <html> to honour it */
+[data-reduce-motion] .todayb-glow--1,
+[data-reduce-motion] .todayb-glow--2 { animation: none; }
+
+/* Reminder done state — strikethrough title, faded body */
+.todayb-entry--reminder[data-done] .todayb-entry-title {
+  text-decoration:           line-through;
+  text-decoration-thickness: 1.5px;
+  opacity:                   0.55;
+}
+
+/* ── Content scroll area ── */
+
+.todayb-content {
+  position:         relative;
+  z-index:          1;
+  overflow-y:       auto;
+  padding:          12px 24px 40px;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    black 28px,
+    black calc(100% - 28px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    black 28px,
+    black calc(100% - 28px),
+    transparent 100%
+  );
+}
+
+.todayb-loading {
+  padding:    3rem 1.5rem;
+  text-align: center;
+  font-size:  1rem;
+  position:   relative;
+  z-index:    1;
+}
+
+/* ── Two-column layout ── */
+
+.todayb-layout {
+  display:               grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap:                   24px;
+  align-items:           start;
+  margin-bottom:         24px;
+}
+
+@media (max-width: 860px) {
+  .todayb-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.todayb-col-left {
+  display:        flex;
+  flex-direction: column;
+  gap:            20px;
+}
+
+.todayb-col-right {
+  display:        flex;
+  flex-direction: column;
+  gap:            0;
+}
+
+/* ── Paper card surface ── */
+
+.todayb-card {
+  background:    #FFFDF5;
+  color:         #2A2320;
+  border-radius: 22px;
+  box-shadow:    0 14px 34px rgba(30, 10, 40, 0.18);
+}
+
+.todayb-card--postit {
+  background: #FEF3C7;
+  color:      #4A3010;
+}
+
+/* ── Section label ── */
+
+.todayb-label {
+  font-size:      12px;
+  font-weight:    700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color:          rgba(42, 35, 32, 0.6);
+  margin:         0;
+}
+
+/* ── Focus ring on paper cards ── */
+
+.todayb-card :focus-visible {
+  outline:        2px solid #2A2320;
+  outline-offset: 2px;
+  border-radius:  6px;
+}
+
+/* ── Focus Card ── */
+
+.todayb-focus-card {
+  padding:        26px 28px;
+  display:        flex;
+  flex-direction: column;
+  gap:            16px;
+}
+
+.todayb-focus-text {
+  font-size:      32px;
+  font-weight:    700;
+  line-height:    1.2;
+  letter-spacing: -0.01em;
+  color:          #4A3010;
+  overflow-wrap:  anywhere;
+  margin:         0;
+}
+
+.todayb-focus-text--done {
+  opacity: 0.6;
+}
+
+.todayb-focus-text--done s {
+  text-decoration:           line-through;
+  text-decoration-thickness: 2px;
+}
+
+.todayb-focus-buttons {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       10px;
+}
+
+.todayb-btn-dark {
+  height:          48px;
+  padding:         0 20px;
+  border-radius:   24px;
+  border:          none;
+  background:      #4A3010;
+  color:           #FEF3C7;
+  font-size:       15px;
+  font-weight:     700;
+  cursor:          pointer;
+  display:         inline-flex;
+  align-items:     center;
+  gap:             8px;
+  white-space:     nowrap;
+  transition:      background 150ms ease, opacity 150ms ease;
+}
+
+.todayb-btn-dark:hover:not(:disabled) { background: #3a2408; }
+.todayb-btn-dark:disabled             { opacity: 0.5; cursor: not-allowed; }
+
+.todayb-btn-light {
+  height:        48px;
+  padding:       0 20px;
+  border-radius: 24px;
+  border:        none;
+  background:    rgba(74, 48, 16, 0.10);
+  color:         #4A3010;
+  font-size:     15px;
+  font-weight:   700;
+  cursor:        pointer;
+  display:       inline-flex;
+  align-items:   center;
+  gap:           8px;
+  white-space:   nowrap;
+  transition:    background 150ms ease;
+}
+
+.todayb-btn-light:hover:not(:disabled) { background: rgba(74, 48, 16, 0.18); }
+
+.todayb-btn-ghost {
+  height:        48px;
+  padding:       0 16px;
+  border-radius: 24px;
+  border:        1px solid rgba(74, 48, 16, 0.3);
+  background:    transparent;
+  color:         #4A3010;
+  font-size:     14px;
+  font-weight:   600;
+  cursor:        pointer;
+  transition:    background 150ms ease;
+}
+
+.todayb-btn-ghost:hover { background: rgba(74, 48, 16, 0.07); }
+
+.todayb-focus-input {
+  width:         100%;
+  resize:        vertical;
+  padding:       12px 14px;
+  border-radius: 16px;
+  border:        none;
+  background:    rgba(255, 255, 255, 0.6);
+  color:         #4A3010;
+  font-size:     24px;
+  font-weight:   600;
+  line-height:   1.3;
+  outline:       none;
+}
+
+.todayb-focus-input::placeholder   { color: rgba(74, 48, 16, 0.4); }
+
+.todayb-focus-input:focus-visible {
+  outline:    2px solid rgba(74, 48, 16, 0.4);
+  box-shadow: none;
+}
+
+.todayb-focus-edit-link {
+  align-self:  flex-start;
+  background:  none;
+  border:      none;
+  color:       rgba(74, 48, 16, 0.5);
+  font-size:   13px;
+  font-weight: 600;
+  cursor:      pointer;
+  padding:     4px 0;
+}
+
+.todayb-focus-edit-link:hover { color: #4A3010; }
+
+/* ── Now Card ── */
+
+.todayb-now-card {
+  padding: 22px 24px;
+}
+
+.todayb-now-layout {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             16px;
+}
+
+.todayb-now-text {
+  flex:           1;
+  display:        flex;
+  flex-direction: column;
+  gap:            8px;
+}
+
+.todayb-now-main {
+  font-size:   22px;
+  font-weight: 700;
+  color:       #2A2320;
+  line-height: 1.25;
+  margin:      0;
+}
+
+.todayb-now-next {
+  font-size:   15px;
+  color:       rgba(42, 35, 32, 0.7);
+  margin:      0;
+  line-height: 1.4;
+}
+
+.todayb-now-ring {
+  flex-shrink: 0;
+}
+
+/* ── Next Tasks Card ── */
+
+.todayb-tasks-card {
+  padding: 20px 22px 12px;
+}
+
+.todayb-card-header-row {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  margin-bottom:   14px;
+}
+
+.todayb-tasks-done-badge {
+  font-size:   12px;
+  font-weight: 600;
+  color:       rgba(42, 35, 32, 0.5);
+}
+
+.todayb-tasks-empty {
+  font-size: 14px;
+  color:     rgba(42, 35, 32, 0.5);
+  margin:    0 0 12px;
+}
+
+.todayb-task-list {
+  list-style:     none;
+  padding:        0;
+  margin:         0 0 4px;
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+}
+
+.todayb-task-row {
+  display:     flex;
+  align-items: center;
+  gap:         12px;
+  min-height:  44px;
+  padding:     4px 0;
+}
+
+.todayb-task-row[data-done] .todayb-task-title {
+  text-decoration: line-through;
+  opacity:         0.5;
+}
+
+.todayb-checkbox-wrap {
+  position:    relative;
+  flex-shrink: 0;
+}
+
+/* Real checkbox: sr-only */
+.todayb-task-check.sr-only {
+  position:   absolute;
+  width:      1px;
+  height:     1px;
+  padding:    0;
+  margin:     -1px;
+  overflow:   hidden;
+  clip:       rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border:     0;
+}
+
+/* Visual checkbox */
+.todayb-task-check-label {
+  display:       block;
+  width:         28px;
+  height:        28px;
+  border-radius: 50%;
+  background:    rgba(42, 35, 32, 0.10);
+  cursor:        pointer;
+  position:      relative;
+  flex-shrink:   0;
+  transition:    background 120ms ease;
+}
+
+.todayb-task-check:checked + .todayb-task-check-label {
+  background: var(--gradient-end);
+}
+
+/* Checkmark for checked state */
+.todayb-task-check:checked + .todayb-task-check-label::after {
+  content:       '';
+  position:      absolute;
+  top:           7px;
+  left:          7px;
+  width:         14px;
+  height:        8px;
+  border-left:   2.5px solid #fff;
+  border-bottom: 2.5px solid #fff;
+  transform:     rotate(-45deg);
+}
+
+.todayb-task-check:focus-visible + .todayb-task-check-label {
+  outline:        2px solid #2A2320;
+  outline-offset: 2px;
+}
+
+.todayb-task-title {
+  font-size:   16px;
+  color:       #2A2320;
+  line-height: 1.4;
+  flex:        1;
+}
+
+.todayb-tasks-footer {
+  display:     flex;
+  align-items: center;
+  gap:         16px;
+  padding-top: 8px;
+}
+
+.todayb-tasks-add {
+  font-size:   14px;
+  font-weight: 700;
+  color:       var(--gradient-end);
+  background:  none;
+  border:      none;
+  cursor:      pointer;
+  padding:     8px 0;
+  min-height:  44px;
+  display:     inline-flex;
+  align-items: center;
+}
+
+.todayb-tasks-add:hover { text-decoration: underline; }
+
+.todayb-tasks-see-all {
+  font-size: 14px;
+  color:     rgba(42, 35, 32, 0.5);
+}
+
+/* ── Day Timeline Card ── */
+
+.todayb-day-card {
+  padding: 18px 18px 14px;
+}
+
+.todayb-day-header {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  margin-bottom:   12px;
+}
+
+.todayb-day-plus {
+  width:           44px;
+  height:          44px;
+  border-radius:   50%;
+  border:          none;
+  background:      #2A2320;
+  color:           #ffffff;
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  cursor:          pointer;
+  flex-shrink:     0;
+  transition:      background 150ms ease;
+}
+
+.todayb-day-plus:hover { background: #3a362f; }
+
+.todayb-day-plus:focus-visible {
+  outline:        2px solid #2A2320;
+  outline-offset: 3px;
+}
+
+.todayb-morning-row {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  height:          44px;
+  padding:         0 12px;
+  margin-bottom:   8px;
+  border-radius:   14px;
+  background:      rgba(42, 35, 32, 0.05);
+  border:          none;
+  color:           #2A2320;
+  cursor:          pointer;
+  font-size:       13px;
+  font-weight:     600;
+  width:           100%;
+  text-align:      left;
+  transition:      background 150ms ease;
+}
+
+.todayb-morning-row:hover { background: rgba(42, 35, 32, 0.08); }
+
+.todayb-morning-label { flex: 1; }
+
+.todayb-morning-placeholder {
+  position:       absolute;
+  left:           0;
+  right:          0;
+  background:     rgba(42, 35, 32, 0.03);
+  border-radius:  8px;
+  pointer-events: none;
+}
+
+/* Timeline scroll — hidden scrollbar */
+.todayb-timeline-scroll {
+  overflow-y:      scroll;
+  scrollbar-width: none;
+  max-height:      660px;
+  position:        relative;
+}
+
+.todayb-timeline-scroll::-webkit-scrollbar { display: none; }
+
+/* Grid */
+.todayb-timeline-grid {
+  position:    relative;
+  user-select: none;
+}
+
+/* Hour rows */
+.todayb-hour {
+  position:    absolute;
+  left:        0;
+  right:       0;
+  height:      56px; /* HOUR_PX */
+  display:     flex;
+  align-items: flex-start;
+}
+
+.todayb-hour--alt {
+  background: rgba(42, 35, 32, 0.025);
+}
+
+.todayb-hour[data-past] {
+  opacity: 0.75;
+}
+
+.todayb-hour-label {
+  width:       56px;
+  font-size:   12px;
+  font-weight: 500;
+  color:       rgba(42, 35, 32, 0.5);
+  padding:     4px 8px 0 0;
+  text-align:  right;
+  flex-shrink: 0;
+}
+
+/* Now line */
+.todayb-now-line {
+  position:       absolute;
+  left:           0;
+  right:          0;
+  height:         2px;
+  background:     var(--gradient-end);
+  pointer-events: none;
+  z-index:        5;
+  display:        flex;
+  align-items:    center;
+}
+
+.todayb-now-pill {
+  position:      absolute;
+  left:          4px;
+  top:           50%;
+  transform:     translateY(-50%);
+  background:    var(--gradient-end);
+  color:         #ffffff;
+  font-size:     11px;
+  font-weight:   700;
+  padding:       2px 7px;
+  border-radius: 10px;
+  white-space:   nowrap;
+  pointer-events: none;
+}
+
+/* Timeline items */
+.todayb-timeline-items {
+  list-style: none;
+  padding:    0;
+  margin:     0;
+}
+
+.todayb-entry {
+  position:       absolute;
+  border-radius:  12px;
+  overflow:       hidden;
+  display:        flex;
+  flex-direction: column;
+}
+
+.todayb-entry--event {
+  background: rgba(42, 35, 32, 0.10);
+  color:      #2A2320;
+}
+
+.todayb-entry--block {
+  background: color-mix(in srgb, var(--gradient-end) 15%, transparent);
+  color:      var(--gradient-end);
+}
+
+/* Diagonal stripe overlay for blocks */
+.todayb-entry--block .todayb-entry-body {
+  background: repeating-linear-gradient(
+    135deg,
+    transparent 0,
+    transparent 4px,
+    color-mix(in srgb, var(--gradient-end) 20%, transparent) 4px,
+    color-mix(in srgb, var(--gradient-end) 20%, transparent) 8px
+  );
+}
+
+.todayb-entry--note {
+  background: #FDE68A;
+  color:      #4A3010;
+}
+
+.todayb-entry--reminder {
+  background: #FCE7F3;
+  color:      #9D174D;
+}
+
+.todayb-entry[data-past]    { opacity: 0.65; }
+
+.todayb-entry[data-active]  { z-index: 10; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
+
+.todayb-entry[data-invalid] { opacity: 0.7; }
+
+.todayb-entry-body {
+  flex:            1;
+  display:         flex;
+  flex-direction:  column;
+  justify-content: flex-start;
+  gap:             1px;
+  padding:         4px 6px;
+  border:          none;
+  background:      transparent;
+  color:           inherit;
+  text-align:      left;
+  cursor:          pointer;
+  width:           100%;
+  min-height:      44px;
+}
+
+.todayb-entry-title {
+  font-size:          14px;
+  font-weight:        700;
+  line-height:        1.2;
+  overflow:           hidden;
+  display:            -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.todayb-entry-time {
+  font-size:   12px;
+  opacity:     0.7;
+  line-height: 1.2;
+}
+
+/* Block grip handle */
+.todayb-entry-handle {
+  position:        absolute;
+  top:             2px;
+  right:           2px;
+  width:           28px;
+  height:          28px;
+  border:          none;
+  background:      transparent;
+  color:           inherit;
+  cursor:          grab;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  border-radius:   6px;
+  opacity:         0.6;
+}
+
+.todayb-entry-handle:hover  { opacity: 1; background: rgba(0, 0, 0, 0.08); }
+.todayb-entry-handle:active { cursor: grabbing; }
+
+/* Resize handles */
+.todayb-resize {
+  position: absolute;
+  left:     0;
+  right:    0;
+  height:   6px;
+  cursor:   ns-resize;
+}
+
+.todayb-resize--start { top:    0; }
+.todayb-resize--end   { bottom: 0; }
+
+/* Live time label during drag */
+.todayb-live-time {
+  position:      absolute;
+  bottom:        2px;
+  right:         4px;
+  font-size:     11px;
+  font-weight:   700;
+  background:    rgba(0, 0, 0, 0.5);
+  color:         #fff;
+  padding:       1px 5px;
+  border-radius: 6px;
+}
+
+/* Ghost for new block creation */
+.todayb-create-ghost {
+  position:       absolute;
+  left:           56px;
+  right:          8px;
+  background:     rgba(42, 35, 32, 0.08);
+  border:         2px dashed rgba(42, 35, 32, 0.3);
+  border-radius:  10px;
+  display:        flex;
+  align-items:    center;
+  padding:        0 8px;
+  font-size:      12px;
+  color:          rgba(42, 35, 32, 0.6);
+  pointer-events: none;
+}
+
+.todayb-block-feedback {
+  font-size:   13px;
+  color:       rgba(42, 35, 32, 0.6);
+  min-height:  1.5em;
+  padding-top: 6px;
+}
+
+/* ── Tools Section ── */
+
+.todayb-tools-section {
+  display:        flex;
+  flex-direction: column;
+  gap:            12px;
+}
+
+/* Tray */
+.todayb-tools-tray {
+  display: none;
+}
+
+.todayb-tools-tray[data-open] {
+  display:                   block;
+  position:                  relative;
+  background:                rgba(255, 255, 255, 0.07);
+  backdrop-filter:           blur(20px);
+  -webkit-backdrop-filter:   blur(20px);
+  border-radius:             22px;
+  padding:                   20px;
+}
+
+.todayb-tools-tray-inner {
+  color: var(--text-primary);
+}
+
+.todayb-tools-tray-close {
+  position:        absolute;
+  top:             12px;
+  right:           12px;
+  width:           40px;
+  height:          40px;
+  border:          none;
+  background:      rgba(255, 255, 255, 0.10);
+  color:           rgba(255, 255, 255, 0.8);
+  border-radius:   50%;
+  cursor:          pointer;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  transition:      background 150ms ease;
+}
+
+.todayb-tools-tray-close:hover { background: rgba(255, 255, 255, 0.18); }
+
+/* Buttons grid */
+.todayb-tools-grid {
+  display:               grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:                   12px;
+}
+
+.todayb-tool-btn {
+  height:                  56px;
+  border-radius:           28px;
+  border:                  none;
+  background:              rgba(255, 255, 255, 0.07);
+  backdrop-filter:         blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color:                   #ffffff;
+  font-size:               15px;
+  font-weight:             600;
+  cursor:                  pointer;
+  display:                 flex;
+  align-items:             center;
+  justify-content:         center;
+  gap:                     8px;
+  transition:              background 150ms ease;
+  white-space:             nowrap;
+  overflow:                hidden;
+}
+
+.todayb-tool-btn:hover                { background: rgba(255, 255, 255, 0.12); }
+.todayb-tool-btn[aria-pressed="true"] { background: rgba(255, 255, 255, 0.18); }
+
+.todayb-tool-btn:focus-visible {
+  outline:        3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .todayb-tools-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .todayb-tool-btn {
+    font-size: 14px;
+  }
 }
