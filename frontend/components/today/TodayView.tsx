@@ -169,9 +169,9 @@ export function TodayView() {
               <div className="todayb-col-right">
                 <TodayDayTimeline   key={`timeline-${displayedDay}`} day={displayedDay} isToday={isToday} now={now} />
               </div>
-            </div>
 
-            <TodayToolsRow key={`tools-${displayedDay}`} day={displayedDay} />
+              <TodayToolsRow key={`tools-${displayedDay}`} day={displayedDay} />
+            </div>
           </main>
         )}
       </div>
