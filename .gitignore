@@ -1,6 +1,9 @@
 # Brainstorming visual companion
 .superpowers/
 
+# Git worktrees
+.worktrees/
+
 # Logs
 logs
 *.log
