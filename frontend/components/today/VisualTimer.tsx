@@ -1,124 +1,107 @@
 // components/today/VisualTimer.tsx
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import {
-  TIMER_PRESETS_MIN, createTimer, formatRemaining, pauseTimer, progress, remainingMs,
-  resetTimer, startTimer, tickTimer,
-} from '@/lib/today/timer'
-import { getTimerStore } from '@/lib/today/timer-store'
-import { useRepository } from './shared'
+import { useId } from 'react'
 
-export function VisualTimer() {
-  // State lives in the shared store so time blocks can load it ("Avvia timer")
-  const store   = useRepository(getTimerStore())
-  const timer   = store.state
-  const [now,    setNow]    = useState(() => Date.now())
-  const [notice, setNotice] = useState('')
-  const lastStatus = useRef(timer.status)
+// ── Hourglass ────────────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    if (timer.status !== 'running') return
-    setNow(Date.now())
-    const TIMER_TICK_MS = 250
-    const id = setInterval(() => {
-      const t = Date.now()
-      setNow(t)
-      store.update(prev => tickTimer(prev, t))
-    }, TIMER_TICK_MS)
-    return () => clearInterval(id)
-  }, [timer.status, timer.endsAt, store])
+export interface HourglassProps {
+  elapsed:       number   // 0..1
+  running:       boolean
+  finished:      boolean
+  reducedMotion: boolean
+}
 
-  // Announce transitions only (started from elsewhere, finished)
-  useEffect(() => {
-    if (lastStatus.current !== 'finished' && timer.status === 'finished') setNotice('Tempo finito.')
-    if (lastStatus.current !== 'running' && timer.status === 'running' && store.label) {
-      setNotice(`Timer avviato per ${store.label}`)
-    }
-    lastStatus.current = timer.status
-  }, [timer.status, store.label])
+export function Hourglass({ elapsed, running, finished, reducedMotion }: HourglassProps) {
+  const id    = useId()
+  const topId = `${id}-clip-top`
+  const botId = `${id}-clip-bottom`
 
-  const minutes = timer.durationMs / 60_000
-  const left    = remainingMs(timer, now)
-  const done    = progress(timer, now)
+  const clampedElapsed = Math.max(0, Math.min(1, elapsed))
+  const remaining = 1 - clampedElapsed
 
-  function pickPreset(m: number) {
-    store.update(() => createTimer(m), null)
-    setNotice('')
-  }
+  const topH    = 78 * remaining
+  const topY    = 92 - topH
+  const bottomH = 78 * clampedElapsed
+  const bottomY = 182 - bottomH
 
-  function primary() {
-    const t = Date.now()
-    setNow(t)
-    setNotice('')
-    store.update(prev => prev.status === 'running' ? pauseTimer(prev, t) : startTimer(prev, t))
-  }
-
-  const primaryLabel =
-    timer.status === 'running' ? 'Pausa'
-    : timer.status === 'paused' ? 'Riprendi'
-    : timer.status === 'finished' ? 'Ricomincia'
-    : 'Avvia'
+  const sandTransition = reducedMotion ? undefined : 'y 1s linear, height 1s linear'
+  const streamOpacity  = running && !finished ? 0.85 : 0
 
   return (
-    <div className="today-timer">
-      <Hourglass progress={done} running={timer.status === 'running'} />
-      <div className="today-timer-controls">
-        <p className="today-timer-time" aria-hidden="true">{formatRemaining(left)}</p>
-        <p className="today-muted">
-          {timer.status === 'finished' ? `Finiti i ${minutes} minuti` : `rimasti su ${minutes} minuti`}
-          {store.label && <> · {store.label}</>}
-        </p>
-        {/* Announce state changes, not every second */}
-        <p className="sr-only" role="status">
-          {notice || (timer.status === 'paused' ? `In pausa, ${formatRemaining(left)} rimasti` : '')}
-        </p>
-        <div className="today-presets" role="group" aria-label="Durata">
-          {TIMER_PRESETS_MIN.map(m => (
-            <button key={m} type="button" className="today-preset"
-                    aria-pressed={minutes === m}
-                    disabled={timer.status === 'running'}
-                    onClick={() => pickPreset(m)}>
-              {m} min
-            </button>
-          ))}
-        </div>
-        <div className="today-form-actions today-form-actions--start">
-          <button type="button" className="today-btn today-btn--dark" onClick={primary}
-                  aria-label={`${primaryLabel} timer, ${formatRemaining(left)} rimasti`}>
-            {primaryLabel}
-          </button>
-          {timer.status !== 'idle' && (
-            <button type="button" className="today-btn today-btn--quiet"
-                    onClick={() => { store.update(resetTimer); setNotice('') }}>
-              Azzera
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
+    <svg
+      viewBox="0 0 130 196"
+      width={130}
+      height={196}
+      aria-hidden="true"
+      focusable="false"
+    >
+      <defs>
+        <clipPath id={topId}>
+          <path d="M14 14h102c0 34-30 52-44 78h-14C44 66 14 48 14 14z" />
+        </clipPath>
+        <clipPath id={botId}>
+          <path d="M58 104h14c14 26 44 44 44 78H14c0-34 30-52 44-78z" />
+        </clipPath>
+      </defs>
+
+      {/* Glass body */}
+      <path
+        d="M14 14h102c0 34-30 52-44 78v12c14 26 44 44 44 78H14c0-34 30-52 44-78V92C44 66 14 48 14 14z"
+        fill="rgba(255,255,255,0.14)"
+      />
+
+      {/* Top sand */}
+      <rect
+        data-sand=""
+        x={0}
+        width={130}
+        style={{
+          y:          `${topY}px`,
+          height:     `${topH}px`,
+          fill:       'var(--glow-3)',
+          transition: sandTransition,
+        } as React.CSSProperties}
+        clipPath={`url(#${topId})`}
+      />
+
+      {/* Bottom sand */}
+      <rect
+        data-sand=""
+        x={0}
+        width={130}
+        style={{
+          y:          `${bottomY}px`,
+          height:     `${bottomH}px`,
+          fill:       'var(--glow-3)',
+          transition: sandTransition,
+        } as React.CSSProperties}
+        clipPath={`url(#${botId})`}
+      />
+
+      {/* Stream */}
+      <rect
+        data-stream=""
+        x={63.5}
+        y={92}
+        width={3}
+        height={88}
+        rx={1.5}
+        style={{
+          fill:    'var(--glow-3)',
+          opacity: streamOpacity,
+        }}
+      />
+
+      {/* Caps */}
+      <rect x={6}  y={6}   width={118} height={8} rx={4} fill="#FFFDF5" />
+      <rect x={6}  y={182} width={118} height={8} rx={4} fill="#FFFDF5" />
+    </svg>
   )
 }
 
-/** Sand level reflects real progress; the falling stream is decorative only */
-function Hourglass({ progress: p, running }: { progress: number; running: boolean }) {
-  const top    = 1 - p   // fraction of sand still in the top bulb
-  // Bulb interiors: top y 10..46, bottom y 54..90
-  const topH   = 34 * top
-  const bottomH = 34 * p
-  return (
-    <svg className="today-hourglass" viewBox="0 0 64 100" width="72" height="112"
-         aria-hidden="true" focusable="false">
-      <defs>
-        <clipPath id="today-hg-top"><path d="M12 10 H52 C52 30 34 40 32 48 C30 40 12 30 12 10Z" /></clipPath>
-        <clipPath id="today-hg-bottom"><path d="M32 52 C34 60 52 70 52 90 H12 C12 70 30 60 32 52Z" /></clipPath>
-      </defs>
-      <rect clipPath="url(#today-hg-top)" x="0" y={46 - topH} width="64" height={topH} className="today-sand" />
-      <rect clipPath="url(#today-hg-bottom)" x="0" y={90 - bottomH} width="64" height={bottomH} className="today-sand" />
-      {running && p < 1 && <line x1="32" y1="48" x2="32" y2={90 - bottomH} className="today-sand-stream" />}
-      <path d="M12 10 H52 C52 30 34 40 32 50 C34 60 52 70 52 90 H12 C12 70 30 60 32 50 C30 40 12 30 12 10Z"
-            className="today-hourglass-glass" />
-      <path d="M6 6 H58 M6 94 H58" className="today-hourglass-frame" />
-    </svg>
-  )
+// ── VisualTimer (stub — rebuilt in Task 5) ───────────────────────────────────
+
+export function VisualTimer({ onClose }: { onClose: () => void }) {
+  return <div className="today-timer"><Hourglass elapsed={0} running={false} finished={false} reducedMotion={false} /></div>
 }
