@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { DayKey } from '@/lib/day'
 import { EnergyActivities } from './EnergyActivities'
 import { CheckIn } from './CheckIn'
@@ -30,9 +30,21 @@ function CloseIcon() {
 export function TodayToolsRow({ day }: { day: DayKey }) {
   const [activePanel, setActivePanel] = useState<PanelId | null>(null)
 
+  // "Inizia 25 minuti" on the focus card dispatches this event to open the timer tray
+  useEffect(() => {
+    function onOpenPanel(e: Event) {
+      const id = (e as CustomEvent<string>).detail as PanelId
+      if (TOOLS.some(t => t.id === id)) setActivePanel(id)
+    }
+    window.addEventListener('today:open-panel', onOpenPanel)
+    return () => window.removeEventListener('today:open-panel', onOpenPanel)
+  }, [])
+
   function toggle(id: PanelId) {
     setActivePanel(prev => prev === id ? null : id)
   }
+
+  const closePanel = () => setActivePanel(null)
 
   return (
     <div className="todayb-tools-section">
@@ -51,17 +63,19 @@ export function TodayToolsRow({ day }: { day: DayKey }) {
           </div>
           {/* VisualTimer always mounted to preserve timer state */}
           <div style={{ display: activePanel === 'timer' ? 'block' : 'none' }}>
-            <VisualTimer />
+            <VisualTimer onClose={closePanel} />
           </div>
           <div style={{ display: activePanel === 'diary' ? 'block' : 'none' }}>
             <DiaryPanel day={day} />
           </div>
         </div>
-        {activePanel !== null && (
+
+        {/* Show generic close only for non-timer panels; timer renders its own */}
+        {activePanel !== null && activePanel !== 'timer' && (
           <button
             type="button"
             className="todayb-tools-tray-close"
-            onClick={() => setActivePanel(null)}
+            onClick={closePanel}
             aria-label="Chiudi pannello"
           >
             <CloseIcon />

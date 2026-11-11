@@ -37,3 +37,14 @@
   outline:        2px solid #ffffff;
   outline-offset: -2px;
 }
+
+.segment.solidActive {
+  background: #ffffff;
+  color:      var(--ink);
+  font-weight: 700;
+}
+
+.segment:disabled {
+  opacity: 0.4;
+  cursor:  not-allowed;
+}
