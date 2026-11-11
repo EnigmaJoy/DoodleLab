@@ -40,4 +40,19 @@ describe('SegmentedControl', () => {
     )
     expect(screen.getByRole('radiogroup', { name: 'Layout' })).toBeTruthy()
   })
+
+  it('6. solid-active variant: active segment has white background class', () => {
+    render(
+      <SegmentedControl options={OPTIONS} value="grid" onChange={() => {}}
+                        variant="solid-active" />
+    )
+    const active = screen.getByRole('radio', { name: 'Griglia' })
+    expect(active.className).toMatch(/solidActive/)
+  })
+
+  it('7. disabled prop: all segment buttons are disabled', () => {
+    render(<SegmentedControl options={OPTIONS} value="free" onChange={() => {}} disabled />)
+    const radios = screen.getAllByRole('radio')
+    radios.forEach(r => expect((r as HTMLButtonElement).disabled).toBe(true))
+  })
 })
