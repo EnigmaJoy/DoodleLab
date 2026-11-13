@@ -40,6 +40,7 @@ export interface AppHeaderProps {
   title:          string
   meta?:          string
   subtitle?:      string
+  trailingMeta?:  string
   viewControl?:   ViewControl
   actions?:       ActionItem[]
   titleLive?:     boolean
@@ -68,6 +69,7 @@ export function AppHeader({
   title,
   meta,
   subtitle,
+  trailingMeta,
   viewControl,
   actions,
   titleLive,
@@ -149,6 +151,13 @@ export function AppHeader({
               />
             )}
           </div>
+        )}
+
+        {/* Slot C.5 — Trailing meta */}
+        {trailingMeta && (
+          <span className={styles.trailingMeta}>
+            {trailingMeta}
+          </span>
         )}
 
         {/* Slot D — Actions */}

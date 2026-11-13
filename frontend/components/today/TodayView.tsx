@@ -175,7 +175,7 @@ export function TodayView() {
         <AppHeader
           returnVariant="menu"
           onMenuOpen={() => router.replace('/?view=menu')}
-          meta={displayedDay ? formatDayHeading(displayedDay) : undefined}
+          trailingMeta={displayedDay ? formatDayHeading(displayedDay) : undefined}
           title="Oggi"
           subtitle="Una cosa alla volta"
           actions={[{

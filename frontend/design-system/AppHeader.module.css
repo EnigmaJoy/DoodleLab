@@ -11,7 +11,8 @@
   grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap:         12px;
-  height:      76px;
+  min-height:  76px;
+  height:      auto;
   padding:     0 24px;
   color:       #ffffff;
 
@@ -41,9 +42,38 @@
 
 @media (max-width: 499px) {
   .root {
-    height:  64px;
-    padding: 0 16px;
-    gap:     8px;
+    grid-template-columns: auto 1fr auto;
+    min-height:  64px;
+    height:      auto;
+    padding:     8px 16px;
+    gap:         4px 8px;
+  }
+}
+
+/* ── Slot C.5 — Trailing meta ───────────────────────────────── */
+/* NOTE: grid is 4 columns (auto 1fr auto auto). trailingMeta is intended
+   for pages where viewControl is absent (e.g. Oggi). Using trailingMeta
+   together with viewControl and actions would overflow into a 5th column. */
+
+.trailingMeta {
+  display:       block;
+  font-size:     0.9375rem;
+  font-weight:   600;
+  opacity:       0.75;
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  min-width:     0;
+  text-align:    right;
+}
+
+@media (max-width: 499px) {
+  .trailingMeta {
+    grid-row:       2;
+    grid-column:    1 / -1;
+    text-align:     left;
+    font-size:      0.8125rem;
+    padding-bottom: 4px;
   }
 }
 

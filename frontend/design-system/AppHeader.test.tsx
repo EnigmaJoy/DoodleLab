@@ -120,4 +120,16 @@ describe('AppHeader', () => {
 
     vi.unstubAllGlobals()
   })
+
+  it('11. trailingMeta renders when provided', () => {
+    setup({ trailingMeta: 'venerdì 13 novembre' })
+    const el = screen.getByText('venerdì 13 novembre')
+    expect(el).toBeTruthy()
+    expect(el.tagName).toBe('SPAN')
+  })
+
+  it('12. trailingMeta is not rendered when not provided', () => {
+    setup({})
+    expect(screen.queryByText('venerdì 13 novembre')).toBeNull()
+  })
 })
