@@ -101,6 +101,56 @@ export function TodayView() {
     }
   }, [checkDay])
 
+  useEffect(() => {
+    if (displayedDay === null || !rootRef.current) return
+    const root = rootRef.current
+
+    const update = () => {
+      const tasksCard = root.querySelector<HTMLElement>('[data-today="tasks-card"]')
+      if (!tasksCard) return
+
+      // On mobile (single-column), remove the constraint and bail
+      if (window.innerWidth <= 860) {
+        tasksCard.style.removeProperty('--prossime-max-h')
+        return
+      }
+
+      const dayCard = root.querySelector<HTMLElement>('[data-today="day-card"]')
+      if (!dayCard) return
+
+      const dayBottom  = dayCard.getBoundingClientRect().bottom
+      const tasksTop   = tasksCard.getBoundingClientRect().top
+      const max        = Math.floor(dayBottom - tasksTop)
+
+      // Only apply when there's meaningful space (avoid a near-zero max-height on first paint)
+      if (max > 50) {
+        tasksCard.style.setProperty('--prossime-max-h', `${max}px`)
+      }
+    }
+
+    const colLeft = root.querySelector('[data-today="col-left"]')
+    const dayCard = root.querySelector('[data-today="day-card"]')
+    if (!colLeft || !dayCard) return
+
+    // Watch the left column (FocusCard / NowCard height changes move tasks card top)
+    // Watch the day card (timeline height changes move the allowed bottom boundary)
+    // Do NOT watch the tasks card itself — that would create a feedback loop
+    const ro = new ResizeObserver(update)
+    ro.observe(colLeft)
+    ro.observe(dayCard)
+
+    window.addEventListener('resize', update)
+
+    // Schedule after first paint so getBoundingClientRect() returns stable values
+    const raf = requestAnimationFrame(update)
+
+    return () => {
+      cancelAnimationFrame(raf)
+      ro.disconnect()
+      window.removeEventListener('resize', update)
+    }
+  }, [displayedDay])
+
   function goToToday() {
     if (!today) return
     setNotice(null)
@@ -161,7 +211,7 @@ export function TodayView() {
             {/* TODO: data is session-only (in-memory). Decide a calm, non-alarming
                 way to communicate this to the user before persisting to storage. */}
             <div className="todayb-layout">
-              <div className="todayb-col-left">
+              <div className="todayb-col-left" data-today="col-left">
                 <TodayFocusCard     key={`focus-${displayedDay}`}    day={displayedDay} />
                 <TodayNowCard                                         day={displayedDay} now={now} />
                 <TodayNextTasksCard key={`tasks-${displayedDay}`}    day={displayedDay} />

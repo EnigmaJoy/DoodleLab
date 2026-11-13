@@ -2986,6 +2986,11 @@ body {
   .todayb-layout {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  /* Remove height constraint when columns are stacked */
+  .todayb-tasks-card {
+    max-height: none;
+  }
 }
 
 .todayb-col-left {
@@ -3202,7 +3207,11 @@ body {
 /* ── Next Tasks Card ── */
 
 .todayb-tasks-card {
-  padding: 20px 22px 12px;
+  padding:        20px 22px 12px;
+  max-height:     var(--prossime-max-h, none);
+  display:        flex;
+  flex-direction: column;
+  overflow:       hidden;
 }
 
 .todayb-card-header-row {
@@ -3210,6 +3219,7 @@ body {
   align-items:     center;
   justify-content: space-between;
   margin-bottom:   14px;
+  flex-shrink:     0;
 }
 
 .todayb-tasks-done-badge {
@@ -3219,9 +3229,10 @@ body {
 }
 
 .todayb-tasks-empty {
-  font-size: 14px;
-  color:     rgba(255, 255, 255, 0.50);
-  margin:    0 0 12px;
+  font-size:   14px;
+  color:       rgba(255, 255, 255, 0.50);
+  margin:      0 0 12px;
+  flex-shrink: 0;
 }
 
 .todayb-task-list {
@@ -3231,6 +3242,18 @@ body {
   display:        flex;
   flex-direction: column;
   gap:            2px;
+  flex:           1;
+  min-height:     0;
+  overflow-y:     auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+.todayb-task-list::-webkit-scrollbar       { width: 4px; }
+.todayb-task-list::-webkit-scrollbar-track { background: transparent; }
+.todayb-task-list::-webkit-scrollbar-thumb {
+  background:    rgba(255, 255, 255, 0.25);
+  border-radius: 2px;
 }
 
 .todayb-task-row {
@@ -3311,6 +3334,7 @@ body {
   align-items: center;
   gap:         16px;
   padding-top: 8px;
+  flex-shrink: 0;
 }
 
 .todayb-tasks-add {
@@ -3327,11 +3351,6 @@ body {
 }
 
 .todayb-tasks-add:hover { text-decoration: underline; }
-
-.todayb-tasks-see-all {
-  font-size: 14px;
-  color:     rgba(255, 255, 255, 0.50);
-}
 
 /* ── Day Timeline Card ── */
 
@@ -3628,6 +3647,7 @@ body {
 /* ── Tools Section ── */
 
 .todayb-tools-section {
+  grid-column:    1 / -1;
   display:        flex;
   flex-direction: column;
   gap:            12px;
@@ -3641,15 +3661,16 @@ body {
 .todayb-tools-tray[data-open] {
   display:                   block;
   position:                  relative;
-  background:                rgba(255, 255, 255, 0.07);
-  backdrop-filter:           blur(20px);
-  -webkit-backdrop-filter:   blur(20px);
+  background:                rgba(10, 10, 30, 0.72);
+  backdrop-filter:           blur(32px) saturate(140%);
+  -webkit-backdrop-filter:   blur(32px) saturate(140%);
   border-radius:             22px;
+  border:                    1px solid rgba(255, 255, 255, 0.14);
   padding:                   20px;
 }
 
 .todayb-tools-tray-inner {
-  color: var(--text-primary);
+  color: #f0f0f8;
 }
 
 .todayb-tools-tray-close {
@@ -3659,8 +3680,8 @@ body {
   width:           40px;
   height:          40px;
   border:          none;
-  background:      rgba(255, 255, 255, 0.10);
-  color:           rgba(255, 255, 255, 0.8);
+  background:      rgba(255, 255, 255, 0.14);
+  color:           #f0f0f8;
   border-radius:   50%;
   cursor:          pointer;
   display:         flex;
@@ -3714,4 +3735,135 @@ body {
   .todayb-tool-btn {
     font-size: 14px;
   }
+}
+
+/* ── Panel contrast overrides: .today-* inside the glass tray ──────────────
+   The panel components (EnergyActivities, CheckIn, DiaryPanel) use .today-*
+   classes designed for a light paper background. These overrides restore
+   readability on the dark tray background without touching other contexts. */
+
+/* Muted / secondary text */
+.todayb-tools-tray-inner .today-muted,
+.todayb-tools-tray-inner .today-scale-end {
+  color: rgba(240, 240, 248, 0.72);
+}
+
+/* Scale / fieldset legend */
+.todayb-tools-tray-inner .today-scale-legend {
+  color: #f0f0f8;
+}
+
+/* Empty state */
+.todayb-tools-tray-inner .today-empty {
+  color: rgba(240, 240, 248, 0.65);
+}
+
+/* Confirm question text */
+.todayb-tools-tray-inner .today-confirm-question {
+  color: #f0f0f8;
+}
+
+/* Segmented control (energy level selector) */
+.todayb-tools-tray-inner .today-segmented {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.todayb-tools-tray-inner .today-segment {
+  color: rgba(240, 240, 248, 0.80);
+}
+
+.todayb-tools-tray-inner .today-segment[data-checked] {
+  background:  rgba(255, 255, 255, 0.90);
+  color:       #1a1a2e;
+  box-shadow:  0 1px 4px rgba(0, 0, 0, 0.30);
+  font-weight: 800;
+}
+
+/* Activity list items */
+.todayb-tools-tray-inner .today-activity {
+  color:        #f0f0f8;
+  border-color: rgba(255, 255, 255, 0.10);
+}
+
+/* Text input (new activity) */
+.todayb-tools-tray-inner .today-input {
+  background:   rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.22);
+  color:        #f0f0f8;
+}
+
+.todayb-tools-tray-inner .today-input::placeholder {
+  color: rgba(240, 240, 248, 0.42);
+}
+
+/* Buttons (Aggiungi in energy form) */
+.todayb-tools-tray-inner .today-btn {
+  background:   rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
+  color:        #f0f0f8;
+}
+
+.todayb-tools-tray-inner .today-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.20);
+}
+
+.todayb-tools-tray-inner .today-btn--quiet {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.todayb-tools-tray-inner .today-btn:disabled {
+  opacity: 0.45;
+}
+
+/* Icon buttons (add-to-task, delete) */
+.todayb-tools-tray-inner .today-icon-btn {
+  color: rgba(240, 240, 248, 0.90);
+}
+
+.todayb-tools-tray-inner .today-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Text buttons (Cancella le risposte) */
+.todayb-tools-tray-inner .today-text-btn {
+  color: rgba(240, 240, 248, 0.80);
+}
+
+.todayb-tools-tray-inner .today-text-btn:hover {
+  color: #f0f0f8;
+}
+
+/* Check-in dots */
+.todayb-tools-tray-inner .today-dot {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.todayb-tools-tray-inner .today-dot[data-checked] {
+  border-color: #ffffff;
+  box-shadow:   0 0 0 2px rgba(255, 255, 255, 0.35);
+}
+
+/* Diary textarea — replace paper background with glass style */
+.todayb-tools-tray-inner .today-diary-input {
+  background-color:  rgba(255, 255, 255, 0.10);
+  background-image:  none;
+  border-color:      rgba(255, 255, 255, 0.22);
+  color:             #f0f0f8;
+  font-family:       var(--font-sans, inherit);
+  font-size:         1rem;
+  line-height:       1.6;
+}
+
+.todayb-tools-tray-inner .today-diary-input::placeholder {
+  color: rgba(240, 240, 248, 0.42);
+}
+
+/* Accent icon button (add-to-task in energy panel) */
+.todayb-tools-tray-inner .today-icon-btn--accent {
+  color: rgba(180, 200, 255, 0.90);
+}
+
+/* Danger text button (delete / clear) on dark tray */
+.todayb-tools-tray-inner .today-text-btn--danger {
+  color: #f87171;
 }

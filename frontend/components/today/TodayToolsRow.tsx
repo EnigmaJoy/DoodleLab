@@ -13,7 +13,7 @@ type PanelId = 'energy' | 'checkin' | 'timer' | 'diary'
 const TOOLS: Array<{ id: PanelId; label: string; Icon: React.FC<{ size?: number }> }> = [
   { id: 'energy',  label: 'Energia',      Icon: BoltIcon },
   { id: 'checkin', label: 'Umore',        Icon: SmileIcon },
-  { id: 'timer',   label: 'Timer visivo', Icon: HourglassIcon },
+  { id: 'timer',   label: 'Timer',        Icon: HourglassIcon },
   { id: 'diary',   label: 'Pensieri',     Icon: FeatherIcon },
 ]
 

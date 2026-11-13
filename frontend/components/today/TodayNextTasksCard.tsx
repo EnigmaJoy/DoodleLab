@@ -42,8 +42,11 @@ export function TodayNextTasksCard({ day }: { day: DayKey }) {
   const announce = useAnnounce()
   const tasks    = repo.listTasks(day)
 
-  const open = tasks.filter(t => t.status === 'open' && !t.isFocus)
-  const done = tasks.filter(t => t.status === 'done')
+  // Derived display order: all open (non-focus) first, then all done.
+  // Source array is never mutated; task IDs and metadata are unchanged.
+  const open         = tasks.filter(t => t.status === 'open' && !t.isFocus)
+  const done         = tasks.filter(t => t.status === 'done')
+  const displayTasks = [...open, ...done]
 
   const [showNew, setShowNew] = useState(false)
 
@@ -54,12 +57,8 @@ export function TodayNextTasksCard({ day }: { day: DayKey }) {
     else announce(isDone ? `Di nuovo in Da fare: ${task.title}` : `Fatto: ${task.title}`)
   }
 
-  const visibleOpen = open.slice(0, 3)
-  const visibleDone = done.slice(0, 2)
-  const remaining   = open.length
-
   return (
-    <section className="todayb-card todayb-tasks-card" aria-labelledby="todayb-tasks-title">
+    <section className="todayb-card todayb-tasks-card" aria-labelledby="todayb-tasks-title" data-today="tasks-card">
       <div className="todayb-card-header-row">
         <p id="todayb-tasks-title" className="todayb-label">Prossime cose</p>
         {done.length > 0 && (
@@ -69,14 +68,11 @@ export function TodayNextTasksCard({ day }: { day: DayKey }) {
         )}
       </div>
 
-      {visibleOpen.length === 0 && visibleDone.length === 0 ? (
+      {displayTasks.length === 0 ? (
         <p className="todayb-tasks-empty">Niente in lista per ora.</p>
       ) : (
         <ul className="todayb-task-list" aria-label="Prossime attività">
-          {visibleOpen.map(task => (
-            <TodayTaskRow key={task.id} task={task} onToggle={() => toggleTask(task)} />
-          ))}
-          {visibleDone.map(task => (
+          {displayTasks.map(task => (
             <TodayTaskRow key={task.id} task={task} onToggle={() => toggleTask(task)} />
           ))}
         </ul>
@@ -90,11 +86,6 @@ export function TodayNextTasksCard({ day }: { day: DayKey }) {
         >
           + Aggiungi
         </button>
-        {remaining > 3 && (
-          <span className="todayb-tasks-see-all">
-            Vedi tutte ({remaining})
-          </span>
-        )}
       </div>
 
       {showNew && (

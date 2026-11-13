@@ -115,7 +115,7 @@ export function TodayDayTimeline({ day, isToday, now }: Props) {
   }
 
   return (
-    <section className="todayb-card todayb-day-card" aria-labelledby="todayb-day-title">
+    <section className="todayb-card todayb-day-card" aria-labelledby="todayb-day-title" data-today="day-card">
       {/* Header row */}
       <div className="todayb-day-header">
         <p id="todayb-day-title" className="todayb-label">La giornata</p>
